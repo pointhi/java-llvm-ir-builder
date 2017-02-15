@@ -1,0 +1,14 @@
+language: java
+python:
+    - "2.7"
+install:
+    - git clone https://github.com/graalvm/mx.git
+    - export PATH="mx:$PATH"
+    - pip install pylint==1.1.0 --user
+script:
+    - mx build # test if project builds, has to be replaced with testsuite later
+    - mx checkstyle
+    - mx eclipseformat
+    - mx findbugs
+    - mx pylint
+    - mx checkoverlap
