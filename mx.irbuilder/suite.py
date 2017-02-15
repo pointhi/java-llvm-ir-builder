@@ -20,4 +20,13 @@ suite = {
 
     "javac.lint.overrides" : "none",
 
+    "projects" : {
+        "at.pointhi.irbuilder.irwriter" : {
+            "subDir" : "projects",
+            "sourceDirs" : ["src"],
+            "dependencies" : [],
+            "javaCompliance" : "1.8",
+            "license" : "BSD-new",
+        },
+    }
 }
