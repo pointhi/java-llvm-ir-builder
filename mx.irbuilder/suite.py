@@ -24,7 +24,9 @@ suite = {
         "at.pointhi.irbuilder.irwriter" : {
             "subDir" : "projects",
             "sourceDirs" : ["src"],
-            "dependencies" : [],
+            "dependencies" : [
+                "sulong:SULONG",
+            ],
             "javaCompliance" : "1.8",
             "license" : "BSD-new",
         },

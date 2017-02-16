@@ -18,6 +18,7 @@ projects/*/\.checkstyle
 projects/*/*.iml
 projects/*/\.factorypath
 
+/.project
 
 ###################################################
 # Default .gitignore for java and python projects #
