@@ -3,6 +3,20 @@
 ###################################################
 
 mx.irbuilder/env
+mx.irbuilder/eclipse-launches/**
+mxbuild/**
+workingsets.xml
+
+projects/.project
+projects/*/nbproject/
+projects/*/build.xml
+projects/*/\.settings
+projects/*/\.classpath
+projects/*/\.project
+projects/*/\bin
+projects/*/\.checkstyle
+projects/*/*.iml
+projects/*/\.factorypath
 
 
 ###################################################
