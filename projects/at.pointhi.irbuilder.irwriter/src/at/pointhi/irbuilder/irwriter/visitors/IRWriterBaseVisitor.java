@@ -54,16 +54,39 @@ public class IRWriterBaseVisitor {
         this.out = target;
     }
 
+    /**
+     * Append string to output stream.
+     *
+     * @param s String which we want to append
+     */
     protected void write(String s) {
         out.print(s);
     }
 
+    /**
+     * Append string to output stream, followed by a newline.
+     *
+     * @param s String which we want to append
+     */
     protected void writeln(String s) {
         out.println(s);
     }
 
+    /**
+     * Append newline to output stream.
+     */
     protected void writeln() {
         out.println();
+    }
+
+    /**
+     * Append a formated string to the output stream.
+     *
+     * @param format A format string
+     * @param args Arguments referenced by the format specifiers in the format string
+     */
+    protected void writef(String format, Object... args) {
+        out.print(String.format(format, args));
     }
 
     @SuppressWarnings("unused")

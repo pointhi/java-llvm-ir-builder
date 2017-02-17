@@ -57,7 +57,8 @@ public class IRWriterFunctionVisitor extends IRWriterBaseVisitor implements Func
                 writeln(label);
             }
         } else if (!blockName.equals(LLVMIdentifier.UNKNOWN)) {
-            writeln(String.format("%s:", blockName.substring(1)));
+            writef("%s:", blockName.substring(1));
+            writeln();
         }
         writeInstructionBlock(block);
         writeln();
