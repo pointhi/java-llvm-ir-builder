@@ -32,6 +32,8 @@
 
 package at.pointhi.irbuilder.irwriter.visitors.instruction;
 
+import com.oracle.truffle.llvm.parser.model.enums.Flag;
+import com.oracle.truffle.llvm.parser.model.symbols.constants.integer.IntegerConstant;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.AllocateInstruction;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.BinaryOperationInstruction;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.BranchInstruction;
@@ -56,6 +58,7 @@ import com.oracle.truffle.llvm.parser.model.symbols.instructions.SwitchOldInstru
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.UnreachableInstruction;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.VoidCallInstruction;
 import com.oracle.truffle.llvm.parser.model.visitors.InstructionVisitor;
+import com.oracle.truffle.llvm.runtime.types.symbols.Symbol;
 
 import at.pointhi.irbuilder.irwriter.IRWriter;
 import at.pointhi.irbuilder.irwriter.IRWriterVersion;
@@ -67,64 +70,272 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
         super(visitors, target);
     }
 
-    public void visit(AllocateInstruction allocate) {
-        // TODO Auto-generated method stub
+    protected static final String LLVMIR_LABEL_ALIGN = "align";
 
+    protected static final String INDENTATION = "  ";
+
+    protected void writeIndent() {
+        write(INDENTATION);
+    }
+
+    private static final String LLVMIR_LABEL_ALLOCATE = "alloca";
+
+    public void visit(AllocateInstruction allocate) {
+        writeIndent();
+
+        // <result> = alloca <type>
+        writef("%s = %s ", allocate.getName(), LLVMIR_LABEL_ALLOCATE);
+        writeType(allocate.getPointeeType());
+
+        // [, <ty> <NumElements>]
+        if (!(allocate.getCount() instanceof IntegerConstant && ((IntegerConstant) allocate.getCount()).getValue() == 1)) {
+            write(", ");
+            writeType(allocate.getCount().getType());
+            write(" ");
+            writeInnerSymbolValue(allocate.getCount());
+        }
+
+        // [, align <alignment>]
+        if (allocate.getAlign() != 0) {
+            writef(", %s %d", LLVMIR_LABEL_ALIGN, 1 << (allocate.getAlign() - 1));
+        }
+
+        writeln();
     }
 
     public void visit(BinaryOperationInstruction operation) {
-        // TODO Auto-generated method stub
+        writeIndent();
 
+        // <result> = <op>
+        // sulong specific toString
+        writef("%s = %s ", operation.getName(), operation.getOperator());
+
+        // { <flag>}*
+        for (Flag flag : operation.getFlags()) {
+            write(flag.toString()); // sulong specific toString
+            write(" ");
+        }
+
+        // <ty> <op1>, <op2>
+        writeType(operation.getType());
+        write(" ");
+        writeInnerSymbolValue(operation.getLHS());
+        write(", ");
+        writeInnerSymbolValue(operation.getRHS());
+
+        writeln();
     }
+
+    private static final String LLVMIR_LABEL_BRANCH = "br";
+
+    private static final String LLVMIR_LABEL_BRANCH_LABEL = "label";
 
     public void visit(BranchInstruction branch) {
-        // TODO Auto-generated method stub
+        writeIndent();
 
+        writef("%s %s ", LLVMIR_LABEL_BRANCH, LLVMIR_LABEL_BRANCH_LABEL);
+        writeBlockName(branch.getSuccessor());
+
+        writeln();
     }
 
-    public void visit(CallInstruction call) {
-        // TODO Auto-generated method stub
+    static final String LLVMIR_LABEL_CALL = "call";
 
+    public void visit(CallInstruction call) {
+        writeIndent();
+
+        // <result> = [tail] call
+        writef("%s = ", call.getName());
+
+        // printFunctionCall(call); // TODO
+
+        writeln();
     }
 
     public void visit(CastInstruction cast) {
-        // TODO Auto-generated method stub
+        writeIndent();
 
+        // sulong specific toString
+        writef("%s = %s ", cast.getName(), cast.getOperator());
+        writeType(cast.getValue().getType());
+        write(" ");
+        writeInnerSymbolValue(cast.getValue());
+        write(" to ");
+        writeType(cast.getType());
+
+        writeln();
     }
+
+    private static final String LLVMIR_LABEL_COMPARE = "icmp";
+    private static final String LLVMIR_LABEL_COMPARE_FP = "fcmp";
 
     public void visit(CompareInstruction operation) {
-        // TODO Auto-generated method stub
+        writeIndent();
 
+        // <result> = <icmp|fcmp> <cond> <ty> <op1>, <op2>
+        write(operation.getName());
+        write(" = ");
+
+        if (operation.getOperator().isFloatingPoint()) {
+            write(LLVMIR_LABEL_COMPARE_FP);
+        } else {
+            write(LLVMIR_LABEL_COMPARE);
+        }
+
+        write(" ");
+        write(operation.getOperator().toString()); // sulong specific toString
+        write(" ");
+        writeType(operation.getLHS().getType());
+        write(" ");
+        writeInnerSymbolValue(operation.getLHS());
+        write(", ");
+        writeInnerSymbolValue(operation.getRHS());
+
+        writeln();
     }
+
+    private static final String LLVMIR_LABEL_CONDITIONAL_BRANCH = "br";
 
     public void visit(ConditionalBranchInstruction branch) {
-        // TODO Auto-generated method stub
+        writeIndent();
 
+        // br i1 <cond>, label <iftrue>, label <iffalse>
+        write(LLVMIR_LABEL_CONDITIONAL_BRANCH);
+        write(" ");
+        writeType(branch.getCondition().getType());
+        write(" ");
+        writeInnerSymbolValue(branch.getCondition());
+        write(", ");
+        write(LLVMIR_LABEL_BRANCH_LABEL);
+        write(" ");
+        writeBlockName(branch.getTrueSuccessor());
+        write(", ");
+        write(LLVMIR_LABEL_BRANCH_LABEL);
+        write(" ");
+        writeBlockName(branch.getFalseSuccessor());
+
+        writeln();
     }
+
+    private static final String LLVMIR_LABEL_EXTRACT_ELEMENT = "extractelement";
 
     public void visit(ExtractElementInstruction extract) {
-        // TODO Auto-generated method stub
+        writeIndent();
 
+        // <result> = extractelement <n x <ty>> <val>, i32 <idx>
+        write(extract.getName());
+        write(" = ");
+        write(LLVMIR_LABEL_EXTRACT_ELEMENT);
+        write(" ");
+        writeType(extract.getVector().getType());
+        write(" ");
+        writeInnerSymbolValue(extract.getVector());
+        write(", ");
+        writeType(extract.getIndex().getType());
+        write(" ");
+        writeInnerSymbolValue(extract.getIndex());
+
+        writeln();
     }
+
+    private static final String LLVMIR_LABEL_EXTRACT_VALUE = "extractvalue";
 
     public void visit(ExtractValueInstruction extract) {
-        // TODO Auto-generated method stub
+        writeIndent();
 
+        // <result> = extractvalue <aggregate type> <val>, <idx>{, <idx>}*
+        write(extract.getName());
+        write(" = ");
+        write(LLVMIR_LABEL_EXTRACT_VALUE);
+        write(" ");
+        writeType(extract.getAggregate().getType());
+        write(" ");
+        writeInnerSymbolValue(extract.getAggregate());
+        writef(", %d", extract.getIndex());
+
+        writeln();
     }
+
+    private static final String LLVMIR_LABEL_GET_ELEMENT_POINTER = "getelementptr";
+
+    private static final String LLVMIR_LABEL_GET_ELEMENT_POINTER_INBOUNDS = "inbounds";
 
     public void visit(GetElementPointerInstruction gep) {
-        // TODO Auto-generated method stub
+        writeIndent();
 
+        // <result> = getelementptr
+        writef("%s = %s ", gep.getName(), LLVMIR_LABEL_GET_ELEMENT_POINTER);
+
+        // [inbounds]
+        if (gep.isInbounds()) {
+            write(LLVMIR_LABEL_GET_ELEMENT_POINTER_INBOUNDS);
+            write(" ");
+        }
+
+        // <pty>* <ptrval>
+        writeType(gep.getBasePointer().getType());
+        write(" ");
+        writeInnerSymbolValue(gep.getBasePointer());
+
+        // {, <ty> <idx>}*
+        for (final Symbol sym : gep.getIndices()) {
+            write(", ");
+            writeType(sym.getType());
+            write(" ");
+            writeInnerSymbolValue(sym);
+        }
+
+        writeln();
     }
+
+    private static final String LLVMIR_LABEL_INDIRECT_BRANCH = "indirectbr";
 
     public void visit(IndirectBranchInstruction branch) {
-        // TODO Auto-generated method stub
+        writeIndent();
 
+        // indirectbr <somety>* <address>, [ label <dest1>, label <dest2>, ... ]
+        write(LLVMIR_LABEL_INDIRECT_BRANCH);
+        write(" ");
+        writeType(branch.getAddress().getType());
+        write(" ");
+        writeInnerSymbolValue(branch.getAddress());
+        write(", [ ");
+        for (int i = 0; i < branch.getSuccessorCount(); i++) {
+            if (i != 0) {
+                write(", ");
+            }
+            write(LLVMIR_LABEL_BRANCH_LABEL);
+            write(" ");
+            writeBlockName(branch.getSuccessor(i));
+        }
+        write(" ]");
+
+        writeln();
     }
 
-    public void visit(InsertElementInstruction insert) {
-        // TODO Auto-generated method stub
+    private static final String LLVMIR_LABEL_INSERT_ELEMENT = "insertelement";
 
+    public void visit(InsertElementInstruction insert) {
+        writeIndent();
+
+        // <result> = insertelement <n x <ty>> <val>, <ty> <elt>, i32 <idx>
+        write(insert.getName());
+        write(" = ");
+        write(LLVMIR_LABEL_INSERT_ELEMENT);
+        write(" ");
+        writeType(insert.getVector().getType());
+        write(" ");
+        writeInnerSymbolValue(insert.getVector());
+        write(", ");
+        writeType(insert.getValue().getType());
+        write(" ");
+        writeInnerSymbolValue(insert.getValue());
+        write(", ");
+        writeType(insert.getIndex().getType());
+        write(" ");
+        writeInnerSymbolValue(insert.getIndex());
+
+        writeln();
     }
 
     public void visit(InsertValueInstruction insert) {
