@@ -45,7 +45,7 @@ import at.pointhi.irbuilder.irwriter.IRWriterVersion;
 
 public class IRWriterBaseVisitor {
 
-    @SuppressWarnings("unused") private final IRWriterVersion.IRWriterVisitors visitors;
+    protected final IRWriterVersion.IRWriterVisitors visitors;
 
     private final IRWriter.PrintTarget out;
 
@@ -72,16 +72,19 @@ public class IRWriterBaseVisitor {
     }
 
     @SuppressWarnings("unused")
-    protected void writeFunctionDefinition(FunctionDefinition function) {
-        throw new RuntimeException("Not implemented yet!");
-    }
-
-    @SuppressWarnings("unused")
     protected void writeConstant(Constant constant) {
         throw new RuntimeException("Not implemented yet!");
     }
 
-    protected void writeSymbolValue(Symbol symbol) {
+    protected void writeFunction(FunctionDefinition function) {
+        function.accept(visitors.getFunctionVisitor());
+    }
+
+    protected void writeInstructionBlock(InstructionBlock block) {
+        block.accept(visitors.getInstructionVisitor());
+    }
+
+    protected void writeInnerSymbolValue(Symbol symbol) {
         if (symbol instanceof ValueSymbol) {
             final String value = ((ValueSymbol) symbol).getName();
             write(value);

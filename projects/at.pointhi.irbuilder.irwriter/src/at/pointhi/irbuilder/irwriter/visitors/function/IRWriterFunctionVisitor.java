@@ -34,6 +34,7 @@ package at.pointhi.irbuilder.irwriter.visitors.function;
 
 import com.oracle.truffle.llvm.parser.model.blocks.InstructionBlock;
 import com.oracle.truffle.llvm.parser.model.visitors.FunctionVisitor;
+import com.oracle.truffle.llvm.runtime.types.symbols.LLVMIdentifier;
 
 import at.pointhi.irbuilder.irwriter.IRWriter;
 import at.pointhi.irbuilder.irwriter.IRWriterVersion;
@@ -45,9 +46,21 @@ public class IRWriterFunctionVisitor extends IRWriterBaseVisitor implements Func
         super(visitors, target);
     }
 
-    public void visit(InstructionBlock block) {
-        // TODO Auto-generated method stub
+    private static final String LABEL_PREFIX = "; <label>:";
 
+    public void visit(InstructionBlock block) {
+        final String blockName = block.getName();
+        if (LLVMIdentifier.isImplicitBlockName(blockName)) {
+            final String label = LLVMIdentifier.extractLabelFromImplicitBlockName(blockName);
+            if (!String.valueOf(0).equals(label)) {
+                write(LABEL_PREFIX);
+                writeln(label);
+            }
+        } else if (!blockName.equals(LLVMIdentifier.UNKNOWN)) {
+            writeln(String.format("%s:", blockName.substring(1)));
+        }
+        writeInstructionBlock(block);
+        writeln();
     }
 
 }

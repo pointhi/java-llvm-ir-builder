@@ -138,23 +138,23 @@ public enum IRWriterVersion {
             this.typeVisitor = version.createTypePrintVisitor(this, target);
         }
 
-        IRWriterModelVisitor getModelVisitor() {
+        public IRWriterModelVisitor getModelVisitor() {
             return modelVisitor;
         }
 
-        IRWriterFunctionVisitor getFunctionVisitor() {
+        public IRWriterFunctionVisitor getFunctionVisitor() {
             return functionVisitor;
         }
 
-        IRWriterInstructionVisitor getInstructionVisitor() {
+        public IRWriterInstructionVisitor getInstructionVisitor() {
             return instructionVisitor;
         }
 
-        IRWriterConstantVisitor getConstantVisitor() {
+        public IRWriterConstantVisitor getConstantVisitor() {
             return constantVisitor;
         }
 
-        IRWriterTypeVisitor getTypeVisitor() {
+        public IRWriterTypeVisitor getTypeVisitor() {
             return typeVisitor;
         }
     }

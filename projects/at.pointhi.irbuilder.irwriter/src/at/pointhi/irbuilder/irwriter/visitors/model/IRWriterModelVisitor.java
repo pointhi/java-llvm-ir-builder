@@ -32,7 +32,23 @@
 
 package at.pointhi.irbuilder.irwriter.visitors.model;
 
+import com.oracle.truffle.llvm.parser.model.enums.CastOperator;
+import com.oracle.truffle.llvm.parser.model.enums.Linkage;
+import com.oracle.truffle.llvm.parser.model.functions.FunctionDeclaration;
+import com.oracle.truffle.llvm.parser.model.functions.FunctionDefinition;
+import com.oracle.truffle.llvm.parser.model.functions.FunctionParameter;
+import com.oracle.truffle.llvm.parser.model.globals.GlobalAlias;
+import com.oracle.truffle.llvm.parser.model.globals.GlobalConstant;
+import com.oracle.truffle.llvm.parser.model.globals.GlobalValueSymbol;
+import com.oracle.truffle.llvm.parser.model.globals.GlobalVariable;
+import com.oracle.truffle.llvm.parser.model.symbols.constants.CastConstant;
 import com.oracle.truffle.llvm.parser.model.visitors.ModelVisitor;
+import com.oracle.truffle.llvm.runtime.types.FunctionType;
+import com.oracle.truffle.llvm.runtime.types.PointerType;
+import com.oracle.truffle.llvm.runtime.types.StructureType;
+import com.oracle.truffle.llvm.runtime.types.Type;
+import com.oracle.truffle.llvm.runtime.types.symbols.LLVMIdentifier;
+import com.oracle.truffle.llvm.runtime.types.symbols.Symbol;
 
 import at.pointhi.irbuilder.irwriter.IRWriter;
 import at.pointhi.irbuilder.irwriter.IRWriterVersion;
@@ -44,4 +60,118 @@ public class IRWriterModelVisitor extends IRWriterBaseVisitor implements ModelVi
         super(visitors, target);
     }
 
+    private void writeGlobal(String keyword, GlobalValueSymbol global) {
+        write(global.getName());
+        write(" = ");
+
+        if (global.getLinkage() != Linkage.EXTERNAL || global.getValue() == null) {
+            write(global.getLinkage().getIrString()); // sulong specific toString
+            write(" ");
+        }
+
+        // if (global.getVisibility() != Visibility.DEFAULT) {
+        // write(global.getVisibility().getIrString()); // sulong specific toString
+        // write(" ");
+        // }
+
+        write(keyword);
+        write(" ");
+
+        final Symbol value = global.getValue();
+        if (value instanceof FunctionType) {
+            writeType(new PointerType((FunctionType) value));
+            write(" ");
+
+        } else if (!(value instanceof CastConstant && ((CastConstant) value).getOperator() == CastOperator.BITCAST)) {
+            writeType(((PointerType) global.getType()).getPointeeType());
+            write(" ");
+        }
+
+        if (value != null) {
+            writeInnerSymbolValue(value);
+        }
+
+        if (global.getAlign() > 1) {
+            write(", align ");
+            write(String.valueOf(1 << (global.getAlign() - 1)));
+        }
+
+        writeln();
+    }
+
+    private static final String LLVMIR_LABEL_ALIAS = "alias";
+
+    public void visit(GlobalAlias alias) {
+        writeGlobal(LLVMIR_LABEL_ALIAS, alias);
+    }
+
+    private static final String LLVMIR_LABEL_CONSTANT = "constant";
+
+    public void visit(GlobalConstant constant) {
+        writeGlobal(LLVMIR_LABEL_CONSTANT, constant);
+    }
+
+    private static final String LLVMIR_LABEL_GLOBAL = "global";
+
+    public void visit(GlobalVariable variable) {
+        writeGlobal(LLVMIR_LABEL_GLOBAL, variable);
+    }
+
+    public void visit(FunctionDeclaration function) {
+        writeln();
+
+        write("declare ");
+        writeType(function.getReturnType());
+
+        write(String.format(" %s", function.getName()));
+
+        // visitors.getTypeVisitor().writeFormalArguments(function);
+        writeln();
+    }
+
+    public void visit(FunctionDefinition function) {
+        writeln();
+
+        write("define ");
+        writeType(function.getReturnType());
+
+        write(String.format(" %s", function.getName()));
+
+        write("(");
+
+        boolean firstIteration = true;
+        for (FunctionParameter param : function.getParameters()) {
+            if (!firstIteration) {
+                write(", ");
+            } else {
+                firstIteration = false;
+            }
+            writeType(param.getType());
+            write(" ");
+            write(param.getName());
+        }
+
+        if (function.isVarArg()) {
+            if (!firstIteration) {
+                write(", ");
+            }
+
+            write("...");
+        }
+
+        write(")");
+
+        writeln(" {");
+        writeFunction(function);
+        writeln("}");
+    }
+
+    public void visit(Type type) {
+        if (type instanceof StructureType && !((StructureType) type).getName().equals(LLVMIdentifier.UNKNOWN)) {
+            final StructureType actualType = (StructureType) type;
+            write(String.format("%%%s = type ", actualType.getName()));
+            // visitors.getTypeVisitor().writeStructDeclaration(actualType);
+            writeln();
+        }
+    }
 }
