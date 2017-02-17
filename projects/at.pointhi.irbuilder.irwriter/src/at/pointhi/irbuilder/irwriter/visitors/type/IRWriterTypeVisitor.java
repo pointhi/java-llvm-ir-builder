@@ -32,13 +32,87 @@
 
 package at.pointhi.irbuilder.irwriter.visitors.type;
 
+import com.oracle.truffle.llvm.runtime.types.ArrayType;
+import com.oracle.truffle.llvm.runtime.types.BigIntegerConstantType;
+import com.oracle.truffle.llvm.runtime.types.FloatingPointType;
+import com.oracle.truffle.llvm.runtime.types.FunctionType;
+import com.oracle.truffle.llvm.runtime.types.IntegerConstantType;
+import com.oracle.truffle.llvm.runtime.types.IntegerType;
+import com.oracle.truffle.llvm.runtime.types.MetaType;
+import com.oracle.truffle.llvm.runtime.types.PointerType;
+import com.oracle.truffle.llvm.runtime.types.StructureType;
+import com.oracle.truffle.llvm.runtime.types.VectorType;
+import com.oracle.truffle.llvm.runtime.types.metadata.MetadataConstantPointerType;
+import com.oracle.truffle.llvm.runtime.types.metadata.MetadataConstantType;
+import com.oracle.truffle.llvm.runtime.types.visitors.TypeVisitor;
+
 import at.pointhi.irbuilder.irwriter.IRWriter;
 import at.pointhi.irbuilder.irwriter.IRWriterVersion;
 import at.pointhi.irbuilder.irwriter.visitors.IRWriterBaseVisitor;
 
-public class IRWriterTypeVisitor extends IRWriterBaseVisitor /* implements TypeVisitor */ {
+public class IRWriterTypeVisitor extends IRWriterBaseVisitor implements TypeVisitor {
 
     public IRWriterTypeVisitor(IRWriterVersion.IRWriterVisitors visitors, IRWriter.PrintTarget target) {
         super(visitors, target);
+    }
+
+    public void visit(BigIntegerConstantType bigIntegerConstantType) {
+        // TODO Auto-generated method stub
+
+    }
+
+    public void visit(FloatingPointType floatingPointType) {
+        // TODO Auto-generated method stub
+
+    }
+
+    public void visit(FunctionType functionType) {
+        // TODO Auto-generated method stub
+
+    }
+
+    public void visit(IntegerConstantType integerConstantType) {
+        // TODO Auto-generated method stub
+
+    }
+
+    public void visit(IntegerType integerType) {
+        // TODO Auto-generated method stub
+
+    }
+
+    public void visit(MetadataConstantType metadataConstantType) {
+        // TODO Auto-generated method stub
+
+    }
+
+    public void visit(MetadataConstantPointerType metadataConstantPointerType) {
+        // TODO Auto-generated method stub
+
+    }
+
+    public void visit(MetaType metaType) {
+        // TODO Auto-generated method stub
+
+    }
+
+    public void visit(PointerType pointerType) {
+        // TODO Auto-generated method stub
+
+    }
+
+    public void visit(ArrayType arrayType) {
+        // TODO Auto-generated method stub
+
+    }
+
+    public void visit(StructureType structureType) {
+        // TODO Auto-generated method stub
+
+    }
+
+    public void visit(VectorType vectorType) {
+        // TODO Auto-generated method stub
+
     }
 }

@@ -34,6 +34,7 @@ package at.pointhi.irbuilder.irwriter.visitors.model;
 
 import com.oracle.truffle.llvm.parser.model.enums.CastOperator;
 import com.oracle.truffle.llvm.parser.model.enums.Linkage;
+import com.oracle.truffle.llvm.parser.model.enums.Visibility;
 import com.oracle.truffle.llvm.parser.model.functions.FunctionDeclaration;
 import com.oracle.truffle.llvm.parser.model.functions.FunctionDefinition;
 import com.oracle.truffle.llvm.parser.model.functions.FunctionParameter;
@@ -65,14 +66,14 @@ public class IRWriterModelVisitor extends IRWriterBaseVisitor implements ModelVi
         write(" = ");
 
         if (global.getLinkage() != Linkage.EXTERNAL || global.getValue() == null) {
-            write(global.getLinkage().getIrString()); // sulong specific toString
+            write(global.getLinkage().toString()); // sulong specific toString // TODO: toIrString
             write(" ");
         }
 
-        // if (global.getVisibility() != Visibility.DEFAULT) {
-        // write(global.getVisibility().getIrString()); // sulong specific toString
-        // write(" ");
-        // }
+        if (global.getVisibility() != Visibility.DEFAULT) {
+            write(global.getVisibility().getIrString()); // sulong specific toString
+            write(" ");
+        }
 
         write(keyword);
         write(" ");

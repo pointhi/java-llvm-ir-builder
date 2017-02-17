@@ -32,14 +32,130 @@
 
 package at.pointhi.irbuilder.irwriter.visitors.constants;
 
+import com.oracle.truffle.llvm.parser.model.functions.FunctionDeclaration;
+import com.oracle.truffle.llvm.parser.model.functions.FunctionDefinition;
+import com.oracle.truffle.llvm.parser.model.symbols.constants.BinaryOperationConstant;
+import com.oracle.truffle.llvm.parser.model.symbols.constants.BlockAddressConstant;
+import com.oracle.truffle.llvm.parser.model.symbols.constants.CastConstant;
+import com.oracle.truffle.llvm.parser.model.symbols.constants.CompareConstant;
+import com.oracle.truffle.llvm.parser.model.symbols.constants.GetElementPointerConstant;
+import com.oracle.truffle.llvm.parser.model.symbols.constants.InlineAsmConstant;
+import com.oracle.truffle.llvm.parser.model.symbols.constants.NullConstant;
+import com.oracle.truffle.llvm.parser.model.symbols.constants.StringConstant;
+import com.oracle.truffle.llvm.parser.model.symbols.constants.UndefinedConstant;
+import com.oracle.truffle.llvm.parser.model.symbols.constants.aggregate.ArrayConstant;
+import com.oracle.truffle.llvm.parser.model.symbols.constants.aggregate.StructureConstant;
+import com.oracle.truffle.llvm.parser.model.symbols.constants.aggregate.VectorConstant;
+import com.oracle.truffle.llvm.parser.model.symbols.constants.floatingpoint.DoubleConstant;
+import com.oracle.truffle.llvm.parser.model.symbols.constants.floatingpoint.FloatConstant;
+import com.oracle.truffle.llvm.parser.model.symbols.constants.floatingpoint.X86FP80Constant;
+import com.oracle.truffle.llvm.parser.model.symbols.constants.integer.BigIntegerConstant;
+import com.oracle.truffle.llvm.parser.model.symbols.constants.integer.IntegerConstant;
+import com.oracle.truffle.llvm.parser.model.visitors.ConstantVisitor;
+
 import at.pointhi.irbuilder.irwriter.IRWriter;
 import at.pointhi.irbuilder.irwriter.IRWriterVersion;
 import at.pointhi.irbuilder.irwriter.visitors.IRWriterBaseVisitor;
 
-public class IRWriterConstantVisitor extends IRWriterBaseVisitor /* implements ConstantVisitor */ {
+public class IRWriterConstantVisitor extends IRWriterBaseVisitor implements ConstantVisitor {
 
     public IRWriterConstantVisitor(IRWriterVersion.IRWriterVisitors visitors, IRWriter.PrintTarget target) {
         super(visitors, target);
+    }
+
+    public void visit(ArrayConstant arrayConstant) {
+        // TODO Auto-generated method stub
+
+    }
+
+    public void visit(StructureConstant structureConstant) {
+        // TODO Auto-generated method stub
+
+    }
+
+    public void visit(VectorConstant vectorConstant) {
+        // TODO Auto-generated method stub
+
+    }
+
+    public void visit(BigIntegerConstant bigIntegerConstant) {
+        // TODO Auto-generated method stub
+
+    }
+
+    public void visit(BinaryOperationConstant binaryOperationConstant) {
+        // TODO Auto-generated method stub
+
+    }
+
+    public void visit(BlockAddressConstant blockAddressConstant) {
+        // TODO Auto-generated method stub
+
+    }
+
+    public void visit(CastConstant castConstant) {
+        // TODO Auto-generated method stub
+
+    }
+
+    public void visit(CompareConstant compareConstant) {
+        // TODO Auto-generated method stub
+
+    }
+
+    public void visit(DoubleConstant doubleConstant) {
+        // TODO Auto-generated method stub
+
+    }
+
+    public void visit(FloatConstant floatConstant) {
+        // TODO Auto-generated method stub
+
+    }
+
+    public void visit(X86FP80Constant x86fp80Constant) {
+        // TODO Auto-generated method stub
+
+    }
+
+    public void visit(FunctionDeclaration functionDeclaration) {
+        // TODO Auto-generated method stub
+
+    }
+
+    public void visit(FunctionDefinition functionDefinition) {
+        // TODO Auto-generated method stub
+
+    }
+
+    public void visit(GetElementPointerConstant getElementPointerConstant) {
+        // TODO Auto-generated method stub
+
+    }
+
+    public void visit(InlineAsmConstant inlineAsmConstant) {
+        // TODO Auto-generated method stub
+
+    }
+
+    public void visit(IntegerConstant integerConstant) {
+        // TODO Auto-generated method stub
+
+    }
+
+    public void visit(NullConstant nullConstant) {
+        // TODO Auto-generated method stub
+
+    }
+
+    public void visit(StringConstant stringConstant) {
+        // TODO Auto-generated method stub
+
+    }
+
+    public void visit(UndefinedConstant undefinedConstant) {
+        // TODO Auto-generated method stub
+
     }
 
 }

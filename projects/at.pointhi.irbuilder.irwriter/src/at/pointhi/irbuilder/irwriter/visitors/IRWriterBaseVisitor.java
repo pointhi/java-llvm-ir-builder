@@ -89,14 +89,12 @@ public class IRWriterBaseVisitor {
         out.print(String.format(format, args));
     }
 
-    @SuppressWarnings("unused")
     protected void writeType(Type type) {
-        throw new RuntimeException("Not implemented yet!");
+        type.accept(visitors.getTypeVisitor());
     }
 
-    @SuppressWarnings("unused")
     protected void writeConstant(Constant constant) {
-        throw new RuntimeException("Not implemented yet!");
+        constant.accept(visitors.getConstantVisitor());
     }
 
     protected void writeFunction(FunctionDefinition function) {
