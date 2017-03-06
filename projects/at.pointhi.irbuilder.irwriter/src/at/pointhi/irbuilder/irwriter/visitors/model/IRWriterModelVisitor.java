@@ -126,7 +126,7 @@ public class IRWriterModelVisitor extends IRWriterBaseVisitor implements ModelVi
 
         writef(" %s", function.getName());
 
-        // visitors.getTypeVisitor().writeFormalArguments(function);
+        writeFormalArguments(function);
         writeln();
     }
 
@@ -171,7 +171,7 @@ public class IRWriterModelVisitor extends IRWriterBaseVisitor implements ModelVi
         if (type instanceof StructureType && !((StructureType) type).getName().equals(LLVMIdentifier.UNKNOWN)) {
             final StructureType actualType = (StructureType) type;
             writef("%%%s = type ", actualType.getName());
-            // visitors.getTypeVisitor().writeStructDeclaration(actualType);
+            writeStructDeclaration(actualType);
             writeln();
         }
     }

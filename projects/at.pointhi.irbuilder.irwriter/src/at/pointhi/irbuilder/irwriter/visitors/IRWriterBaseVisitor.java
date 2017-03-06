@@ -36,6 +36,7 @@ import com.oracle.truffle.llvm.parser.model.blocks.InstructionBlock;
 import com.oracle.truffle.llvm.parser.model.functions.FunctionDefinition;
 import com.oracle.truffle.llvm.parser.model.symbols.constants.Constant;
 import com.oracle.truffle.llvm.runtime.types.FunctionType;
+import com.oracle.truffle.llvm.runtime.types.StructureType;
 import com.oracle.truffle.llvm.runtime.types.Type;
 import com.oracle.truffle.llvm.runtime.types.symbols.LLVMIdentifier;
 import com.oracle.truffle.llvm.runtime.types.symbols.Symbol;
@@ -123,6 +124,26 @@ public class IRWriterBaseVisitor {
         }
 
         write(")");
+    }
+
+    protected void writeStructDeclaration(StructureType structureType) {
+        if (structureType.isPacked()) {
+            write("<");
+        }
+        write("{ ");
+
+        for (int i = 0; i < structureType.getLength(); i++) {
+            if (i > 0) {
+                write(", ");
+            }
+
+            writeType(structureType.getElementType(i));
+        }
+
+        write(" }");
+        if (structureType.isPacked()) {
+            write(">");
+        }
     }
 
     protected void writeInstructionBlock(InstructionBlock block) {

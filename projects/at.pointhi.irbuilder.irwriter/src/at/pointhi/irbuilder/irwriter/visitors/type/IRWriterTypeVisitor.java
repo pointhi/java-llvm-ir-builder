@@ -32,6 +32,8 @@
 
 package at.pointhi.irbuilder.irwriter.visitors.type;
 
+import java.math.BigInteger;
+
 import com.oracle.truffle.llvm.runtime.types.ArrayType;
 import com.oracle.truffle.llvm.runtime.types.BigIntegerConstantType;
 import com.oracle.truffle.llvm.runtime.types.FloatingPointType;
@@ -44,6 +46,7 @@ import com.oracle.truffle.llvm.runtime.types.StructureType;
 import com.oracle.truffle.llvm.runtime.types.VectorType;
 import com.oracle.truffle.llvm.runtime.types.metadata.MetadataConstantPointerType;
 import com.oracle.truffle.llvm.runtime.types.metadata.MetadataConstantType;
+import com.oracle.truffle.llvm.runtime.types.symbols.LLVMIdentifier;
 import com.oracle.truffle.llvm.runtime.types.visitors.TypeVisitor;
 
 import at.pointhi.irbuilder.irwriter.IRWriter;
@@ -57,62 +60,91 @@ public class IRWriterTypeVisitor extends IRWriterBaseVisitor implements TypeVisi
     }
 
     public void visit(BigIntegerConstantType bigIntegerConstantType) {
-        // TODO Auto-generated method stub
+        if (bigIntegerConstantType.getType().getBits() == 1) {
+            write(bigIntegerConstantType.getValue().equals(BigInteger.ZERO) ? "i1 false" : "i1 true");
+            return;
+        }
 
+        writeType(bigIntegerConstantType.getType());
+        writef(" %s", bigIntegerConstantType.getValue());
     }
 
     public void visit(FloatingPointType floatingPointType) {
-        // TODO Auto-generated method stub
-
+        write(floatingPointType.name().toLowerCase());
     }
 
     public void visit(FunctionType functionType) {
-        // TODO Auto-generated method stub
+        writeType(functionType.getReturnType());
 
+        write(" (");
+
+        for (int i = 0; i < functionType.getArgumentTypes().length; i++) {
+            if (i > 0) {
+                write(", ");
+            }
+            writeType(functionType.getArgumentTypes()[i]);
+        }
+
+        if (functionType.isVarArg()) {
+            if (functionType.getArgumentTypes().length > 0) {
+                write(", ");
+            }
+            write("...");
+        }
+        write(")");
     }
 
     public void visit(IntegerConstantType integerConstantType) {
-        // TODO Auto-generated method stub
+        if (integerConstantType.getType().getBits() == 1) {
+            write(integerConstantType.getValue() == 0 ? "i1 false" : "i1 true");
+            return;
+        }
 
+        writeType(integerConstantType.getType());
+        writef(" %d", integerConstantType.getValue());
     }
 
     public void visit(IntegerType integerType) {
-        // TODO Auto-generated method stub
-
+        writef("i%d", integerType.getBits());
     }
 
     public void visit(MetadataConstantType metadataConstantType) {
-        // TODO Auto-generated method stub
-
+        writeType(metadataConstantType.getType());
+        writef(" %d", metadataConstantType.getValue());
     }
 
     public void visit(MetadataConstantPointerType metadataConstantPointerType) {
-        // TODO Auto-generated method stub
-
+        writef("!!%d", metadataConstantPointerType.getSymbolIndex());
     }
 
     public void visit(MetaType metaType) {
-        // TODO Auto-generated method stub
-
+        write(metaType.name().toLowerCase());
     }
 
     public void visit(PointerType pointerType) {
-        // TODO Auto-generated method stub
-
+        writeType(pointerType.getPointeeType());
+        write("*");
     }
 
     public void visit(ArrayType arrayType) {
-        // TODO Auto-generated method stub
-
+        writef("[%d", arrayType.getLength());
+        write(" x ");
+        writeType(arrayType.getElementType());
+        write("]");
     }
 
     public void visit(StructureType structureType) {
-        // TODO Auto-generated method stub
-
+        if (LLVMIdentifier.UNKNOWN.equals(structureType.getName())) {
+            writeStructDeclaration(structureType);
+        } else {
+            write("%" + structureType.getName());
+        }
     }
 
     public void visit(VectorType vectorType) {
-        // TODO Auto-generated method stub
-
+        writef("<%d", vectorType.getLength());
+        write(" x ");
+        writeType(vectorType.getElementType());
+        write(">");
     }
 }
