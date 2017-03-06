@@ -32,11 +32,17 @@
 
 package at.pointhi.irbuilder.irwriter.visitors.instruction;
 
+import com.oracle.truffle.llvm.parser.model.blocks.InstructionBlock;
+import com.oracle.truffle.llvm.parser.model.enums.AtomicOrdering;
 import com.oracle.truffle.llvm.parser.model.enums.Flag;
+import com.oracle.truffle.llvm.parser.model.enums.SynchronizationScope;
+import com.oracle.truffle.llvm.parser.model.functions.FunctionParameter;
+import com.oracle.truffle.llvm.parser.model.symbols.constants.Constant;
 import com.oracle.truffle.llvm.parser.model.symbols.constants.integer.IntegerConstant;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.AllocateInstruction;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.BinaryOperationInstruction;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.BranchInstruction;
+import com.oracle.truffle.llvm.parser.model.symbols.instructions.Call;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.CallInstruction;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.CastInstruction;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.CompareInstruction;
@@ -58,7 +64,12 @@ import com.oracle.truffle.llvm.parser.model.symbols.instructions.SwitchOldInstru
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.UnreachableInstruction;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.VoidCallInstruction;
 import com.oracle.truffle.llvm.parser.model.visitors.InstructionVisitor;
+import com.oracle.truffle.llvm.runtime.types.FunctionType;
+import com.oracle.truffle.llvm.runtime.types.MetaType;
+import com.oracle.truffle.llvm.runtime.types.PointerType;
+import com.oracle.truffle.llvm.runtime.types.Type;
 import com.oracle.truffle.llvm.runtime.types.symbols.Symbol;
+import com.oracle.truffle.llvm.runtime.types.symbols.ValueSymbol;
 
 import at.pointhi.irbuilder.irwriter.IRWriter;
 import at.pointhi.irbuilder.irwriter.IRWriterVersion;
@@ -147,7 +158,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
         // <result> = [tail] call
         writef("%s = ", call.getName());
 
-        // printFunctionCall(call); // TODO
+        writeFunctionCall(call);
 
         writeln();
     }
@@ -338,59 +349,401 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
         writeln();
     }
 
-    public void visit(InsertValueInstruction insert) {
-        // TODO Auto-generated method stub
+    private static final String LLVMIR_LABEL_INSERT_VALUE = "insertvalue";
 
+    public void visit(InsertValueInstruction insert) {
+        writeIndent();
+
+        // <result> = insertvalue <aggregate type> <val>, <ty> <elt>, <idx>{, <idx>}*
+        write(insert.getName());
+        write(" = ");
+        write(LLVMIR_LABEL_INSERT_VALUE);
+        write(" ");
+        writeType(insert.getAggregate().getType());
+        write(" ");
+        writeInnerSymbolValue(insert.getAggregate());
+        write(", ");
+        writeType(insert.getValue().getType());
+        write(" ");
+        writeInnerSymbolValue(insert.getValue());
+        writef(", %d", insert.getIndex());
+
+        writeln();
     }
+
+    static final String LLVMIR_LABEL_LOAD = "load";
+
+    static final String LLVMIR_LABEL_ATOMIC = "atomic";
+
+    static final String LLVMIR_LABEL_VOLATILE = "volatile";
+
+    static final String LLVMIR_LABEL_SINGLETHREAD = "singlethread";
 
     public void visit(LoadInstruction load) {
-        // TODO Auto-generated method stub
+        writeIndent();
 
+        write(load.getName());
+        write(" = ");
+        write(LLVMIR_LABEL_LOAD);
+
+        if (load.getAtomicOrdering() != AtomicOrdering.NOT_ATOMIC) {
+            write(" ");
+            write(LLVMIR_LABEL_ATOMIC);
+        }
+
+        if (load.isVolatile()) {
+            write(" ");
+            write(LLVMIR_LABEL_VOLATILE);
+        }
+
+        write(" ");
+        writeType(load.getSource().getType());
+
+        write(" ");
+        writeInnerSymbolValue(load.getSource());
+
+        if (load.getAtomicOrdering() != AtomicOrdering.NOT_ATOMIC) {
+            if (load.getSynchronizationScope() == SynchronizationScope.SINGLE_THREAD) {
+                write(" ");
+                write(LLVMIR_LABEL_SINGLETHREAD);
+            }
+
+            write(" ");
+            write(load.getAtomicOrdering().toString());
+        }
+
+        if (load.getAlign() != 0) {
+            writef(", %s %d", LLVMIR_LABEL_ALIGN, 1 << (load.getAlign() - 1));
+        }
+
+        writeln();
     }
+
+    private static final String LLVMIR_LABEL_PHI = "phi";
 
     public void visit(PhiInstruction phi) {
-        // TODO Auto-generated method stub
+        writeIndent();
 
+        // <result> = phi <ty>
+        write(phi.getName());
+        write(" = ");
+        write(LLVMIR_LABEL_PHI);
+        write(" ");
+
+        writeType(phi.getType());
+        write(" ");
+
+        // [ <val0>, <label0>], ...
+        for (int i = 0; i < phi.getSize(); i++) {
+            if (i != 0) {
+                write(", ");
+            }
+
+            write("[ ");
+            writeInnerSymbolValue(phi.getValue(i));
+            write(", ");
+            writeBlockName(phi.getBlock(i));
+            write(" ]");
+        }
+
+        writeln();
     }
+
+    private static final String LLVMIR_LABEL_RETURN = "ret";
 
     public void visit(ReturnInstruction ret) {
-        // TODO Auto-generated method stub
+        writeIndent();
 
+        write(LLVMIR_LABEL_RETURN);
+        write(" ");
+
+        final Symbol value = ret.getValue();
+        if (value == null) {
+            writeType(MetaType.VOID);
+        } else {
+            writeType(value.getType());
+            write(" ");
+            writeInnerSymbolValue(value);
+        }
+
+        writeln();
     }
+
+    private static final String LLVMIR_LABEL_SELECT = "select";
 
     public void visit(SelectInstruction select) {
-        // TODO Auto-generated method stub
+        writeIndent();
 
+        // <result> = select selty <cond>, <ty> <val1>, <ty> <val2>
+        write(select.getName());
+        write(" = ");
+        write(LLVMIR_LABEL_SELECT);
+        write(" ");
+
+        writeType(select.getCondition().getType());
+        write(" ");
+        writeInnerSymbolValue(select.getCondition());
+        write(", ");
+
+        writeType(select.getTrueValue().getType());
+        write(" ");
+        writeInnerSymbolValue(select.getTrueValue());
+        write(", ");
+
+        writeType(select.getFalseValue().getType());
+        write(" ");
+        writeInnerSymbolValue(select.getFalseValue());
+
+        writeln();
     }
+
+    private static final String LLVMIR_LABEL_SHUFFLE_VECTOR = "shufflevector";
 
     public void visit(ShuffleVectorInstruction shuffle) {
-        // TODO Auto-generated method stub
+        writeIndent();
 
+        // <result> = shufflevector <n x <ty>> <v1>, <n x <ty>> <v2>, <m x i32> <mask>
+        write(shuffle.getName());
+        write(" = ");
+        write(LLVMIR_LABEL_SHUFFLE_VECTOR);
+        write(" ");
+
+        writeType(shuffle.getVector1().getType());
+        write(" ");
+        writeInnerSymbolValue(shuffle.getVector1());
+        write(", ");
+
+        writeType(shuffle.getVector2().getType());
+        write(" ");
+        writeInnerSymbolValue(shuffle.getVector2());
+        write(", ");
+
+        writeType(shuffle.getMask().getType());
+        write(" ");
+        writeInnerSymbolValue(shuffle.getMask());
+
+        writeln();
     }
+
+    private static final String LLVMIR_LABEL_STORE = "store";
 
     public void visit(StoreInstruction store) {
-        // TODO Auto-generated method stub
+        writeIndent();
 
+        writef("%s ", LLVMIR_LABEL_STORE);
+
+        if (store.getAtomicOrdering() != AtomicOrdering.NOT_ATOMIC) {
+            write(LLVMIR_LABEL_ATOMIC);
+            write(" ");
+        }
+
+        if (store.isVolatile()) {
+            write(LLVMIR_LABEL_VOLATILE);
+            write(" ");
+        }
+
+        writeType(((PointerType) store.getDestination().getType()).getPointeeType());
+        write(" ");
+
+        writeInnerSymbolValue(store.getSource());
+        write(", ");
+
+        writeType(store.getDestination().getType());
+        write(" ");
+        writeInnerSymbolValue(store.getDestination());
+
+        if (store.getAtomicOrdering() != AtomicOrdering.NOT_ATOMIC) {
+            if (store.getSynchronizationScope() == SynchronizationScope.SINGLE_THREAD) {
+                write(" ");
+                write(LLVMIR_LABEL_SINGLETHREAD);
+            }
+
+            write(" ");
+            write(store.getAtomicOrdering().toString()); // sulong specific toString
+        }
+
+        if (store.getAlign() != 0) {
+            writef(", %s %d", LLVMIR_LABEL_ALIGN, 1 << (store.getAlign() - 1));
+        }
+
+        writeln();
     }
+
+    private static final String LLVMIR_LABEL_SWITCH = "switch";
 
     public void visit(SwitchInstruction select) {
-        // TODO Auto-generated method stub
+        writeIndent();
 
+        // switch <intty> <value>, label <defaultdest>
+        write(LLVMIR_LABEL_SWITCH);
+        write(" ");
+        writeType(select.getCondition().getType());
+        write(" ");
+        writeInnerSymbolValue(select.getCondition());
+        write(", ");
+        write(LLVMIR_LABEL_BRANCH_LABEL);
+        write(" ");
+        writeBlockName(select.getDefaultBlock());
+
+        write(" [ ");
+        for (int i = 0; i < select.getCaseCount(); i++) {
+            if (i != 0) {
+                writeln();
+                writeIndent();
+                writeIndent();
+            }
+
+            final Symbol val = select.getCaseValue(i);
+            final InstructionBlock blk = select.getCaseBlock(i);
+            writeType(val.getType());
+            write(" ");
+            writeInnerSymbolValue(val);
+            write(", ");
+            write(LLVMIR_LABEL_BRANCH_LABEL);
+            write(" ");
+            writeBlockName(blk);
+        }
+        write(" ]");
+
+        writeln();
     }
+
+    private static final String LLVMIR_LABEL_SWITCH_OLD = "switch";
 
     public void visit(SwitchOldInstruction select) {
-        // TODO Auto-generated method stub
+        writeIndent();
 
+        // switch <intty> <value>, label <defaultdest>
+        write(LLVMIR_LABEL_SWITCH_OLD);
+        write(" ");
+        writeType(select.getCondition().getType());
+        write(" ");
+        writeInnerSymbolValue(select.getCondition());
+        write(", ");
+        write(LLVMIR_LABEL_BRANCH_LABEL);
+        write(" ");
+        writeBlockName(select.getDefaultBlock());
+
+        write(" [ ");
+        for (int i = 0; i < select.getCaseCount(); i++) {
+            if (i != 0) {
+                writeln();
+                writeIndent();
+                writeIndent();
+            }
+
+            writeType(select.getCondition().getType());
+            write(String.format(" %d, ", select.getCaseValue(i)));
+            write(LLVMIR_LABEL_BRANCH_LABEL);
+            write(" ");
+            writeBlockName(select.getCaseBlock(i));
+        }
+        write(" ]");
+
+        writeln();
     }
 
-    public void visit(UnreachableInstruction unreachable) {
-        // TODO Auto-generated method stub
+    private static final String LLVMIR_LABEL_UNREACHABLE = "unreachable";
 
+    public void visit(UnreachableInstruction unreachable) {
+        writeIndent();
+
+        write(LLVMIR_LABEL_UNREACHABLE);
+
+        writeln();
     }
 
     public void visit(VoidCallInstruction call) {
-        // TODO Auto-generated method stub
+        writeIndent();
 
+        writeFunctionCall(call);
+
+        writeln();
     }
 
+    protected void writeFunctionCall(Call call) {
+        write(LLVMIR_LABEL_CALL);
+        write(" ");
+
+        final Symbol callTarget = call.getCallTarget();
+        if (callTarget instanceof FunctionType) {
+            // <ty>
+            final FunctionType decl = (FunctionType) callTarget;
+
+            decl.getReturnType().accept(visitors.getTypeVisitor());
+
+            if (decl.isVarArg() || (decl.getReturnType() instanceof PointerType && ((PointerType) decl.getReturnType()).getPointeeType() instanceof FunctionType)) {
+                write(" ");
+                writeFormalArguments(decl);
+                write("*");
+            }
+            write(String.format(" %s", decl.getName()));
+
+        } else if (callTarget instanceof CallInstruction) {
+            // final FunctionType decl = ((CallInstruction) callTarget).getCallType();
+            final FunctionType decl = (FunctionType) ((CallInstruction) callTarget).getCallTarget();
+            decl.getReturnType().accept(visitors.getTypeVisitor());
+            write(String.format(" %s", ((CallInstruction) callTarget).getName()));
+
+        } else if (callTarget instanceof FunctionParameter) {
+            callTarget.getType().accept(visitors.getTypeVisitor());
+            write(String.format(" %s ", ((FunctionParameter) callTarget).getName()));
+
+        } else if (callTarget instanceof ValueSymbol) {
+            Type targetType;
+            if (callTarget instanceof LoadInstruction) {
+                targetType = ((LoadInstruction) callTarget).getSource().getType();
+            } else {
+                targetType = callTarget.getType();
+            }
+
+            while (targetType instanceof PointerType) {
+                targetType = ((PointerType) targetType).getPointeeType();
+            }
+
+            if (targetType instanceof FunctionType) {
+                final FunctionType decl = (FunctionType) targetType;
+
+                decl.getReturnType().accept(visitors.getTypeVisitor());
+
+                if (decl.isVarArg() || (decl.getReturnType() instanceof PointerType && ((PointerType) decl.getReturnType()).getPointeeType() instanceof FunctionType)) {
+                    write(" ");
+                    writeFormalArguments(decl);
+                    write("*");
+                }
+
+                write(" ");
+                writeInnerSymbolValue(callTarget);
+
+            } else {
+                throw new AssertionError("unexpected target type: " + targetType.getClass().getName());
+            }
+
+        } else if (callTarget instanceof Constant) {
+            callTarget.getType().accept(visitors.getTypeVisitor());
+            write(" ");
+            ((Constant) callTarget).accept(visitors.getConstantVisitor());
+
+        } else {
+            throw new AssertionError("unexpected target type: " + call.getCallTarget().getClass().getName());
+        }
+
+        writeActualArgs(call);
+    }
+
+    protected void writeActualArgs(Call call) {
+        write("(");
+        for (int i = 0; i < call.getArgumentCount(); i++) {
+            final Symbol arg = call.getArgument(i);
+
+            if (i != 0) {
+                write(", ");
+            }
+
+            writeType(arg.getType());
+            write(" ");
+            writeInnerSymbolValue(arg);
+        }
+        write(")");
+    }
 }

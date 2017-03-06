@@ -35,6 +35,7 @@ package at.pointhi.irbuilder.irwriter.visitors;
 import com.oracle.truffle.llvm.parser.model.blocks.InstructionBlock;
 import com.oracle.truffle.llvm.parser.model.functions.FunctionDefinition;
 import com.oracle.truffle.llvm.parser.model.symbols.constants.Constant;
+import com.oracle.truffle.llvm.runtime.types.FunctionType;
 import com.oracle.truffle.llvm.runtime.types.Type;
 import com.oracle.truffle.llvm.runtime.types.symbols.LLVMIdentifier;
 import com.oracle.truffle.llvm.runtime.types.symbols.Symbol;
@@ -86,7 +87,7 @@ public class IRWriterBaseVisitor {
      * @param args Arguments referenced by the format specifiers in the format string
      */
     protected void writef(String format, Object... args) {
-        out.print(String.format(format, args));
+        out.print(String.format(format, args)); // TOOD: deprecate this function
     }
 
     protected void writeType(Type type) {
@@ -101,6 +102,29 @@ public class IRWriterBaseVisitor {
         function.accept(visitors.getFunctionVisitor());
     }
 
+    protected void writeFormalArguments(FunctionType function) {
+        write("(");
+
+        final Type[] argTypes = function.getArgumentTypes();
+        for (int i = 0; i < argTypes.length; i++) {
+            if (i != 0) {
+                write(", ");
+            }
+
+            writeType(argTypes[i]);
+        }
+
+        if (function.isVarArg()) {
+            if (argTypes.length != 0) {
+                write(", ");
+            }
+
+            write("...");
+        }
+
+        write(")");
+    }
+
     protected void writeInstructionBlock(InstructionBlock block) {
         block.accept(visitors.getInstructionVisitor());
     }
@@ -112,7 +136,7 @@ public class IRWriterBaseVisitor {
         } else if (symbol instanceof Constant) {
             writeConstant((Constant) symbol);
         } else {
-            throw new IllegalStateException("Cannot print this value: " + symbol);
+            throw new IllegalStateException("Cannot write this value: " + symbol);
         }
     }
 
