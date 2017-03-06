@@ -32,6 +32,9 @@
 
 package at.pointhi.irbuilder.irwriter.visitors.constants;
 
+import java.math.BigInteger;
+
+import com.oracle.truffle.llvm.parser.model.enums.AsmDialect;
 import com.oracle.truffle.llvm.parser.model.functions.FunctionDeclaration;
 import com.oracle.truffle.llvm.parser.model.functions.FunctionDefinition;
 import com.oracle.truffle.llvm.parser.model.symbols.constants.BinaryOperationConstant;
@@ -43,6 +46,7 @@ import com.oracle.truffle.llvm.parser.model.symbols.constants.InlineAsmConstant;
 import com.oracle.truffle.llvm.parser.model.symbols.constants.NullConstant;
 import com.oracle.truffle.llvm.parser.model.symbols.constants.StringConstant;
 import com.oracle.truffle.llvm.parser.model.symbols.constants.UndefinedConstant;
+import com.oracle.truffle.llvm.parser.model.symbols.constants.aggregate.AggregateConstant;
 import com.oracle.truffle.llvm.parser.model.symbols.constants.aggregate.ArrayConstant;
 import com.oracle.truffle.llvm.parser.model.symbols.constants.aggregate.StructureConstant;
 import com.oracle.truffle.llvm.parser.model.symbols.constants.aggregate.VectorConstant;
@@ -52,6 +56,13 @@ import com.oracle.truffle.llvm.parser.model.symbols.constants.floatingpoint.X86F
 import com.oracle.truffle.llvm.parser.model.symbols.constants.integer.BigIntegerConstant;
 import com.oracle.truffle.llvm.parser.model.symbols.constants.integer.IntegerConstant;
 import com.oracle.truffle.llvm.parser.model.visitors.ConstantVisitor;
+import com.oracle.truffle.llvm.runtime.types.AggregateType;
+import com.oracle.truffle.llvm.runtime.types.ArrayType;
+import com.oracle.truffle.llvm.runtime.types.FloatingPointType;
+import com.oracle.truffle.llvm.runtime.types.FunctionType;
+import com.oracle.truffle.llvm.runtime.types.IntegerType;
+import com.oracle.truffle.llvm.runtime.types.PointerType;
+import com.oracle.truffle.llvm.runtime.types.symbols.Symbol;
 
 import at.pointhi.irbuilder.irwriter.IRWriter;
 import at.pointhi.irbuilder.irwriter.IRWriterVersion;
@@ -63,99 +74,279 @@ public class IRWriterConstantVisitor extends IRWriterBaseVisitor implements Cons
         super(visitors, target);
     }
 
-    public void visit(ArrayConstant arrayConstant) {
-        // TODO Auto-generated method stub
+    private void writeAggregateElements(AggregateConstant aggregate) {
+        for (int i = 0; i < aggregate.getElementCount(); i++) {
+            if (i != 0) {
+                write(", ");
+            }
 
+            final Symbol symbol = aggregate.getElement(i);
+            writeType(symbol.getType());
+            write(" ");
+            writeInnerSymbolValue(symbol);
+        }
+    }
+
+    public void visit(ArrayConstant arrayConstant) {
+        write("[ ");
+        writeAggregateElements(arrayConstant);
+        write(" ]");
     }
 
     public void visit(StructureConstant structureConstant) {
-        // TODO Auto-generated method stub
-
+        if (structureConstant.isPacked()) {
+            write("<");
+        }
+        write("{ ");
+        writeAggregateElements(structureConstant);
+        write(" }");
+        if (structureConstant.isPacked()) {
+            write(">");
+        }
     }
 
     public void visit(VectorConstant vectorConstant) {
-        // TODO Auto-generated method stub
-
+        write("< ");
+        writeAggregateElements(vectorConstant);
+        write(" >");
     }
 
     public void visit(BigIntegerConstant bigIntegerConstant) {
-        // TODO Auto-generated method stub
+        final BigInteger value = bigIntegerConstant.getValue();
 
+        if (bigIntegerConstant.getType().getBits() == 1) {
+            write(value.equals(BigInteger.ZERO) ? "false" : "true");
+        } else {
+            write(value.toString());
+        }
     }
 
     public void visit(BinaryOperationConstant binaryOperationConstant) {
-        // TODO Auto-generated method stub
+        write(binaryOperationConstant.getOperator().toString()); // sulong specific toString
+        write(" (");
 
+        writeType(binaryOperationConstant.getLHS().getType());
+        write(" ");
+        writeInnerSymbolValue(binaryOperationConstant.getLHS());
+        write(", ");
+
+        writeType(binaryOperationConstant.getRHS().getType());
+        write(" ");
+        writeInnerSymbolValue(binaryOperationConstant.getRHS());
+
+        write(")");
     }
 
-    public void visit(BlockAddressConstant blockAddressConstant) {
-        // TODO Auto-generated method stub
+    private static final String LLVMIR_LABEL_BLOCKADDRESS = "blockaddress";
 
+    public void visit(BlockAddressConstant blockAddressConstant) {
+        write(LLVMIR_LABEL_BLOCKADDRESS);
+        write(" (");
+        write(blockAddressConstant.getFunction().getName());
+        write(", ");
+        writeBlockName(blockAddressConstant.getInstructionBlock());
+        write(")");
     }
 
     public void visit(CastConstant castConstant) {
-        // TODO Auto-generated method stub
-
+        write(castConstant.getOperator().toString()); // sulong specific toString
+        write(" (");
+        writeType(castConstant.getValue().getType());
+        write(" ");
+        writeInnerSymbolValue(castConstant.getValue());
+        write(" to ");
+        writeType(castConstant.getType());
+        write(")");
     }
 
-    public void visit(CompareConstant compareConstant) {
-        // TODO Auto-generated method stub
+    private static final String LLVMIR_LABEL_COMPARE = "icmp";
+    private static final String LLVMIR_LABEL_COMPARE_FP = "fcmp";
 
+    public void visit(CompareConstant compareConstant) {
+        if (compareConstant.getOperator().isFloatingPoint()) {
+            write(LLVMIR_LABEL_COMPARE_FP);
+        } else {
+            write(LLVMIR_LABEL_COMPARE);
+        }
+
+        write(" ");
+        write(compareConstant.getOperator().toString()); // sulong specific toString
+        write(" (");
+
+        writeType(compareConstant.getLHS().getType());
+        write(" ");
+        writeInnerSymbolValue(compareConstant.getLHS());
+        write(", ");
+
+        writeType(compareConstant.getRHS().getType());
+        write(" ");
+        writeInnerSymbolValue(compareConstant.getRHS());
+
+        write(")");
     }
 
     public void visit(DoubleConstant doubleConstant) {
-        // TODO Auto-generated method stub
-
+        // see http://llvm.org/releases/3.2/docs/LangRef.html#simpleconstants for
+        // why we cannot use String.format(Locale.ROOT, "%e", doubleConstant.getValue())
+        final long bits = Double.doubleToRawLongBits(doubleConstant.getValue());
+        writef("0x%x", bits);
     }
 
     public void visit(FloatConstant floatConstant) {
-        // TODO Auto-generated method stub
-
+        // see http://llvm.org/releases/3.2/docs/LangRef.html#simpleconstants for
+        // why we cannot use String.format(Locale.ROOT, "%e", doubleConstant.getValue())
+        final long bits = Double.doubleToRawLongBits(floatConstant.getValue());
+        writef("0x%x", bits);
     }
+
+    private static final int HEX_MASK = 0xf;
+
+    private static final int BYTE_MSB_SHIFT = 4;
 
     public void visit(X86FP80Constant x86fp80Constant) {
-        // TODO Auto-generated method stub
-
+        final byte[] value = x86fp80Constant.getValue();
+        write("0xK");
+        for (byte aValue : value) {
+            write(String.valueOf((aValue >>> BYTE_MSB_SHIFT) & HEX_MASK));
+            write(String.valueOf(aValue & HEX_MASK));
+        }
     }
+
+    private static final String LLVMIR_LABEL_DECLARE_FUNCTION = "declare";
 
     public void visit(FunctionDeclaration functionDeclaration) {
-        // TODO Auto-generated method stub
-
+        write(LLVMIR_LABEL_DECLARE_FUNCTION);
+        write(" ");
+        writeType(functionDeclaration.getReturnType());
+        writef(" %s", functionDeclaration.getName());
+        writeFormalArguments(functionDeclaration);
     }
+
+    private static final String LLVMIR_LABEL_DEFINE_FUNCTION = "define";
 
     public void visit(FunctionDefinition functionDefinition) {
-        // TODO Auto-generated method stub
-
+        write(LLVMIR_LABEL_DEFINE_FUNCTION);
+        write(" ");
+        writeType(functionDefinition.getReturnType());
+        writef(" %s", functionDefinition.getName());
+        writeFormalArguments(functionDefinition);
     }
+
+    static final String LLVMIR_LABEL_GET_ELEMENT_POINTER = "getelementptr";
 
     public void visit(GetElementPointerConstant getElementPointerConstant) {
-        // TODO Auto-generated method stub
+        // getelementptr
+        write(LLVMIR_LABEL_GET_ELEMENT_POINTER);
 
+        // [inbounds]
+        if (getElementPointerConstant.isInbounds()) {
+            write(" inbounds");
+        }
+
+        // <pty>* <ptrval>
+        write(" (");
+        writeType(getElementPointerConstant.getBasePointer().getType());
+        write(" ");
+        writeInnerSymbolValue(getElementPointerConstant.getBasePointer());
+
+        // {, <ty> <idx>}*
+        for (final Symbol sym : getElementPointerConstant.getIndices()) {
+            write(", ");
+            writeType(sym.getType());
+            write(" ");
+            writeInnerSymbolValue(sym);
+        }
+
+        write(")");
     }
 
-    public void visit(InlineAsmConstant inlineAsmConstant) {
-        // TODO Auto-generated method stub
+    private static final String LLVMIR_LABEL_ASM = "asm";
 
+    private static final String LLVMIR_ASM_KEYWORD_SIDEEFFECT = "sideeffect";
+
+    private static final String LLVMIR_ASM_KEYWORD_ALIGNSTACK = "alignstack";
+
+    public void visit(InlineAsmConstant inlineAsmConstant) {
+        final FunctionType decl = (FunctionType) ((PointerType) inlineAsmConstant.getType()).getPointeeType();
+
+        writeType(decl.getReturnType());
+        write(" ");
+
+        if (decl.isVarArg() || (decl.getReturnType() instanceof PointerType && ((PointerType) decl.getReturnType()).getPointeeType() instanceof FunctionType)) {
+            writeFormalArguments(decl);
+            write(" ");
+        }
+
+        write(LLVMIR_LABEL_ASM);
+
+        if (inlineAsmConstant.hasSideEffects()) {
+            write(" ");
+            write(LLVMIR_ASM_KEYWORD_SIDEEFFECT);
+        }
+
+        if (inlineAsmConstant.needsAlignedStack()) {
+            write(" ");
+            write(LLVMIR_ASM_KEYWORD_ALIGNSTACK);
+        }
+
+        if (inlineAsmConstant.getDialect() != AsmDialect.AT_T) {
+            write(" ");
+            write(inlineAsmConstant.getDialect().getIrString());
+        }
+
+        write(" ");
+        write(inlineAsmConstant.getAsmExpression());
+
+        write(", ");
+        write(inlineAsmConstant.getAsmFlags());
     }
 
     public void visit(IntegerConstant integerConstant) {
-        // TODO Auto-generated method stub
-
+        final long value = integerConstant.getValue();
+        if (integerConstant.getType().getBits() == 1) {
+            write(value == 0 ? "false" : "true");
+        } else {
+            write(String.valueOf(value));
+        }
     }
 
-    public void visit(NullConstant nullConstant) {
-        // TODO Auto-generated method stub
+    private static final String LLVMIR_LABEL_ZEROINITIALIZER = "zeroinitializer";
 
+    public void visit(NullConstant nullConstant) {
+        if (nullConstant.getType() instanceof IntegerType) {
+            if (nullConstant.getType().getBits() == 1) {
+                write("false");
+            } else {
+                write(String.valueOf(0));
+            }
+
+        } else if (nullConstant.getType() instanceof FloatingPointType) {
+            write(String.valueOf(0.0));
+        } else if (nullConstant.getType() instanceof AggregateType) {
+            write(LLVMIR_LABEL_ZEROINITIALIZER);
+        } else {
+            write("null");
+        }
     }
 
     public void visit(StringConstant stringConstant) {
-        // TODO Auto-generated method stub
-
+        write("c\"");
+        for (int i = 0; i < stringConstant.getString().length(); i++) {
+            byte b = (byte) stringConstant.getString().charAt(i);
+            if (b < ' ' || b >= '~') {
+                writef("\\%02X", b);
+            } else {
+                write(Character.toString((char) b));
+            }
+        }
+        if (stringConstant.getType() instanceof ArrayType && ((ArrayType) stringConstant.getType()).getLength() > stringConstant.getString().length()) {
+            write("\\00");
+        }
+        write("\"");
     }
 
     public void visit(UndefinedConstant undefinedConstant) {
-        // TODO Auto-generated method stub
-
+        write("undef");
     }
 
 }
