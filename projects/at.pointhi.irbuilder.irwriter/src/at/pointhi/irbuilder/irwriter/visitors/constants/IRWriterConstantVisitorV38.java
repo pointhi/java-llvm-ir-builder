@@ -32,6 +32,10 @@
 
 package at.pointhi.irbuilder.irwriter.visitors.constants;
 
+import com.oracle.truffle.llvm.parser.model.symbols.constants.GetElementPointerConstant;
+import com.oracle.truffle.llvm.runtime.types.PointerType;
+import com.oracle.truffle.llvm.runtime.types.symbols.Symbol;
+
 import at.pointhi.irbuilder.irwriter.IRWriter;
 import at.pointhi.irbuilder.irwriter.IRWriterVersion;
 
@@ -41,4 +45,31 @@ public class IRWriterConstantVisitorV38 extends IRWriterConstantVisitor {
         super(visitors, target);
     }
 
+    @Override
+    public void visit(GetElementPointerConstant getElementPointerConstant) {
+        write(LLVMIR_LABEL_GET_ELEMENT_POINTER);
+
+        if (getElementPointerConstant.isInbounds()) {
+            write(" inbounds");
+        }
+
+        write(" (");
+
+        final PointerType basePointerType = (PointerType) getElementPointerConstant.getBasePointer().getType();
+        writeType(basePointerType.getPointeeType());
+        write(", ");
+
+        writeType(basePointerType);
+        write(" ");
+        writeInnerSymbolValue(getElementPointerConstant.getBasePointer());
+
+        for (final Symbol sym : getElementPointerConstant.getIndices()) {
+            write(", ");
+            writeType(sym.getType());
+            write(" ");
+            writeInnerSymbolValue(sym);
+        }
+
+        write(")");
+    }
 }

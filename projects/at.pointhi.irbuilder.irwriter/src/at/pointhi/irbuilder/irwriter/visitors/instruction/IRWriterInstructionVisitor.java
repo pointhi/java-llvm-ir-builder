@@ -267,9 +267,9 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
         writeln();
     }
 
-    private static final String LLVMIR_LABEL_GET_ELEMENT_POINTER = "getelementptr";
+    protected static final String LLVMIR_LABEL_GET_ELEMENT_POINTER = "getelementptr";
 
-    private static final String LLVMIR_LABEL_GET_ELEMENT_POINTER_INBOUNDS = "inbounds";
+    protected static final String LLVMIR_LABEL_GET_ELEMENT_POINTER_INBOUNDS = "inbounds";
 
     public void visit(GetElementPointerInstruction gep) {
         writeIndent();

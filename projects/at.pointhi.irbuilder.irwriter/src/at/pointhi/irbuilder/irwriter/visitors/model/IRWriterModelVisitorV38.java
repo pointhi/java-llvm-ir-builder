@@ -32,6 +32,10 @@
 
 package at.pointhi.irbuilder.irwriter.visitors.model;
 
+import com.oracle.truffle.llvm.parser.model.enums.Visibility;
+import com.oracle.truffle.llvm.parser.model.globals.GlobalAlias;
+import com.oracle.truffle.llvm.runtime.types.symbols.Symbol;
+
 import at.pointhi.irbuilder.irwriter.IRWriter;
 import at.pointhi.irbuilder.irwriter.IRWriterVersion;
 
@@ -41,4 +45,32 @@ public class IRWriterModelVisitorV38 extends IRWriterModelVisitor {
         super(visitors, target);
     }
 
+    private static final String UNRESOLVED_FORWARD_REFERENCE = "<unresolved>";
+
+    @Override
+    public void visit(GlobalAlias alias) {
+        // sulong specific toString
+        write(String.format("%s = %s ", alias.getName(), alias.getLinkage().toString()));
+
+        if (alias.getVisibility() != Visibility.DEFAULT) {
+            // sulong specific toString
+            write(String.format("%s ", alias.getVisibility().toString()));
+        }
+
+        write("alias ");
+
+        final Symbol val = alias.getValue();
+        if (val == null) {
+            writeln(UNRESOLVED_FORWARD_REFERENCE);
+            return;
+        }
+        writeType(alias.getType());
+
+        write(", ");
+        writeType(val.getType());
+
+        write(" ");
+        writeInnerSymbolValue(val);
+        writeln();
+    }
 }
