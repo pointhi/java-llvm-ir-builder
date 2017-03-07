@@ -59,6 +59,7 @@ public class IRWriterTypeVisitor extends IRWriterBaseVisitor implements TypeVisi
         super(visitors, target);
     }
 
+    @Override
     public void visit(BigIntegerConstantType bigIntegerConstantType) {
         if (bigIntegerConstantType.getType().getBits() == 1) {
             write(bigIntegerConstantType.getValue().equals(BigInteger.ZERO) ? "i1 false" : "i1 true");
@@ -69,10 +70,12 @@ public class IRWriterTypeVisitor extends IRWriterBaseVisitor implements TypeVisi
         writef(" %s", bigIntegerConstantType.getValue());
     }
 
+    @Override
     public void visit(FloatingPointType floatingPointType) {
         write(floatingPointType.name().toLowerCase());
     }
 
+    @Override
     public void visit(FunctionType functionType) {
         writeType(functionType.getReturnType());
 
@@ -94,6 +97,7 @@ public class IRWriterTypeVisitor extends IRWriterBaseVisitor implements TypeVisi
         write(")");
     }
 
+    @Override
     public void visit(IntegerConstantType integerConstantType) {
         if (integerConstantType.getType().getBits() == 1) {
             write(integerConstantType.getValue() == 0 ? "i1 false" : "i1 true");
@@ -104,28 +108,34 @@ public class IRWriterTypeVisitor extends IRWriterBaseVisitor implements TypeVisi
         writef(" %d", integerConstantType.getValue());
     }
 
+    @Override
     public void visit(IntegerType integerType) {
         writef("i%d", integerType.getBits());
     }
 
+    @Override
     public void visit(MetadataConstantType metadataConstantType) {
         writeType(metadataConstantType.getType());
         writef(" %d", metadataConstantType.getValue());
     }
 
+    @Override
     public void visit(MetadataConstantPointerType metadataConstantPointerType) {
         writef("!!%d", metadataConstantPointerType.getSymbolIndex());
     }
 
+    @Override
     public void visit(MetaType metaType) {
         write(metaType.name().toLowerCase());
     }
 
+    @Override
     public void visit(PointerType pointerType) {
         writeType(pointerType.getPointeeType());
         write("*");
     }
 
+    @Override
     public void visit(ArrayType arrayType) {
         writef("[%d", arrayType.getLength());
         write(" x ");
@@ -133,6 +143,7 @@ public class IRWriterTypeVisitor extends IRWriterBaseVisitor implements TypeVisi
         write("]");
     }
 
+    @Override
     public void visit(StructureType structureType) {
         if (LLVMIdentifier.UNKNOWN.equals(structureType.getName())) {
             writeStructDeclaration(structureType);
@@ -141,6 +152,7 @@ public class IRWriterTypeVisitor extends IRWriterBaseVisitor implements TypeVisi
         }
     }
 
+    @Override
     public void visit(VectorType vectorType) {
         writef("<%d", vectorType.getLength());
         write(" x ");

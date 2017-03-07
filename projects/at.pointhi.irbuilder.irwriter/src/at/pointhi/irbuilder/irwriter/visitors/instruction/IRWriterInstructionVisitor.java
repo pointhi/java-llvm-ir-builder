@@ -91,6 +91,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
 
     private static final String LLVMIR_LABEL_ALLOCATE = "alloca";
 
+    @Override
     public void visit(AllocateInstruction allocate) {
         writeIndent();
 
@@ -114,6 +115,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
         writeln();
     }
 
+    @Override
     public void visit(BinaryOperationInstruction operation) {
         writeIndent();
 
@@ -141,6 +143,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
 
     private static final String LLVMIR_LABEL_BRANCH_LABEL = "label";
 
+    @Override
     public void visit(BranchInstruction branch) {
         writeIndent();
 
@@ -152,6 +155,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
 
     static final String LLVMIR_LABEL_CALL = "call";
 
+    @Override
     public void visit(CallInstruction call) {
         writeIndent();
 
@@ -163,6 +167,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
         writeln();
     }
 
+    @Override
     public void visit(CastInstruction cast) {
         writeIndent();
 
@@ -180,6 +185,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
     private static final String LLVMIR_LABEL_COMPARE = "icmp";
     private static final String LLVMIR_LABEL_COMPARE_FP = "fcmp";
 
+    @Override
     public void visit(CompareInstruction operation) {
         writeIndent();
 
@@ -207,6 +213,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
 
     private static final String LLVMIR_LABEL_CONDITIONAL_BRANCH = "br";
 
+    @Override
     public void visit(ConditionalBranchInstruction branch) {
         writeIndent();
 
@@ -230,6 +237,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
 
     private static final String LLVMIR_LABEL_EXTRACT_ELEMENT = "extractelement";
 
+    @Override
     public void visit(ExtractElementInstruction extract) {
         writeIndent();
 
@@ -251,6 +259,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
 
     private static final String LLVMIR_LABEL_EXTRACT_VALUE = "extractvalue";
 
+    @Override
     public void visit(ExtractValueInstruction extract) {
         writeIndent();
 
@@ -271,6 +280,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
 
     protected static final String LLVMIR_LABEL_GET_ELEMENT_POINTER_INBOUNDS = "inbounds";
 
+    @Override
     public void visit(GetElementPointerInstruction gep) {
         writeIndent();
 
@@ -301,6 +311,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
 
     private static final String LLVMIR_LABEL_INDIRECT_BRANCH = "indirectbr";
 
+    @Override
     public void visit(IndirectBranchInstruction branch) {
         writeIndent();
 
@@ -326,6 +337,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
 
     private static final String LLVMIR_LABEL_INSERT_ELEMENT = "insertelement";
 
+    @Override
     public void visit(InsertElementInstruction insert) {
         writeIndent();
 
@@ -351,6 +363,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
 
     private static final String LLVMIR_LABEL_INSERT_VALUE = "insertvalue";
 
+    @Override
     public void visit(InsertValueInstruction insert) {
         writeIndent();
 
@@ -379,6 +392,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
 
     static final String LLVMIR_LABEL_SINGLETHREAD = "singlethread";
 
+    @Override
     public void visit(LoadInstruction load) {
         writeIndent();
 
@@ -421,6 +435,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
 
     private static final String LLVMIR_LABEL_PHI = "phi";
 
+    @Override
     public void visit(PhiInstruction phi) {
         writeIndent();
 
@@ -451,6 +466,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
 
     private static final String LLVMIR_LABEL_RETURN = "ret";
 
+    @Override
     public void visit(ReturnInstruction ret) {
         writeIndent();
 
@@ -471,6 +487,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
 
     private static final String LLVMIR_LABEL_SELECT = "select";
 
+    @Override
     public void visit(SelectInstruction select) {
         writeIndent();
 
@@ -499,6 +516,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
 
     private static final String LLVMIR_LABEL_SHUFFLE_VECTOR = "shufflevector";
 
+    @Override
     public void visit(ShuffleVectorInstruction shuffle) {
         writeIndent();
 
@@ -527,6 +545,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
 
     private static final String LLVMIR_LABEL_STORE = "store";
 
+    @Override
     public void visit(StoreInstruction store) {
         writeIndent();
 
@@ -571,6 +590,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
 
     private static final String LLVMIR_LABEL_SWITCH = "switch";
 
+    @Override
     public void visit(SwitchInstruction select) {
         writeIndent();
 
@@ -610,6 +630,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
 
     private static final String LLVMIR_LABEL_SWITCH_OLD = "switch";
 
+    @Override
     public void visit(SwitchOldInstruction select) {
         writeIndent();
 
@@ -645,6 +666,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
 
     private static final String LLVMIR_LABEL_UNREACHABLE = "unreachable";
 
+    @Override
     public void visit(UnreachableInstruction unreachable) {
         writeIndent();
 
@@ -653,6 +675,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
         writeln();
     }
 
+    @Override
     public void visit(VoidCallInstruction call) {
         writeIndent();
 

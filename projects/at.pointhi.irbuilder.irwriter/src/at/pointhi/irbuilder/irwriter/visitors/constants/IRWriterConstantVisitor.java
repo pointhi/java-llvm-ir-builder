@@ -87,12 +87,14 @@ public class IRWriterConstantVisitor extends IRWriterBaseVisitor implements Cons
         }
     }
 
+    @Override
     public void visit(ArrayConstant arrayConstant) {
         write("[ ");
         writeAggregateElements(arrayConstant);
         write(" ]");
     }
 
+    @Override
     public void visit(StructureConstant structureConstant) {
         if (structureConstant.isPacked()) {
             write("<");
@@ -105,12 +107,14 @@ public class IRWriterConstantVisitor extends IRWriterBaseVisitor implements Cons
         }
     }
 
+    @Override
     public void visit(VectorConstant vectorConstant) {
         write("< ");
         writeAggregateElements(vectorConstant);
         write(" >");
     }
 
+    @Override
     public void visit(BigIntegerConstant bigIntegerConstant) {
         final BigInteger value = bigIntegerConstant.getValue();
 
@@ -121,6 +125,7 @@ public class IRWriterConstantVisitor extends IRWriterBaseVisitor implements Cons
         }
     }
 
+    @Override
     public void visit(BinaryOperationConstant binaryOperationConstant) {
         write(binaryOperationConstant.getOperator().toString()); // sulong specific toString
         write(" (");
@@ -139,6 +144,7 @@ public class IRWriterConstantVisitor extends IRWriterBaseVisitor implements Cons
 
     private static final String LLVMIR_LABEL_BLOCKADDRESS = "blockaddress";
 
+    @Override
     public void visit(BlockAddressConstant blockAddressConstant) {
         write(LLVMIR_LABEL_BLOCKADDRESS);
         write(" (");
@@ -148,6 +154,7 @@ public class IRWriterConstantVisitor extends IRWriterBaseVisitor implements Cons
         write(")");
     }
 
+    @Override
     public void visit(CastConstant castConstant) {
         write(castConstant.getOperator().toString()); // sulong specific toString
         write(" (");
@@ -162,6 +169,7 @@ public class IRWriterConstantVisitor extends IRWriterBaseVisitor implements Cons
     private static final String LLVMIR_LABEL_COMPARE = "icmp";
     private static final String LLVMIR_LABEL_COMPARE_FP = "fcmp";
 
+    @Override
     public void visit(CompareConstant compareConstant) {
         if (compareConstant.getOperator().isFloatingPoint()) {
             write(LLVMIR_LABEL_COMPARE_FP);
@@ -185,6 +193,7 @@ public class IRWriterConstantVisitor extends IRWriterBaseVisitor implements Cons
         write(")");
     }
 
+    @Override
     public void visit(DoubleConstant doubleConstant) {
         // see http://llvm.org/releases/3.2/docs/LangRef.html#simpleconstants for
         // why we cannot use String.format(Locale.ROOT, "%e", doubleConstant.getValue())
@@ -192,6 +201,7 @@ public class IRWriterConstantVisitor extends IRWriterBaseVisitor implements Cons
         writef("0x%x", bits);
     }
 
+    @Override
     public void visit(FloatConstant floatConstant) {
         // see http://llvm.org/releases/3.2/docs/LangRef.html#simpleconstants for
         // why we cannot use String.format(Locale.ROOT, "%e", doubleConstant.getValue())
@@ -203,6 +213,7 @@ public class IRWriterConstantVisitor extends IRWriterBaseVisitor implements Cons
 
     private static final int BYTE_MSB_SHIFT = 4;
 
+    @Override
     public void visit(X86FP80Constant x86fp80Constant) {
         final byte[] value = x86fp80Constant.getValue();
         write("0xK");
@@ -214,6 +225,7 @@ public class IRWriterConstantVisitor extends IRWriterBaseVisitor implements Cons
 
     private static final String LLVMIR_LABEL_DECLARE_FUNCTION = "declare";
 
+    @Override
     public void visit(FunctionDeclaration functionDeclaration) {
         write(LLVMIR_LABEL_DECLARE_FUNCTION);
         write(" ");
@@ -224,6 +236,7 @@ public class IRWriterConstantVisitor extends IRWriterBaseVisitor implements Cons
 
     private static final String LLVMIR_LABEL_DEFINE_FUNCTION = "define";
 
+    @Override
     public void visit(FunctionDefinition functionDefinition) {
         write(LLVMIR_LABEL_DEFINE_FUNCTION);
         write(" ");
@@ -234,6 +247,7 @@ public class IRWriterConstantVisitor extends IRWriterBaseVisitor implements Cons
 
     static final String LLVMIR_LABEL_GET_ELEMENT_POINTER = "getelementptr";
 
+    @Override
     public void visit(GetElementPointerConstant getElementPointerConstant) {
         // getelementptr
         write(LLVMIR_LABEL_GET_ELEMENT_POINTER);
@@ -266,6 +280,7 @@ public class IRWriterConstantVisitor extends IRWriterBaseVisitor implements Cons
 
     private static final String LLVMIR_ASM_KEYWORD_ALIGNSTACK = "alignstack";
 
+    @Override
     public void visit(InlineAsmConstant inlineAsmConstant) {
         final FunctionType decl = (FunctionType) ((PointerType) inlineAsmConstant.getType()).getPointeeType();
 
@@ -301,6 +316,7 @@ public class IRWriterConstantVisitor extends IRWriterBaseVisitor implements Cons
         write(inlineAsmConstant.getAsmFlags());
     }
 
+    @Override
     public void visit(IntegerConstant integerConstant) {
         final long value = integerConstant.getValue();
         if (integerConstant.getType().getBits() == 1) {
@@ -312,6 +328,7 @@ public class IRWriterConstantVisitor extends IRWriterBaseVisitor implements Cons
 
     private static final String LLVMIR_LABEL_ZEROINITIALIZER = "zeroinitializer";
 
+    @Override
     public void visit(NullConstant nullConstant) {
         if (nullConstant.getType() instanceof IntegerType) {
             if (nullConstant.getType().getBits() == 1) {
@@ -329,6 +346,7 @@ public class IRWriterConstantVisitor extends IRWriterBaseVisitor implements Cons
         }
     }
 
+    @Override
     public void visit(StringConstant stringConstant) {
         write("c\"");
         for (int i = 0; i < stringConstant.getString().length(); i++) {
@@ -345,6 +363,7 @@ public class IRWriterConstantVisitor extends IRWriterBaseVisitor implements Cons
         write("\"");
     }
 
+    @Override
     public void visit(UndefinedConstant undefinedConstant) {
         write("undef");
     }

@@ -48,6 +48,7 @@ public class IRWriterFunctionVisitor extends IRWriterBaseVisitor implements Func
 
     private static final String LABEL_PREFIX = "; <label>:";
 
+    @Override
     public void visit(InstructionBlock block) {
         final String blockName = block.getName();
         if (LLVMIdentifier.isImplicitBlockName(blockName)) {

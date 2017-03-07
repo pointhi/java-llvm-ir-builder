@@ -102,22 +102,26 @@ public class IRWriterModelVisitor extends IRWriterBaseVisitor implements ModelVi
 
     private static final String LLVMIR_LABEL_ALIAS = "alias";
 
+    @Override
     public void visit(GlobalAlias alias) {
         writeGlobal(LLVMIR_LABEL_ALIAS, alias);
     }
 
     private static final String LLVMIR_LABEL_CONSTANT = "constant";
 
+    @Override
     public void visit(GlobalConstant constant) {
         writeGlobal(LLVMIR_LABEL_CONSTANT, constant);
     }
 
     private static final String LLVMIR_LABEL_GLOBAL = "global";
 
+    @Override
     public void visit(GlobalVariable variable) {
         writeGlobal(LLVMIR_LABEL_GLOBAL, variable);
     }
 
+    @Override
     public void visit(FunctionDeclaration function) {
         writeln();
 
@@ -130,6 +134,7 @@ public class IRWriterModelVisitor extends IRWriterBaseVisitor implements ModelVi
         writeln();
     }
 
+    @Override
     public void visit(FunctionDefinition function) {
         writeln();
 
@@ -167,6 +172,7 @@ public class IRWriterModelVisitor extends IRWriterBaseVisitor implements ModelVi
         writeln("}");
     }
 
+    @Override
     public void visit(Type type) {
         if (type instanceof StructureType && !((StructureType) type).getName().equals(LLVMIdentifier.UNKNOWN)) {
             final StructureType actualType = (StructureType) type;
