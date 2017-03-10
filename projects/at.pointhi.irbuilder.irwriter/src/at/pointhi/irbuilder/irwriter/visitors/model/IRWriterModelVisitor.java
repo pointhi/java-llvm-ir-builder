@@ -43,6 +43,7 @@ import com.oracle.truffle.llvm.parser.model.globals.GlobalConstant;
 import com.oracle.truffle.llvm.parser.model.globals.GlobalValueSymbol;
 import com.oracle.truffle.llvm.parser.model.globals.GlobalVariable;
 import com.oracle.truffle.llvm.parser.model.symbols.constants.CastConstant;
+import com.oracle.truffle.llvm.parser.model.target.TargetDataLayout;
 import com.oracle.truffle.llvm.parser.model.visitors.ModelVisitor;
 import com.oracle.truffle.llvm.runtime.types.FunctionType;
 import com.oracle.truffle.llvm.runtime.types.PointerType;
@@ -170,6 +171,12 @@ public class IRWriterModelVisitor extends IRWriterBaseVisitor implements ModelVi
         writeln(" {");
         writeFunction(function);
         writeln("}");
+    }
+
+    @Override
+    public void visit(TargetDataLayout layout) {
+        writeln(String.format("target datalayout = \"%s\"", layout.getDataLayout()));
+        writeln();
     }
 
     @Override
