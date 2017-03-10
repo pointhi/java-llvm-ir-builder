@@ -31,5 +31,18 @@ suite = {
             "javaCompliance" : "1.8",
             "license" : "BSD-new",
         },
+    },
+
+    "distributions" : {
+        "IRWRITER" : {
+            "path" : "build/irwriter.jar",
+            "subDir" : "graal",
+            "sourcesPath" : "build/irbuilder.src.zip",
+            "mainClass" : "at.pointhi.irbuilder.irwriter.SourceParser",
+            "dependencies" : ["at.pointhi.irbuilder.irwriter"],
+            "distDependencies" : [
+                "sulong:SULONG",
+            ]
+        },
     }
 }
