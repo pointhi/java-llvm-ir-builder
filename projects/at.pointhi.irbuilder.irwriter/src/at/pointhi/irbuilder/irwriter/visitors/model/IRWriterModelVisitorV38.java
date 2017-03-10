@@ -53,8 +53,7 @@ public class IRWriterModelVisitorV38 extends IRWriterModelVisitor {
         write(String.format("%s = %s ", alias.getName(), alias.getLinkage().toString()));
 
         if (alias.getVisibility() != Visibility.DEFAULT) {
-            // sulong specific toString
-            write(String.format("%s ", alias.getVisibility().toString()));
+            write(String.format("%s ", alias.getVisibility().getIrString()));
         }
 
         write("alias ");

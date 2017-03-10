@@ -121,7 +121,7 @@ public class IRWriterInstructionVisitorV38 extends IRWriterInstructionVisitor {
             }
 
             write(" ");
-            write(load.getAtomicOrdering().toString()); // sulong specific toString
+            write(load.getAtomicOrdering().getIrString());
         }
 
         if (load.getAlign() != 0) {

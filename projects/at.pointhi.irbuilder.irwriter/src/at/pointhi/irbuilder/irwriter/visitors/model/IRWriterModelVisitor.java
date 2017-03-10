@@ -67,12 +67,12 @@ public class IRWriterModelVisitor extends IRWriterBaseVisitor implements ModelVi
         write(" = ");
 
         if (global.getLinkage() != Linkage.EXTERNAL || global.getValue() == null) {
-            write(global.getLinkage().toString()); // sulong specific toString // TODO: toIrString
+            write(global.getLinkage().toString()); // sulong specific toString
             write(" ");
         }
 
         if (global.getVisibility() != Visibility.DEFAULT) {
-            write(global.getVisibility().getIrString()); // sulong specific toString
+            write(global.getVisibility().getIrString());
             write(" ");
         }
 

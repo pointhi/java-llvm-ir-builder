@@ -120,8 +120,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
         writeIndent();
 
         // <result> = <op>
-        // sulong specific toString
-        writef("%s = %s ", operation.getName(), operation.getOperator());
+        writef("%s = %s ", operation.getName(), operation.getOperator().getIrString());
 
         // { <flag>}*
         for (Flag flag : operation.getFlags()) {
@@ -171,8 +170,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
     public void visit(CastInstruction cast) {
         writeIndent();
 
-        // sulong specific toString
-        writef("%s = %s ", cast.getName(), cast.getOperator());
+        writef("%s = %s ", cast.getName(), cast.getOperator().getIrString());
         writeType(cast.getValue().getType());
         write(" ");
         writeInnerSymbolValue(cast.getValue());
@@ -200,7 +198,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
         }
 
         write(" ");
-        write(operation.getOperator().toString()); // sulong specific toString
+        write(operation.getOperator().getIrString());
         write(" ");
         writeType(operation.getLHS().getType());
         write(" ");
@@ -578,7 +576,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
             }
 
             write(" ");
-            write(store.getAtomicOrdering().toString()); // sulong specific toString
+            write(store.getAtomicOrdering().getIrString());
         }
 
         if (store.getAlign() != 0) {
@@ -693,7 +691,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
             // <ty>
             final FunctionType decl = (FunctionType) callTarget;
 
-            decl.getReturnType().accept(visitors.getTypeVisitor());
+            writeType(decl.getReturnType());
 
             if (decl.isVarArg() || (decl.getReturnType() instanceof PointerType && ((PointerType) decl.getReturnType()).getPointeeType() instanceof FunctionType)) {
                 write(" ");
@@ -705,11 +703,11 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
         } else if (callTarget instanceof CallInstruction) {
             // final FunctionType decl = ((CallInstruction) callTarget).getCallType();
             final FunctionType decl = (FunctionType) ((CallInstruction) callTarget).getCallTarget();
-            decl.getReturnType().accept(visitors.getTypeVisitor());
+            writeType(decl.getReturnType());
             write(String.format(" %s", ((CallInstruction) callTarget).getName()));
 
         } else if (callTarget instanceof FunctionParameter) {
-            callTarget.getType().accept(visitors.getTypeVisitor());
+            writeType(callTarget.getType());
             write(String.format(" %s ", ((FunctionParameter) callTarget).getName()));
 
         } else if (callTarget instanceof ValueSymbol) {
@@ -727,7 +725,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
             if (targetType instanceof FunctionType) {
                 final FunctionType decl = (FunctionType) targetType;
 
-                decl.getReturnType().accept(visitors.getTypeVisitor());
+                writeType(decl.getReturnType());
 
                 if (decl.isVarArg() || (decl.getReturnType() instanceof PointerType && ((PointerType) decl.getReturnType()).getPointeeType() instanceof FunctionType)) {
                     write(" ");
@@ -743,9 +741,9 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
             }
 
         } else if (callTarget instanceof Constant) {
-            callTarget.getType().accept(visitors.getTypeVisitor());
+            writeType(callTarget.getType());
             write(" ");
-            ((Constant) callTarget).accept(visitors.getConstantVisitor());
+            writeConstant((Constant) callTarget);
 
         } else {
             throw new AssertionError("unexpected target type: " + call.getCallTarget().getClass().getName());

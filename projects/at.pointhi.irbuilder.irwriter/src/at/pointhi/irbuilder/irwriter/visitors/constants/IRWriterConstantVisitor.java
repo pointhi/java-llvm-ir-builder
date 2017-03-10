@@ -127,7 +127,7 @@ public class IRWriterConstantVisitor extends IRWriterBaseVisitor implements Cons
 
     @Override
     public void visit(BinaryOperationConstant binaryOperationConstant) {
-        write(binaryOperationConstant.getOperator().toString()); // sulong specific toString
+        write(binaryOperationConstant.getOperator().getIrString());
         write(" (");
 
         writeType(binaryOperationConstant.getLHS().getType());
@@ -156,7 +156,7 @@ public class IRWriterConstantVisitor extends IRWriterBaseVisitor implements Cons
 
     @Override
     public void visit(CastConstant castConstant) {
-        write(castConstant.getOperator().toString()); // sulong specific toString
+        write(castConstant.getOperator().getIrString());
         write(" (");
         writeType(castConstant.getValue().getType());
         write(" ");
@@ -178,7 +178,7 @@ public class IRWriterConstantVisitor extends IRWriterBaseVisitor implements Cons
         }
 
         write(" ");
-        write(compareConstant.getOperator().toString()); // sulong specific toString
+        write(compareConstant.getOperator().getIrString());
         write(" (");
 
         writeType(compareConstant.getLHS().getType());
