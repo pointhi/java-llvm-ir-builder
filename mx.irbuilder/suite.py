@@ -27,6 +27,7 @@ suite = {
             "dependencies" : [
                 "sulong:SULONG",
             ],
+            "checkstyle" : "at.pointhi.irbuilder.irwriter",
             "javaCompliance" : "1.8",
             "license" : "BSD-new",
         },
