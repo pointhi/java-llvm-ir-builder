@@ -16,7 +16,7 @@ def runIRBuilderTest32(vmArgs):
     mx_sulong.ensureDragonEggExists()
     mx_sulong.mx_testsuites.compileSuite(['sulong'])
     try:
-        mx_sulong.mx_testsuites.run32(vmArgs, "at.pointhi.irbuilder.test.IRGeneratorSuite",[])
+        mx_sulong.mx_testsuites.run32(vmArgs, "at.pointhi.irbuilder.test.IRGeneratorSuite", [])
     except:
         pass
     #return _runIRGeneratorSuite(mx_tools.Tool.LLVM_AS_32, mx_tools.Tool.LLVM_LLI_32)
@@ -26,7 +26,7 @@ def runIRBuilderTest38(vmArgs):
     mx_sulong.ensureDragonEggExists()
     mx_sulong.mx_testsuites.compileSuite(['sulong38'])
     try:
-        mx_sulong.mx_testsuites.run38(vmArgs, "at.pointhi.irbuilder.test.IRGeneratorSuite",[])
+        mx_sulong.mx_testsuites.run38(vmArgs, "at.pointhi.irbuilder.test.IRGeneratorSuite", [])
     except:
         pass
     #return _runIRGeneratorSuite(mx_tools.Tool.LLVM_AS_38, mx_tools.Tool.LLVM_LLI_38)
