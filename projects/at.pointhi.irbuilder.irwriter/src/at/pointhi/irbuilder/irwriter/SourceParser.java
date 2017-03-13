@@ -83,7 +83,7 @@ public class SourceParser {
                         final ModelModule model = BitcodeParserResult.getFromSource(code).getModel();
 
                         // TODO: add config options to change the behavior of the output function
-                        final IRWriterVersion llvmVersion = IRWriterVersion.LLVM_IR_3_2;
+                        final IRWriterVersion llvmVersion = IRWriterVersion.fromSulongOptions();
                         final PrintWriter writer = new PrintWriter(System.out);
 
                         IRWriter.writeIRToStream(model, llvmVersion, writer);

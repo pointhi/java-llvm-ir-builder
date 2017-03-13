@@ -32,6 +32,8 @@
 
 package at.pointhi.irbuilder.irwriter;
 
+import com.oracle.truffle.llvm.runtime.options.LLVMOptions;
+
 import at.pointhi.irbuilder.irwriter.visitors.constants.IRWriterConstantVisitor;
 import at.pointhi.irbuilder.irwriter.visitors.constants.IRWriterConstantVisitorV38;
 import at.pointhi.irbuilder.irwriter.visitors.function.IRWriterFunctionVisitor;
@@ -81,6 +83,22 @@ public enum IRWriterVersion {
     @FunctionalInterface
     private interface TypeWriter {
         IRWriterTypeVisitor instantiate(IRWriterVisitors out, IRWriter.PrintTarget target);
+    }
+
+    public static IRWriterVersion fromSulongOptions() {
+        final String llvmVersion = LLVMOptions.ENGINE.llvmVersion().trim();
+        switch (llvmVersion) {
+            case "3.2":
+            case "3.3":
+                return LLVM_IR_3_2;
+
+            case "3.8":
+            case "3.9":
+                return LLVM_IR_3_8;
+
+            default:
+                throw new RuntimeException("unexpeced LLVM Version: " + llvmVersion);
+        }
     }
 
     private final ModelWriter modelVisitor;
