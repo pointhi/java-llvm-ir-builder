@@ -86,7 +86,7 @@ public enum IRWriterVersion {
     }
 
     public static IRWriterVersion fromSulongOptions() {
-        final String llvmVersion = LLVMOptions.ENGINE.llvmVersion().trim();
+        final String llvmVersion = LLVMOptions.ENGINE.llvmVersion();
         switch (llvmVersion) {
             case "3.2":
             case "3.3":

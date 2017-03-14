@@ -28,3 +28,4 @@ script:
     - mx pylint
     - mx checkoverlap
     - mx canonicalizeprojects
+    - mx irbuilder-test32

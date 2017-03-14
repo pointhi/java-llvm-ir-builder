@@ -33,6 +33,7 @@
 package at.pointhi.irbuilder.irwriter;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 
@@ -83,8 +84,18 @@ public class SourceParser {
                         final ModelModule model = BitcodeParserResult.getFromSource(code).getModel();
 
                         // TODO: add config options to change the behavior of the output function
+                        PrintWriter writer = null;
+
+                        try {
+                            final String sourceFileName = code.getPath();
+                            final String actualTarget = sourceFileName.substring(0, sourceFileName.length() - ".bc".length()) + ".out.ll";
+                            writer = new PrintWriter(actualTarget);
+                        } catch (FileNotFoundException e) {
+                            e.printStackTrace();
+                            throw new RuntimeException("Could not open File Stream");
+                        }
+
                         final IRWriterVersion llvmVersion = IRWriterVersion.fromSulongOptions();
-                        final PrintWriter writer = new PrintWriter(System.out);
 
                         IRWriter.writeIRToStream(model, llvmVersion, writer);
 
