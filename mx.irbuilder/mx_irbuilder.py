@@ -19,9 +19,8 @@ class Tool(object):
             else:
                 f = None
                 ret = mx.run(args, **kwargs)
-        except SystemExit as e:
+        except SystemExit:
             ret = -1
-            mx.log_error(e.message)
             if errorMsg is None:
                 mx.log_error()
                 mx.log_error('Error: Cannot run {}'.format(args))
