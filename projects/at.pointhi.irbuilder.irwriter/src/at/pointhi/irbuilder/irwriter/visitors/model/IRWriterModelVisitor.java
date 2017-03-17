@@ -156,9 +156,7 @@ public class IRWriterModelVisitor extends IRWriterBaseVisitor implements ModelVi
             } else {
                 firstIteration = false;
             }
-            writeType(param.getType());
-            write(" ");
-            write(param.getName());
+            writeFunctionParameter(param);
         }
 
         if (function.getType().isVarargs()) {
@@ -174,6 +172,12 @@ public class IRWriterModelVisitor extends IRWriterBaseVisitor implements ModelVi
         writeln(" {");
         writeFunction(function);
         writeln("}");
+    }
+
+    protected void writeFunctionParameter(FunctionParameter param) {
+        writeType(param.getType());
+        write(" ");
+        write(param.getName());
     }
 
     @Override

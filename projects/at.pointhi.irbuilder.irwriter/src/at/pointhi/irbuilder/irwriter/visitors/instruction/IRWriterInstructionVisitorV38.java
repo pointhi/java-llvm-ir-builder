@@ -200,7 +200,6 @@ public class IRWriterInstructionVisitorV38 extends IRWriterInstructionVisitor {
                 if (decl.isVarargs() || (decl.getReturnType() instanceof PointerType && ((PointerType) decl.getReturnType()).getPointeeType() instanceof FunctionType)) {
                     write(" ");
                     writeFormalArguments(decl);
-                    write("*");
                 }
 
                 write(" ");

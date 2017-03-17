@@ -33,6 +33,7 @@
 package at.pointhi.irbuilder.irwriter.visitors.model;
 
 import com.oracle.truffle.llvm.parser.model.enums.Visibility;
+import com.oracle.truffle.llvm.parser.model.functions.FunctionParameter;
 import com.oracle.truffle.llvm.parser.model.globals.GlobalAlias;
 import com.oracle.truffle.llvm.runtime.types.symbols.Symbol;
 
@@ -49,8 +50,7 @@ public class IRWriterModelVisitorV38 extends IRWriterModelVisitor {
 
     @Override
     public void visit(GlobalAlias alias) {
-        // sulong specific toString
-        write(String.format("%s = %s ", alias.getName(), alias.getLinkage().toString()));
+        write(String.format("%s = %s ", alias.getName(), alias.getLinkage().getIrString()));
 
         if (alias.getVisibility() != Visibility.DEFAULT) {
             write(String.format("%s ", alias.getVisibility().getIrString()));
@@ -71,5 +71,14 @@ public class IRWriterModelVisitorV38 extends IRWriterModelVisitor {
         write(" ");
         writeInnerSymbolValue(val);
         writeln();
+    }
+
+    @Override
+    protected void writeFunctionParameter(FunctionParameter param) {
+        writeType(param.getType());
+        if (!param.getName().matches("%\\d+")) {
+            write(" ");
+            write(param.getName());
+        }
     }
 }
