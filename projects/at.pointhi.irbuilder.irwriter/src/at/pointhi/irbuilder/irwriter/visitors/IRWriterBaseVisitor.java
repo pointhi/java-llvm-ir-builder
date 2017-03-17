@@ -33,9 +33,11 @@
 package at.pointhi.irbuilder.irwriter.visitors;
 
 import com.oracle.truffle.llvm.parser.model.blocks.InstructionBlock;
+import com.oracle.truffle.llvm.parser.model.functions.FunctionDeclaration;
 import com.oracle.truffle.llvm.parser.model.functions.FunctionDefinition;
 import com.oracle.truffle.llvm.parser.model.symbols.constants.Constant;
 import com.oracle.truffle.llvm.runtime.types.FunctionType;
+import com.oracle.truffle.llvm.runtime.types.PointerType;
 import com.oracle.truffle.llvm.runtime.types.StructureType;
 import com.oracle.truffle.llvm.runtime.types.Type;
 import com.oracle.truffle.llvm.runtime.types.symbols.LLVMIdentifier;
@@ -91,6 +93,17 @@ public class IRWriterBaseVisitor {
         out.print(String.format(format, args)); // TOOD: deprecate this function
     }
 
+    protected void writeSymbolType(Symbol sym) {
+        Type type = sym.getType();
+
+        // TODO: workaround or expected behavior?
+        if (sym instanceof FunctionDeclaration || sym instanceof FunctionDefinition) {
+            type = new PointerType(sym.getType());
+        }
+
+        writeType(type);
+    }
+
     protected void writeType(Type type) {
         type.accept(visitors.getTypeVisitor());
     }
@@ -115,7 +128,7 @@ public class IRWriterBaseVisitor {
             writeType(argTypes[i]);
         }
 
-        if (function.isVarArg()) {
+        if (function.isVarargs()) {
             if (argTypes.length != 0) {
                 write(", ");
             }
@@ -132,7 +145,7 @@ public class IRWriterBaseVisitor {
         }
         write("{ ");
 
-        for (int i = 0; i < structureType.getLength(); i++) {
+        for (int i = 0; i < structureType.getNumberOfElements(); i++) {
             if (i > 0) {
                 write(", ");
             }

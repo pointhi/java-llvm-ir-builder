@@ -45,7 +45,6 @@ import com.oracle.truffle.llvm.parser.model.globals.GlobalVariable;
 import com.oracle.truffle.llvm.parser.model.symbols.constants.CastConstant;
 import com.oracle.truffle.llvm.parser.model.target.TargetDataLayout;
 import com.oracle.truffle.llvm.parser.model.visitors.ModelVisitor;
-import com.oracle.truffle.llvm.runtime.types.FunctionType;
 import com.oracle.truffle.llvm.runtime.types.PointerType;
 import com.oracle.truffle.llvm.runtime.types.StructureType;
 import com.oracle.truffle.llvm.runtime.types.Type;
@@ -67,7 +66,7 @@ public class IRWriterModelVisitor extends IRWriterBaseVisitor implements ModelVi
         write(" = ");
 
         if (global.getLinkage() != Linkage.EXTERNAL || global.getValue() == null) {
-            write(global.getLinkage().toString()); // sulong specific toString
+            write(global.getLinkage().getIrString());
             write(" ");
         }
 
@@ -80,8 +79,12 @@ public class IRWriterModelVisitor extends IRWriterBaseVisitor implements ModelVi
         write(" ");
 
         final Symbol value = global.getValue();
-        if (value instanceof FunctionType) {
-            writeType(new PointerType((FunctionType) value));
+        if (value instanceof FunctionDeclaration) {
+            writeType(new PointerType(((FunctionDeclaration) value).getType()));
+            write(" ");
+
+        } else if (value instanceof FunctionDefinition) {
+            writeType(new PointerType(((FunctionDefinition) value).getType()));
             write(" ");
 
         } else if (!(value instanceof CastConstant && ((CastConstant) value).getOperator() == CastOperator.BITCAST)) {
@@ -127,11 +130,11 @@ public class IRWriterModelVisitor extends IRWriterBaseVisitor implements ModelVi
         writeln();
 
         write("declare ");
-        writeType(function.getReturnType());
+        writeType(function.getType().getReturnType());
 
         writef(" %s", function.getName());
 
-        writeFormalArguments(function);
+        writeFormalArguments(function.getType());
         writeln();
     }
 
@@ -140,7 +143,7 @@ public class IRWriterModelVisitor extends IRWriterBaseVisitor implements ModelVi
         writeln();
 
         write("define ");
-        writeType(function.getReturnType());
+        writeType(function.getType().getReturnType());
 
         writef(" %s", function.getName());
 
@@ -158,7 +161,7 @@ public class IRWriterModelVisitor extends IRWriterBaseVisitor implements ModelVi
             write(param.getName());
         }
 
-        if (function.isVarArg()) {
+        if (function.getType().isVarargs()) {
             if (!firstIteration) {
                 write(", ");
             }

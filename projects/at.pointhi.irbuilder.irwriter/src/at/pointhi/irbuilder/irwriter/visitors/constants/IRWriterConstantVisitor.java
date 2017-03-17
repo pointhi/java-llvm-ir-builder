@@ -58,10 +58,9 @@ import com.oracle.truffle.llvm.parser.model.symbols.constants.integer.IntegerCon
 import com.oracle.truffle.llvm.parser.model.visitors.ConstantVisitor;
 import com.oracle.truffle.llvm.runtime.types.AggregateType;
 import com.oracle.truffle.llvm.runtime.types.ArrayType;
-import com.oracle.truffle.llvm.runtime.types.FloatingPointType;
 import com.oracle.truffle.llvm.runtime.types.FunctionType;
-import com.oracle.truffle.llvm.runtime.types.IntegerType;
 import com.oracle.truffle.llvm.runtime.types.PointerType;
+import com.oracle.truffle.llvm.runtime.types.Type;
 import com.oracle.truffle.llvm.runtime.types.symbols.Symbol;
 
 import at.pointhi.irbuilder.irwriter.IRWriter;
@@ -81,7 +80,8 @@ public class IRWriterConstantVisitor extends IRWriterBaseVisitor implements Cons
             }
 
             final Symbol symbol = aggregate.getElement(i);
-            writeType(symbol.getType());
+
+            writeSymbolType(symbol);
             write(" ");
             writeInnerSymbolValue(symbol);
         }
@@ -118,7 +118,7 @@ public class IRWriterConstantVisitor extends IRWriterBaseVisitor implements Cons
     public void visit(BigIntegerConstant bigIntegerConstant) {
         final BigInteger value = bigIntegerConstant.getValue();
 
-        if (bigIntegerConstant.getType().getBits() == 1) {
+        if (bigIntegerConstant.getType().getBitSize() == 1) {
             write(value.equals(BigInteger.ZERO) ? "false" : "true");
         } else {
             write(value.toString());
@@ -158,9 +158,12 @@ public class IRWriterConstantVisitor extends IRWriterBaseVisitor implements Cons
     public void visit(CastConstant castConstant) {
         write(castConstant.getOperator().getIrString());
         write(" (");
-        writeType(castConstant.getValue().getType());
+
+        Symbol valueSymbol = castConstant.getValue();
+
+        writeSymbolType(valueSymbol);
         write(" ");
-        writeInnerSymbolValue(castConstant.getValue());
+        writeInnerSymbolValue(valueSymbol);
         write(" to ");
         writeType(castConstant.getType());
         write(")");
@@ -229,9 +232,9 @@ public class IRWriterConstantVisitor extends IRWriterBaseVisitor implements Cons
     public void visit(FunctionDeclaration functionDeclaration) {
         write(LLVMIR_LABEL_DECLARE_FUNCTION);
         write(" ");
-        writeType(functionDeclaration.getReturnType());
+        writeType(functionDeclaration.getType().getReturnType());
         writef(" %s", functionDeclaration.getName());
-        writeFormalArguments(functionDeclaration);
+        writeFormalArguments(functionDeclaration.getType());
     }
 
     private static final String LLVMIR_LABEL_DEFINE_FUNCTION = "define";
@@ -240,9 +243,9 @@ public class IRWriterConstantVisitor extends IRWriterBaseVisitor implements Cons
     public void visit(FunctionDefinition functionDefinition) {
         write(LLVMIR_LABEL_DEFINE_FUNCTION);
         write(" ");
-        writeType(functionDefinition.getReturnType());
+        writeType(functionDefinition.getType().getReturnType());
         writef(" %s", functionDefinition.getName());
-        writeFormalArguments(functionDefinition);
+        writeFormalArguments(functionDefinition.getType());
     }
 
     static final String LLVMIR_LABEL_GET_ELEMENT_POINTER = "getelementptr";
@@ -287,7 +290,7 @@ public class IRWriterConstantVisitor extends IRWriterBaseVisitor implements Cons
         writeType(decl.getReturnType());
         write(" ");
 
-        if (decl.isVarArg() || (decl.getReturnType() instanceof PointerType && ((PointerType) decl.getReturnType()).getPointeeType() instanceof FunctionType)) {
+        if (decl.isVarargs() || (decl.getReturnType() instanceof PointerType && ((PointerType) decl.getReturnType()).getPointeeType() instanceof FunctionType)) {
             writeFormalArguments(decl);
             write(" ");
         }
@@ -319,7 +322,7 @@ public class IRWriterConstantVisitor extends IRWriterBaseVisitor implements Cons
     @Override
     public void visit(IntegerConstant integerConstant) {
         final long value = integerConstant.getValue();
-        if (integerConstant.getType().getBits() == 1) {
+        if (integerConstant.getType().getBitSize() == 1) {
             write(value == 0 ? "false" : "true");
         } else {
             write(String.valueOf(value));
@@ -330,14 +333,14 @@ public class IRWriterConstantVisitor extends IRWriterBaseVisitor implements Cons
 
     @Override
     public void visit(NullConstant nullConstant) {
-        if (nullConstant.getType() instanceof IntegerType) {
-            if (nullConstant.getType().getBits() == 1) {
+        if (Type.isIntegerType(nullConstant.getType())) {
+            if (nullConstant.getType().getBitSize() == 1) {
                 write("false");
             } else {
                 write(String.valueOf(0));
             }
 
-        } else if (nullConstant.getType() instanceof FloatingPointType) {
+        } else if (Type.isFloatingpointType(nullConstant.getType())) {
             write(String.valueOf(0.0));
         } else if (nullConstant.getType() instanceof AggregateType) {
             write(LLVMIR_LABEL_ZEROINITIALIZER);
@@ -357,7 +360,7 @@ public class IRWriterConstantVisitor extends IRWriterBaseVisitor implements Cons
                 write(Character.toString((char) b));
             }
         }
-        if (stringConstant.getType() instanceof ArrayType && ((ArrayType) stringConstant.getType()).getLength() > stringConstant.getString().length()) {
+        if (stringConstant.getType() instanceof ArrayType && ((ArrayType) stringConstant.getType()).getNumberOfElements() > stringConstant.getString().length()) {
             write("\\00");
         }
         write("\"");

@@ -35,15 +35,15 @@ package at.pointhi.irbuilder.irwriter.visitors.type;
 import java.math.BigInteger;
 
 import com.oracle.truffle.llvm.runtime.types.ArrayType;
-import com.oracle.truffle.llvm.runtime.types.BigIntegerConstantType;
-import com.oracle.truffle.llvm.runtime.types.FloatingPointType;
 import com.oracle.truffle.llvm.runtime.types.FunctionType;
-import com.oracle.truffle.llvm.runtime.types.IntegerConstantType;
-import com.oracle.truffle.llvm.runtime.types.IntegerType;
 import com.oracle.truffle.llvm.runtime.types.MetaType;
 import com.oracle.truffle.llvm.runtime.types.PointerType;
+import com.oracle.truffle.llvm.runtime.types.PrimitiveType;
 import com.oracle.truffle.llvm.runtime.types.StructureType;
+import com.oracle.truffle.llvm.runtime.types.Type;
+import com.oracle.truffle.llvm.runtime.types.VariableBitWidthType;
 import com.oracle.truffle.llvm.runtime.types.VectorType;
+import com.oracle.truffle.llvm.runtime.types.VoidType;
 import com.oracle.truffle.llvm.runtime.types.metadata.MetadataConstantPointerType;
 import com.oracle.truffle.llvm.runtime.types.metadata.MetadataConstantType;
 import com.oracle.truffle.llvm.runtime.types.symbols.LLVMIdentifier;
@@ -60,19 +60,28 @@ public class IRWriterTypeVisitor extends IRWriterBaseVisitor implements TypeVisi
     }
 
     @Override
-    public void visit(BigIntegerConstantType bigIntegerConstantType) {
-        if (bigIntegerConstantType.getType().getBits() == 1) {
-            write(bigIntegerConstantType.getValue().equals(BigInteger.ZERO) ? "i1 false" : "i1 true");
-            return;
+    public void visit(PrimitiveType primitiveType) {
+        if (Type.isIntegerType(primitiveType)) {
+            writef("i%d", primitiveType.getBitSize());
+        } else {
+            write(primitiveType.getPrimitiveKind().name().toLowerCase()); // TODO: sulong specific
         }
-
-        writeType(bigIntegerConstantType.getType());
-        writef(" %s", bigIntegerConstantType.getValue());
     }
 
     @Override
-    public void visit(FloatingPointType floatingPointType) {
-        write(floatingPointType.name().toLowerCase());
+    public void visit(VariableBitWidthType vectorType) {
+
+        if (vectorType.getBitSize() == 1) {
+            write(vectorType.getConstant().equals(BigInteger.ZERO) ? "i1 false" : "i1 true"); // TODO
+            return;
+        }
+
+        writef("i%d", vectorType.getBitSize());
+    }
+
+    @Override
+    public void visit(VoidType vectorType) {
+        write("void");
     }
 
     @Override
@@ -88,7 +97,7 @@ public class IRWriterTypeVisitor extends IRWriterBaseVisitor implements TypeVisi
             writeType(functionType.getArgumentTypes()[i]);
         }
 
-        if (functionType.isVarArg()) {
+        if (functionType.isVarargs()) {
             if (functionType.getArgumentTypes().length > 0) {
                 write(", ");
             }
@@ -98,24 +107,8 @@ public class IRWriterTypeVisitor extends IRWriterBaseVisitor implements TypeVisi
     }
 
     @Override
-    public void visit(IntegerConstantType integerConstantType) {
-        if (integerConstantType.getType().getBits() == 1) {
-            write(integerConstantType.getValue() == 0 ? "i1 false" : "i1 true");
-            return;
-        }
-
-        writeType(integerConstantType.getType());
-        writef(" %d", integerConstantType.getValue());
-    }
-
-    @Override
-    public void visit(IntegerType integerType) {
-        writef("i%d", integerType.getBits());
-    }
-
-    @Override
     public void visit(MetadataConstantType metadataConstantType) {
-        writeType(metadataConstantType.getType());
+        writeType(MetaType.METADATA);
         writef(" %d", metadataConstantType.getValue());
     }
 
@@ -137,7 +130,7 @@ public class IRWriterTypeVisitor extends IRWriterBaseVisitor implements TypeVisi
 
     @Override
     public void visit(ArrayType arrayType) {
-        writef("[%d", arrayType.getLength());
+        writef("[%d", arrayType.getNumberOfElements());
         write(" x ");
         writeType(arrayType.getElementType());
         write("]");
@@ -154,7 +147,7 @@ public class IRWriterTypeVisitor extends IRWriterBaseVisitor implements TypeVisi
 
     @Override
     public void visit(VectorType vectorType) {
-        writef("<%d", vectorType.getLength());
+        writef("<%d", vectorType.getNumberOfElements());
         write(" x ");
         writeType(vectorType.getElementType());
         write(">");

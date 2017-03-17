@@ -36,6 +36,8 @@ import com.oracle.truffle.llvm.parser.model.blocks.InstructionBlock;
 import com.oracle.truffle.llvm.parser.model.enums.AtomicOrdering;
 import com.oracle.truffle.llvm.parser.model.enums.Flag;
 import com.oracle.truffle.llvm.parser.model.enums.SynchronizationScope;
+import com.oracle.truffle.llvm.parser.model.functions.FunctionDeclaration;
+import com.oracle.truffle.llvm.parser.model.functions.FunctionDefinition;
 import com.oracle.truffle.llvm.parser.model.functions.FunctionParameter;
 import com.oracle.truffle.llvm.parser.model.symbols.constants.Constant;
 import com.oracle.truffle.llvm.parser.model.symbols.constants.integer.IntegerConstant;
@@ -65,9 +67,9 @@ import com.oracle.truffle.llvm.parser.model.symbols.instructions.UnreachableInst
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.VoidCallInstruction;
 import com.oracle.truffle.llvm.parser.model.visitors.InstructionVisitor;
 import com.oracle.truffle.llvm.runtime.types.FunctionType;
-import com.oracle.truffle.llvm.runtime.types.MetaType;
 import com.oracle.truffle.llvm.runtime.types.PointerType;
 import com.oracle.truffle.llvm.runtime.types.Type;
+import com.oracle.truffle.llvm.runtime.types.VoidType;
 import com.oracle.truffle.llvm.runtime.types.symbols.Symbol;
 import com.oracle.truffle.llvm.runtime.types.symbols.ValueSymbol;
 
@@ -124,7 +126,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
 
         // { <flag>}*
         for (Flag flag : operation.getFlags()) {
-            write(flag.toString()); // sulong specific toString
+            write(flag.getIrString());
             write(" ");
         }
 
@@ -473,7 +475,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
 
         final Symbol value = ret.getValue();
         if (value == null) {
-            writeType(MetaType.VOID);
+            writeType(VoidType.INSTANCE);
         } else {
             writeType(value.getType());
             write(" ");
@@ -687,22 +689,44 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
         write(" ");
 
         final Symbol callTarget = call.getCallTarget();
-        if (callTarget instanceof FunctionType) {
+
+        if (callTarget instanceof FunctionDeclaration) {
             // <ty>
-            final FunctionType decl = (FunctionType) callTarget;
+            final FunctionDeclaration decl = (FunctionDeclaration) callTarget;
+            final FunctionType type = decl.getType();
+            writeType(type.getReturnType());
 
-            writeType(decl.getReturnType());
-
-            if (decl.isVarArg() || (decl.getReturnType() instanceof PointerType && ((PointerType) decl.getReturnType()).getPointeeType() instanceof FunctionType)) {
+            if (type.isVarargs() || (type.getReturnType() instanceof PointerType && ((PointerType) type.getReturnType()).getPointeeType() instanceof FunctionType)) {
                 write(" ");
-                writeFormalArguments(decl);
+                writeFormalArguments(type);
                 write("*");
             }
             write(String.format(" %s", decl.getName()));
 
+        } else if (callTarget instanceof FunctionDefinition) {
+            // <ty>
+            final FunctionDefinition def = (FunctionDefinition) callTarget;
+            final FunctionType type = def.getType();
+            writeType(type.getReturnType());
+
+            if (type.isVarargs() || (type.getReturnType() instanceof PointerType && ((PointerType) type.getReturnType()).getPointeeType() instanceof FunctionType)) {
+                write(" ");
+                writeFormalArguments(type);
+                write("*");
+            }
+            write(String.format(" %s", def.getName()));
+
         } else if (callTarget instanceof CallInstruction) {
             // final FunctionType decl = ((CallInstruction) callTarget).getCallType();
-            final FunctionType decl = (FunctionType) ((CallInstruction) callTarget).getCallTarget();
+            final Symbol targetSymbol = ((CallInstruction) callTarget).getCallTarget();
+            final FunctionType decl;
+            if (targetSymbol instanceof FunctionDeclaration) {
+                decl = ((FunctionDeclaration) targetSymbol).getType();
+            } else if (targetSymbol instanceof FunctionDefinition) {
+                decl = ((FunctionDefinition) targetSymbol).getType();
+            } else {
+                throw new RuntimeException("unexpected Symbol type");
+            }
             writeType(decl.getReturnType());
             write(String.format(" %s", ((CallInstruction) callTarget).getName()));
 
@@ -727,7 +751,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
 
                 writeType(decl.getReturnType());
 
-                if (decl.isVarArg() || (decl.getReturnType() instanceof PointerType && ((PointerType) decl.getReturnType()).getPointeeType() instanceof FunctionType)) {
+                if (decl.isVarargs() || (decl.getReturnType() instanceof PointerType && ((PointerType) decl.getReturnType()).getPointeeType() instanceof FunctionType)) {
                     write(" ");
                     writeFormalArguments(decl);
                     write("*");
@@ -761,7 +785,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
                 write(", ");
             }
 
-            writeType(arg.getType());
+            writeSymbolType(arg);
             write(" ");
             writeInnerSymbolValue(arg);
         }
