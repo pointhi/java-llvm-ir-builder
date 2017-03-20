@@ -248,7 +248,7 @@ public class IRWriterConstantVisitor extends IRWriterBaseVisitor implements Cons
         writeFormalArguments(functionDefinition.getType());
     }
 
-    static final String LLVMIR_LABEL_GET_ELEMENT_POINTER = "getelementptr";
+    protected static final String LLVMIR_LABEL_GET_ELEMENT_POINTER = "getelementptr";
 
     @Override
     public void visit(GetElementPointerConstant getElementPointerConstant) {

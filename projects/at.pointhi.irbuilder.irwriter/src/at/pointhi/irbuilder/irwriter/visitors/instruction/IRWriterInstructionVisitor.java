@@ -154,7 +154,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
         writeln();
     }
 
-    static final String LLVMIR_LABEL_CALL = "call";
+    protected static final String LLVMIR_LABEL_CALL = "call";
 
     @Override
     public void visit(CallInstruction call) {
@@ -384,13 +384,13 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
         writeln();
     }
 
-    static final String LLVMIR_LABEL_LOAD = "load";
+    protected static final String LLVMIR_LABEL_LOAD = "load";
 
-    static final String LLVMIR_LABEL_ATOMIC = "atomic";
+    protected static final String LLVMIR_LABEL_ATOMIC = "atomic";
 
-    static final String LLVMIR_LABEL_VOLATILE = "volatile";
+    protected static final String LLVMIR_LABEL_VOLATILE = "volatile";
 
-    static final String LLVMIR_LABEL_SINGLETHREAD = "singlethread";
+    protected static final String LLVMIR_LABEL_SINGLETHREAD = "singlethread";
 
     @Override
     public void visit(LoadInstruction load) {
