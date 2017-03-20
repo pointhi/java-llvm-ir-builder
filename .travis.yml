@@ -34,3 +34,4 @@ script:
     - mx checkoverlap
     - mx canonicalizeprojects
     - mx irbuilder-test32
+    - mx irbuilder-test38

@@ -40,6 +40,7 @@ import com.oracle.truffle.llvm.parser.model.functions.FunctionDeclaration;
 import com.oracle.truffle.llvm.parser.model.functions.FunctionDefinition;
 import com.oracle.truffle.llvm.parser.model.functions.FunctionParameter;
 import com.oracle.truffle.llvm.parser.model.symbols.constants.Constant;
+import com.oracle.truffle.llvm.parser.model.symbols.constants.InlineAsmConstant;
 import com.oracle.truffle.llvm.parser.model.symbols.constants.integer.IntegerConstant;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.AllocateInstruction;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.BinaryOperationInstruction;
@@ -76,6 +77,7 @@ import com.oracle.truffle.llvm.runtime.types.symbols.ValueSymbol;
 import at.pointhi.irbuilder.irwriter.IRWriter;
 import at.pointhi.irbuilder.irwriter.IRWriterVersion;
 import at.pointhi.irbuilder.irwriter.visitors.IRWriterBaseVisitor;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements InstructionVisitor {
 
@@ -684,56 +686,84 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
         writeln();
     }
 
+    /**
+     * @see <a href="http://releases.llvm.org/3.2/docs/LangRef.html#i_call">LangRef</a>
+     */
     protected void writeFunctionCall(Call call) {
+        // [tail] call
         write(LLVMIR_LABEL_CALL);
         write(" ");
 
+        // [cconv] [ret attrs]
+
+        /*
+         * <ty>
+         *
+         * 'ty': the type of the call instruction itself which is also the type of the return value.
+         * Functions that return no value are marked void.
+         */
+        writeType(getCallSymbolType(call));
+        write(" ");
+
+        /*
+         * [<fnty>*]
+         *
+         * 'fnty': shall be the signature of the pointer to function value being invoked. The
+         * argument types must match the types implied by this signature. This type can be omitted
+         * if the function is not varargs and if the function type does not return a pointer to a
+         * function.
+         */
+        final FunctionType funcType = getFunctionType(call);
+        final Type retType = funcType.getReturnType();
+        if (funcType.isVarargs() || (retType instanceof PointerType && ((PointerType) retType).getPointeeType() instanceof FunctionType)) {
+            writeFormalArguments(funcType);
+            write("*");
+            write(" ");
+        }
+
+        /*
+         * <fnptrval>
+         *
+         * 'fnptrval': An LLVM value containing a pointer to a function to be invoked. In most
+         * cases, this is a direct function invocation, but indirect calls are just as possible,
+         * calling an arbitrary pointer to function value.
+         */
+        writeInnerSymbolValue(call.getCallTarget());
+
+        /*
+         * (<function args>)
+         *
+         * 'function args': argument list whose types match the function signature argument types
+         * and parameter attributes. All arguments must be of first class type. If the function
+         * signature indicates the function accepts a variable number of arguments, the extra
+         * arguments can be specified.
+         */
+        writeActualArgs(call);
+
+        // [fn attrs]
+    }
+
+    protected static Type getCallSymbolType(Call call) {
+        if (call instanceof VoidCallInstruction) {
+            return ((VoidCallInstruction) call).getType();
+        } else if (call instanceof CallInstruction) {
+            return ((CallInstruction) call).getType();
+        } else {
+            throw new RuntimeException("unexpected type");
+        }
+    }
+
+    protected static FunctionType getFunctionType(Call call) {
         final Symbol callTarget = call.getCallTarget();
 
         if (callTarget instanceof FunctionDeclaration) {
-            // <ty>
-            final FunctionDeclaration decl = (FunctionDeclaration) callTarget;
-            final FunctionType type = decl.getType();
-            writeType(type.getReturnType());
-
-            if (type.isVarargs() || (type.getReturnType() instanceof PointerType && ((PointerType) type.getReturnType()).getPointeeType() instanceof FunctionType)) {
-                write(" ");
-                writeFormalArguments(type);
-                write("*");
-            }
-            write(String.format(" %s", decl.getName()));
-
+            return ((FunctionDeclaration) callTarget).getType();
         } else if (callTarget instanceof FunctionDefinition) {
-            // <ty>
-            final FunctionDefinition def = (FunctionDefinition) callTarget;
-            final FunctionType type = def.getType();
-            writeType(type.getReturnType());
-
-            if (type.isVarargs() || (type.getReturnType() instanceof PointerType && ((PointerType) type.getReturnType()).getPointeeType() instanceof FunctionType)) {
-                write(" ");
-                writeFormalArguments(type);
-                write("*");
-            }
-            write(String.format(" %s", def.getName()));
-
-        } else if (callTarget instanceof CallInstruction) {
-            // final FunctionType decl = ((CallInstruction) callTarget).getCallType();
-            final Symbol targetSymbol = ((CallInstruction) callTarget).getCallTarget();
-            final FunctionType decl;
-            if (targetSymbol instanceof FunctionDeclaration) {
-                decl = ((FunctionDeclaration) targetSymbol).getType();
-            } else if (targetSymbol instanceof FunctionDefinition) {
-                decl = ((FunctionDefinition) targetSymbol).getType();
-            } else {
-                throw new RuntimeException("unexpected Symbol type");
-            }
-            writeType(decl.getReturnType());
-            write(String.format(" %s", ((CallInstruction) callTarget).getName()));
-
+            return ((FunctionDefinition) callTarget).getType();
         } else if (callTarget instanceof FunctionParameter) {
-            writeType(callTarget.getType());
-            write(String.format(" %s ", ((FunctionParameter) callTarget).getName()));
-
+            return ((FunctionDefinition) callTarget).getType();
+        } else if (callTarget instanceof CallInstruction) {
+            return getFunctionType((CallInstruction) callTarget);
         } else if (callTarget instanceof ValueSymbol) {
             Type targetType;
             if (callTarget instanceof LoadInstruction) {
@@ -747,33 +777,17 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
             }
 
             if (targetType instanceof FunctionType) {
-                final FunctionType decl = (FunctionType) targetType;
-
-                writeType(decl.getReturnType());
-
-                if (decl.isVarargs() || (decl.getReturnType() instanceof PointerType && ((PointerType) decl.getReturnType()).getPointeeType() instanceof FunctionType)) {
-                    write(" ");
-                    writeFormalArguments(decl);
-                    write("*");
-                }
-
-                write(" ");
-                writeInnerSymbolValue(callTarget);
-
+                return (FunctionType) targetType;
             } else {
                 throw new AssertionError("unexpected target type: " + targetType.getClass().getName());
             }
-
         } else if (callTarget instanceof Constant) {
-            writeType(callTarget.getType());
-            write(" ");
-            writeConstant((Constant) callTarget);
-
+            throw new NotImplementedException();
+        } else if (callTarget instanceof InlineAsmConstant) {
+            throw new NotImplementedException();
         } else {
-            throw new AssertionError("unexpected target type: " + call.getCallTarget().getClass().getName());
+            throw new AssertionError("unexpected target type: " + callTarget.getClass().getName());
         }
-
-        writeActualArgs(call);
     }
 
     protected void writeActualArgs(Call call) {

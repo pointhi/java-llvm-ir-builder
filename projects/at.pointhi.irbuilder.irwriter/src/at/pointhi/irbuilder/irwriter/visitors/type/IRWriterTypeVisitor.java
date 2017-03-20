@@ -87,23 +87,8 @@ public class IRWriterTypeVisitor extends IRWriterBaseVisitor implements TypeVisi
     @Override
     public void visit(FunctionType functionType) {
         writeType(functionType.getReturnType());
-
-        write(" (");
-
-        for (int i = 0; i < functionType.getArgumentTypes().length; i++) {
-            if (i > 0) {
-                write(", ");
-            }
-            writeType(functionType.getArgumentTypes()[i]);
-        }
-
-        if (functionType.isVarargs()) {
-            if (functionType.getArgumentTypes().length > 0) {
-                write(", ");
-            }
-            write("...");
-        }
-        write(")");
+        write(" ");
+        writeFormalArguments(functionType);
     }
 
     @Override
