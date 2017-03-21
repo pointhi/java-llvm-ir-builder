@@ -763,7 +763,13 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
         } else if (callTarget instanceof FunctionParameter) {
             return ((FunctionDefinition) callTarget).getType();
         } else if (callTarget instanceof CallInstruction) {
-            return getFunctionType((CallInstruction) callTarget);
+            Type targetType = ((CallInstruction) callTarget).getType();
+            targetType = ((PointerType) targetType).getPointeeType(); // TODO: check
+            if (targetType instanceof FunctionType) {
+                return (FunctionType) targetType;
+            } else {
+                throw new AssertionError("unexpected target type: " + targetType.getClass().getName());
+            }
         } else if (callTarget instanceof ValueSymbol) {
             Type targetType;
             if (callTarget instanceof LoadInstruction) {
@@ -782,9 +788,13 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
                 throw new AssertionError("unexpected target type: " + targetType.getClass().getName());
             }
         } else if (callTarget instanceof Constant) {
-            throw new NotImplementedException();
-        } else if (callTarget instanceof InlineAsmConstant) {
-            throw new NotImplementedException();
+            Type targetType = callTarget.getType();
+            targetType = ((PointerType) targetType).getPointeeType(); // TODO: check
+            if (targetType instanceof FunctionType) {
+                return (FunctionType) targetType;
+            } else {
+                throw new AssertionError("unexpected target type: " + targetType.getClass().getName());
+            }
         } else {
             throw new AssertionError("unexpected target type: " + callTarget.getClass().getName());
         }
