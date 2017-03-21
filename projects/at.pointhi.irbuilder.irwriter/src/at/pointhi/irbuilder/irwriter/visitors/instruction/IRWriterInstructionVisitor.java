@@ -40,7 +40,6 @@ import com.oracle.truffle.llvm.parser.model.functions.FunctionDeclaration;
 import com.oracle.truffle.llvm.parser.model.functions.FunctionDefinition;
 import com.oracle.truffle.llvm.parser.model.functions.FunctionParameter;
 import com.oracle.truffle.llvm.parser.model.symbols.constants.Constant;
-import com.oracle.truffle.llvm.parser.model.symbols.constants.InlineAsmConstant;
 import com.oracle.truffle.llvm.parser.model.symbols.constants.integer.IntegerConstant;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.AllocateInstruction;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.BinaryOperationInstruction;
@@ -77,7 +76,6 @@ import com.oracle.truffle.llvm.runtime.types.symbols.ValueSymbol;
 import at.pointhi.irbuilder.irwriter.IRWriter;
 import at.pointhi.irbuilder.irwriter.IRWriterVersion;
 import at.pointhi.irbuilder.irwriter.visitors.IRWriterBaseVisitor;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements InstructionVisitor {
 

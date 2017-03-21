@@ -164,7 +164,7 @@ public class IRWriterInstructionVisitorV38 extends IRWriterInstructionVisitor {
          * <fnptrval>
          *
          * 'fnptrval': An LLVM value containing a pointer to a function to be invoked. In most
-         * cases, this is a direct function invocation, but indirect call‘s are just as possible,
+         * cases, this is a direct function invocation, but indirect call's are just as possible,
          * calling an arbitrary pointer to function value.
          */
         writeInnerSymbolValue(call.getCallTarget());
