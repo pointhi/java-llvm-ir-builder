@@ -111,6 +111,9 @@ def _runIRGeneratorSuite(assembler, lli):
         for x in range(0, len(failed)):
             mx.log_error(str(x) + ') ' + failed[x])
         return 1
+    elif total == 0:
+        mx.log_error('There is something odd with the testsuite, ' + str(total) + ' Tests executed!')
+        return 1
     else:
         mx.log('Passed all ' + str(total) + ' Tests!')
         return 0
