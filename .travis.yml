@@ -33,5 +33,6 @@ script:
     - mx pylint
     - mx checkoverlap
     - mx canonicalizeprojects
+    - mx clean & mx build
     - mx irbuilder-test32
     - mx irbuilder-test38
