@@ -32,6 +32,11 @@
 
 package at.pointhi.irbuilder.irwriter.visitors.model;
 
+import java.util.List;
+import java.util.Optional;
+
+import com.oracle.truffle.llvm.parser.model.attributes.Attribute;
+import com.oracle.truffle.llvm.parser.model.attributes.AttributesGroup;
 import com.oracle.truffle.llvm.parser.model.enums.CastOperator;
 import com.oracle.truffle.llvm.parser.model.enums.Linkage;
 import com.oracle.truffle.llvm.parser.model.enums.Visibility;
@@ -129,12 +134,16 @@ public class IRWriterModelVisitor extends IRWriterBaseVisitor implements ModelVi
     public void visit(FunctionDeclaration function) {
         writeln();
 
-        write("declare ");
+        write("declare");
+        writeAttributesGroupByIndex(function.getParamattr(), AttributesGroup.RETURN_VALUE_IDX);
+        write(" ");
         writeType(function.getType().getReturnType());
 
         writef(" %s", function.getName());
 
         writeFormalArguments(function.getType());
+        writeAttributesGroupByIndex(function.getParamattr(), AttributesGroup.FUNCTION_ATTRIBUTE_IDX);
+
         writeln();
     }
 
@@ -142,7 +151,9 @@ public class IRWriterModelVisitor extends IRWriterBaseVisitor implements ModelVi
     public void visit(FunctionDefinition function) {
         writeln();
 
-        write("define ");
+        write("define");
+        writeAttributesGroupByIndex(function.getParamattr(), AttributesGroup.RETURN_VALUE_IDX);
+        write(" ");
         writeType(function.getType().getReturnType());
 
         writef(" %s", function.getName());
@@ -150,6 +161,7 @@ public class IRWriterModelVisitor extends IRWriterBaseVisitor implements ModelVi
         write("(");
 
         boolean firstIteration = true;
+        int index = 1;
         for (FunctionParameter param : function.getParameters()) {
             if (!firstIteration) {
                 write(", ");
@@ -157,6 +169,8 @@ public class IRWriterModelVisitor extends IRWriterBaseVisitor implements ModelVi
                 firstIteration = false;
             }
             writeFunctionParameter(param);
+            writeAttributesGroupByIndex(function.getParamattr(), index);
+            index++;
         }
 
         if (function.getType().isVarargs()) {
@@ -168,10 +182,25 @@ public class IRWriterModelVisitor extends IRWriterBaseVisitor implements ModelVi
         }
 
         write(")");
+        writeAttributesGroupByIndex(function.getParamattr(), AttributesGroup.FUNCTION_ATTRIBUTE_IDX);
 
         writeln(" {");
         writeFunction(function);
         writeln("}");
+    }
+
+    protected void writeAttributesGroupByIndex(List<AttributesGroup> paramattr, int index) {
+        Optional<AttributesGroup> attrGroup = paramattr.stream().filter(p -> p.getParamIdx() == index).findAny();
+        if (attrGroup.isPresent()) {
+            writeAttributesGroup(attrGroup.get());
+        }
+    }
+
+    protected void writeAttributesGroup(AttributesGroup attr) {
+        for (Attribute a : attr.getAttributes()) {
+            write(" ");
+            write(a.getIrString());
+        }
     }
 
     protected void writeFunctionParameter(FunctionParameter param) {
