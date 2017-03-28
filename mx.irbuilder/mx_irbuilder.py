@@ -3,6 +3,7 @@ import os
 import mx
 import mx_sulong
 import mx_testsuites
+import argparse
 import sys
 
 _suite = mx.suite('irbuilder')
@@ -59,28 +60,63 @@ def getIRWriterClasspathOptions():
 def runIRBuilderOut(args=None, out=None):
     return mx.run_java(getIRWriterClasspathOptions() + ["at.pointhi.irbuilder.irwriter.SourceParser"] + args)
 
+irBuilderTests32 = {
+    'sulong' : ['sulong', "at.pointhi.irbuilder.test.SulongGeneratorSuite", os.path.join(mx_testsuites._cacheDir, 'sulong')],
+    'llvm' : ['llvm', "at.pointhi.irbuilder.test.LLVMGeneratorSuite", os.path.join(mx_testsuites._cacheDir, 'llvm')],
+    'gcc' : ['gcc', "at.pointhi.irbuilder.test.GCCGeneratorSuite", os.path.join(mx_testsuites._cacheDir, 'gcc')],
+    'nwcc' : ['nwcc', "at.pointhi.irbuilder.test.NWCCGeneratorSuite", os.path.join(mx_testsuites._cacheDir, 'nwcc')],
+}
+
+irBuilderTests38 = {
+    'sulong' : ['sulong38', "at.pointhi.irbuilder.test.SulongGeneratorSuite", os.path.join(mx_testsuites._cacheDir, 'sulong')],
+    'llvm' : ['llvm38', "at.pointhi.irbuilder.test.LLVMGeneratorSuite", os.path.join(mx_testsuites._cacheDir, 'llvm')],
+    'gcc' : ['gcc38', "at.pointhi.irbuilder.test.GCCGeneratorSuite", os.path.join(mx_testsuites._cacheDir, 'gcc')],
+    'nwcc' : ['nwcc38', "at.pointhi.irbuilder.test.NWCCGeneratorSuite", os.path.join(mx_testsuites._cacheDir, 'nwcc')],
+}
+
 def runIRBuilderTest32(vmArgs):
-    """runs the Sulong test suite"""
-    mx_sulong.ensureDragonEggExists()
-    mx_sulong.mx_testsuites.compileSuite(['sulong'])
-    try:
-        mx_sulong.mx_testsuites.run32(vmArgs, "at.pointhi.irbuilder.test.IRGeneratorSuite", [])
-    except:
-        pass
-    return _runIRGeneratorSuite(LlvmAS(['3.2', '3.3']), LlvmLLI(['3.2', '3.3']))
+    vmArgs, otherArgs = mx_sulong.truffle_extract_VM_args(vmArgs)
+    parser = argparse.ArgumentParser(description="Compiles all or selected test suites.")
+    parser.add_argument('suite', nargs='*', help=' '.join(irBuilderTests32.keys()), default=irBuilderTests32.keys())
+    parsedArgs = parser.parse_args(otherArgs)
+
+    returnCode = 0
+    for testSuiteName in parsedArgs.suite:
+        suite = irBuilderTests32[testSuiteName]
+        """runs the test suite"""
+        mx_sulong.ensureDragonEggExists()
+        mx_sulong.mx_testsuites.compileSuite([suite[0]])
+        try:
+            mx_sulong.mx_testsuites.run32(vmArgs, suite[1], [])
+        except:
+            pass
+        if _runIRGeneratorSuite(LlvmAS(['3.2', '3.3']), LlvmLLI(['3.2', '3.3']), suite[2]) != 0:
+            returnCode = 1
+
+    return returnCode
 
 def runIRBuilderTest38(vmArgs):
-    """runs the Sulong test suite"""
-    mx_sulong.ensureDragonEggExists()
-    mx_sulong.mx_testsuites.compileSuite(['sulong38'])
-    try:
-        mx_sulong.mx_testsuites.run38(vmArgs, "at.pointhi.irbuilder.test.IRGeneratorSuite", [])
-    except:
-        pass
-    return _runIRGeneratorSuite(LlvmAS(['3.8', '3.9']), LlvmLLI(['3.8', '3.9']))
+    vmArgs, otherArgs = mx_sulong.truffle_extract_VM_args(vmArgs)
+    parser = argparse.ArgumentParser(description="Compiles all or selected test suites.")
+    parser.add_argument('suite', nargs='*', help=' '.join(irBuilderTests38.keys()), default=irBuilderTests38.keys())
+    parsedArgs = parser.parse_args(otherArgs)
 
-def _runIRGeneratorSuite(assembler, lli):
-    sulongSuiteCacheDir = os.path.join(mx_testsuites._cacheDir, 'sulong')
+    returnCode = 0
+    for testSuiteName in parsedArgs.suite:
+        suite = irBuilderTests38[testSuiteName]
+        """runs the test suite"""
+        mx_sulong.ensureDragonEggExists()
+        mx_sulong.mx_testsuites.compileSuite([suite[0]])
+        try:
+            mx_sulong.mx_testsuites.run38(vmArgs, suite[1], [])
+        except:
+            pass
+        if _runIRGeneratorSuite(LlvmAS(['3.8', '3.9']), LlvmLLI(['3.8', '3.9']), suite[2]) != 0:
+            returnCode = 1
+
+    return returnCode
+
+def _runIRGeneratorSuite(assembler, lli, sulongSuiteCacheDir):
     mx.log('Testing Reassembly')
     mx.log(sulongSuiteCacheDir)
     failed = []
