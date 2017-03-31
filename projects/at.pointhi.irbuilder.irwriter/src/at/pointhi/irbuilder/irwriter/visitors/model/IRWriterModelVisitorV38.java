@@ -32,6 +32,7 @@
 
 package at.pointhi.irbuilder.irwriter.visitors.model;
 
+import com.oracle.truffle.llvm.parser.model.enums.Linkage;
 import com.oracle.truffle.llvm.parser.model.enums.Visibility;
 import com.oracle.truffle.llvm.parser.model.functions.FunctionParameter;
 import com.oracle.truffle.llvm.parser.model.globals.GlobalAlias;
@@ -48,15 +49,26 @@ public class IRWriterModelVisitorV38 extends IRWriterModelVisitor {
 
     private static final String UNRESOLVED_FORWARD_REFERENCE = "<unresolved>";
 
+    /*
+     * @see http://releases.llvm.org/3.8.0/docs/LangRef.html#aliases
+     */
     @Override
     public void visit(GlobalAlias alias) {
-        write(String.format("%s = %s ", alias.getName(), alias.getLinkage().getIrString()));
+        write(alias.getName());
+        write(" = ");
 
-        if (alias.getVisibility() != Visibility.DEFAULT) {
-            write(String.format("%s ", alias.getVisibility().getIrString()));
+        if (alias.getLinkage() != Linkage.EXTERNAL || alias.getValue() == null) {
+            write(alias.getLinkage().getIrString());
+            write(" ");
         }
 
-        write("alias ");
+        if (alias.getVisibility() != Visibility.DEFAULT) {
+            write(alias.getVisibility().getIrString());
+            write(" ");
+        }
+
+        write(LLVMIR_LABEL_ALIAS);
+        write(" ");
 
         final Symbol val = alias.getValue();
         if (val == null) {

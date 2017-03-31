@@ -110,11 +110,40 @@ public class IRWriterModelVisitor extends IRWriterBaseVisitor implements ModelVi
         writeln();
     }
 
-    private static final String LLVMIR_LABEL_ALIAS = "alias";
+    protected static final String LLVMIR_LABEL_ALIAS = "alias";
 
+    /*
+     * @see http://releases.llvm.org/3.2/docs/LangRef.html#aliasstructure
+     */
     @Override
     public void visit(GlobalAlias alias) {
-        writeGlobal(LLVMIR_LABEL_ALIAS, alias);
+        write(alias.getName());
+        write(" = ");
+
+        write(LLVMIR_LABEL_ALIAS);
+        write(" ");
+
+        if (alias.getLinkage() != Linkage.EXTERNAL || alias.getValue() == null) {
+            write(alias.getLinkage().getIrString());
+            write(" ");
+        }
+
+        if (alias.getVisibility() != Visibility.DEFAULT) {
+            write(alias.getVisibility().getIrString());
+            write(" ");
+        }
+
+        final Symbol value = alias.getValue();
+
+        if (value != null) {
+            writeSymbolType(value);
+            write(" ");
+            writeInnerSymbolValue(value);
+        } else {
+            writeType(((PointerType) alias.getType()).getPointeeType());
+        }
+
+        writeln();
     }
 
     private static final String LLVMIR_LABEL_CONSTANT = "constant";
