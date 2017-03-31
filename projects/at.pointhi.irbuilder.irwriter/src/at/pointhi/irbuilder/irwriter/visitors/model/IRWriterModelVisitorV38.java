@@ -34,7 +34,6 @@ package at.pointhi.irbuilder.irwriter.visitors.model;
 
 import com.oracle.truffle.llvm.parser.model.enums.Linkage;
 import com.oracle.truffle.llvm.parser.model.enums.Visibility;
-import com.oracle.truffle.llvm.parser.model.functions.FunctionParameter;
 import com.oracle.truffle.llvm.parser.model.globals.GlobalAlias;
 import com.oracle.truffle.llvm.runtime.types.symbols.Symbol;
 
@@ -85,12 +84,4 @@ public class IRWriterModelVisitorV38 extends IRWriterModelVisitor {
         writeln();
     }
 
-    @Override
-    protected void writeFunctionParameter(FunctionParameter param) {
-        writeType(param.getType());
-        if (!param.getName().matches("%\\d+")) {
-            write(" ");
-            write(param.getName());
-        }
-    }
 }

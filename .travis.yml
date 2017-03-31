@@ -67,5 +67,5 @@ script:
     - mx checkoverlap
     - mx canonicalizeprojects
     - mx clean & mx build
-    - mx irbuilder-test32 sulong nwcc
-    - mx irbuilder-test38 sulong nwcc
+    - mx irbuilder-test32 sulong nwcc llvm
+    - mx irbuilder-test38 sulong nwcc llvm

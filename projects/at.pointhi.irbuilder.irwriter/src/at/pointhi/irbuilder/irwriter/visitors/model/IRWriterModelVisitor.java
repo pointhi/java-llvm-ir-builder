@@ -235,8 +235,10 @@ public class IRWriterModelVisitor extends IRWriterBaseVisitor implements ModelVi
 
     protected void writeFunctionParameter(FunctionParameter param) {
         writeType(param.getType());
-        write(" ");
-        write(param.getName());
+        if (!param.getName().matches("%\\d+")) {
+            write(" ");
+            write(param.getName());
+        }
     }
 
     @Override
