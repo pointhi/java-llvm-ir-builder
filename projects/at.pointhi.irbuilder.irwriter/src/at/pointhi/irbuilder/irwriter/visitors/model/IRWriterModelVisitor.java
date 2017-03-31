@@ -98,6 +98,8 @@ public class IRWriterModelVisitor extends IRWriterBaseVisitor implements ModelVi
             writeSymbolType(value);
             write(" ");
             writeInnerSymbolValue(value);
+        } else {
+            writeType(((PointerType) global.getType()).getPointeeType());
         }
 
         if (global.getAlign() > 1) {

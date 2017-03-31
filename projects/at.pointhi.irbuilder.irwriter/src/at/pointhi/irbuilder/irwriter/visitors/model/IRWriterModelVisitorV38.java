@@ -63,10 +63,10 @@ public class IRWriterModelVisitorV38 extends IRWriterModelVisitor {
             writeln(UNRESOLVED_FORWARD_REFERENCE);
             return;
         }
-        writeType(alias.getType());
+        writeSymbolType(alias);
 
         write(", ");
-        writeType(val.getType());
+        writeSymbolType(val);
 
         write(" ");
         writeInnerSymbolValue(val);
