@@ -354,7 +354,7 @@ public class IRWriterConstantVisitor extends IRWriterBaseVisitor implements Cons
         write("c\"");
         for (int i = 0; i < stringConstant.getString().length(); i++) {
             byte b = (byte) stringConstant.getString().charAt(i);
-            if (b < ' ' || b >= '~') {
+            if (b < ' ' || b >= '~' || b == '"') {
                 writef("\\%02X", b);
             } else {
                 write(Character.toString((char) b));
