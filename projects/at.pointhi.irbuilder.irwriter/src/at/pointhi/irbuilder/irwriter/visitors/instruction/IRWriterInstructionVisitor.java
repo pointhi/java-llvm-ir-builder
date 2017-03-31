@@ -477,7 +477,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
         if (value == null) {
             writeType(VoidType.INSTANCE);
         } else {
-            writeType(value.getType());
+            writeSymbolType(value);
             write(" ");
             writeInnerSymbolValue(value);
         }

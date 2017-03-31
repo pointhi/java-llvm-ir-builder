@@ -37,7 +37,6 @@ import java.util.Optional;
 
 import com.oracle.truffle.llvm.parser.model.attributes.Attribute;
 import com.oracle.truffle.llvm.parser.model.attributes.AttributesGroup;
-import com.oracle.truffle.llvm.parser.model.enums.CastOperator;
 import com.oracle.truffle.llvm.parser.model.enums.Linkage;
 import com.oracle.truffle.llvm.parser.model.enums.Visibility;
 import com.oracle.truffle.llvm.parser.model.functions.FunctionDeclaration;
@@ -47,10 +46,8 @@ import com.oracle.truffle.llvm.parser.model.globals.GlobalAlias;
 import com.oracle.truffle.llvm.parser.model.globals.GlobalConstant;
 import com.oracle.truffle.llvm.parser.model.globals.GlobalValueSymbol;
 import com.oracle.truffle.llvm.parser.model.globals.GlobalVariable;
-import com.oracle.truffle.llvm.parser.model.symbols.constants.CastConstant;
 import com.oracle.truffle.llvm.parser.model.target.TargetDataLayout;
 import com.oracle.truffle.llvm.parser.model.visitors.ModelVisitor;
-import com.oracle.truffle.llvm.runtime.types.PointerType;
 import com.oracle.truffle.llvm.runtime.types.StructureType;
 import com.oracle.truffle.llvm.runtime.types.Type;
 import com.oracle.truffle.llvm.runtime.types.symbols.LLVMIdentifier;
@@ -84,20 +81,10 @@ public class IRWriterModelVisitor extends IRWriterBaseVisitor implements ModelVi
         write(" ");
 
         final Symbol value = global.getValue();
-        if (value instanceof FunctionDeclaration) {
-            writeType(new PointerType(((FunctionDeclaration) value).getType()));
-            write(" ");
-
-        } else if (value instanceof FunctionDefinition) {
-            writeType(new PointerType(((FunctionDefinition) value).getType()));
-            write(" ");
-
-        } else if (!(value instanceof CastConstant && ((CastConstant) value).getOperator() == CastOperator.BITCAST)) {
-            writeType(((PointerType) global.getType()).getPointeeType());
-            write(" ");
-        }
 
         if (value != null) {
+            writeSymbolType(value);
+            write(" ");
             writeInnerSymbolValue(value);
         }
 
