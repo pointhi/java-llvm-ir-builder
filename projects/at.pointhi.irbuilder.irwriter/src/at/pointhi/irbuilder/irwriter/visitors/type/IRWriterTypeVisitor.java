@@ -37,6 +37,7 @@ import java.math.BigInteger;
 import com.oracle.truffle.llvm.runtime.types.ArrayType;
 import com.oracle.truffle.llvm.runtime.types.FunctionType;
 import com.oracle.truffle.llvm.runtime.types.MetaType;
+import com.oracle.truffle.llvm.runtime.types.OpaqueType;
 import com.oracle.truffle.llvm.runtime.types.PointerType;
 import com.oracle.truffle.llvm.runtime.types.PrimitiveType;
 import com.oracle.truffle.llvm.runtime.types.StructureType;
@@ -136,5 +137,13 @@ public class IRWriterTypeVisitor extends IRWriterBaseVisitor implements TypeVisi
         write(" x ");
         writeType(vectorType.getElementType());
         write(">");
+    }
+
+    public void visit(OpaqueType opaqueType) {
+        if (LLVMIdentifier.UNKNOWN.equals(opaqueType.getName())) {
+            write("opaque");
+        } else {
+            write("%" + opaqueType.getName());
+        }
     }
 }

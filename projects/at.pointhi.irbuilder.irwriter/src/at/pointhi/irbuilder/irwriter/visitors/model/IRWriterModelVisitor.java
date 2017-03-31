@@ -48,10 +48,22 @@ import com.oracle.truffle.llvm.parser.model.globals.GlobalValueSymbol;
 import com.oracle.truffle.llvm.parser.model.globals.GlobalVariable;
 import com.oracle.truffle.llvm.parser.model.target.TargetDataLayout;
 import com.oracle.truffle.llvm.parser.model.visitors.ModelVisitor;
+import com.oracle.truffle.llvm.runtime.types.ArrayType;
+import com.oracle.truffle.llvm.runtime.types.FunctionType;
+import com.oracle.truffle.llvm.runtime.types.MetaType;
+import com.oracle.truffle.llvm.runtime.types.OpaqueType;
+import com.oracle.truffle.llvm.runtime.types.PointerType;
+import com.oracle.truffle.llvm.runtime.types.PrimitiveType;
 import com.oracle.truffle.llvm.runtime.types.StructureType;
 import com.oracle.truffle.llvm.runtime.types.Type;
+import com.oracle.truffle.llvm.runtime.types.VariableBitWidthType;
+import com.oracle.truffle.llvm.runtime.types.VectorType;
+import com.oracle.truffle.llvm.runtime.types.VoidType;
+import com.oracle.truffle.llvm.runtime.types.metadata.MetadataConstantPointerType;
+import com.oracle.truffle.llvm.runtime.types.metadata.MetadataConstantType;
 import com.oracle.truffle.llvm.runtime.types.symbols.LLVMIdentifier;
 import com.oracle.truffle.llvm.runtime.types.symbols.Symbol;
+import com.oracle.truffle.llvm.runtime.types.visitors.TypeVisitor;
 
 import at.pointhi.irbuilder.irwriter.IRWriter;
 import at.pointhi.irbuilder.irwriter.IRWriterVersion;
@@ -204,11 +216,52 @@ public class IRWriterModelVisitor extends IRWriterBaseVisitor implements ModelVi
 
     @Override
     public void visit(Type type) {
-        if (type instanceof StructureType && !((StructureType) type).getName().equals(LLVMIdentifier.UNKNOWN)) {
-            final StructureType actualType = (StructureType) type;
-            writef("%%%s = type ", actualType.getName());
-            writeStructDeclaration(actualType);
-            writeln();
-        }
+        type.accept(new TypeVisitor() {
+
+            public void visit(OpaqueType opaqueType) {
+                if (!opaqueType.getName().equals(LLVMIdentifier.UNKNOWN)) {
+                    writef("%%%s = type opaque", opaqueType.getName());
+                    writeln();
+                }
+            }
+
+            public void visit(StructureType structureType) {
+                if (!structureType.getName().equals(LLVMIdentifier.UNKNOWN)) {
+                    writef("%%%s = type ", structureType.getName());
+                    writeStructDeclaration(structureType);
+                    writeln();
+                }
+            }
+
+            public void visit(VoidType vectorType) {
+            }
+
+            public void visit(VariableBitWidthType vectorType) {
+            }
+
+            public void visit(VectorType vectorType) {
+            }
+
+            public void visit(ArrayType arrayType) {
+            }
+
+            public void visit(PointerType pointerType) {
+            }
+
+            public void visit(MetaType metaType) {
+            }
+
+            public void visit(MetadataConstantPointerType metadataConstantPointerType) {
+            }
+
+            public void visit(MetadataConstantType metadataConstantType) {
+            }
+
+            public void visit(PrimitiveType primitiveType) {
+            }
+
+            public void visit(FunctionType functionType) {
+            }
+        });
     }
 }
