@@ -35,19 +35,19 @@ env:
 before_install:
     - mkdir -p $HOME/.cache/travis
     # LLVM 3.8
-    - wget -nc http://llvm.org/releases/$LLVM_VERSION/clang+llvm-$LLVM_VERSION-x86_64-linux-gnu-ubuntu-14.04.tar.xz -O $LLVM_ARCHIVE_PATH
+    - wget -N http://llvm.org/releases/$LLVM_VERSION/clang+llvm-$LLVM_VERSION-x86_64-linux-gnu-ubuntu-14.04.tar.xz -O $LLVM_ARCHIVE_PATH
     - mkdir $HOME/clang+llvm
     - tar xf $LLVM_ARCHIVE_PATH -C $HOME/clang+llvm --strip-components 1
     - export PATH=$HOME/clang+llvm/bin:$PATH
     # Eclipse JDK
-    - wget -nc https://lafo.ssw.uni-linz.ac.at/pub/sulong-deps/eclipse-jdk8-linux-x86_64.tar.gz -O $ECLIPSE_JDK_ARCHIVE_PATH
+    - wget -N https://lafo.ssw.uni-linz.ac.at/pub/sulong-deps/eclipse-jdk8-linux-x86_64.tar.gz -O $ECLIPSE_JDK_ARCHIVE_PATH
     - tar -xvzf $ECLIPSE_JDK_ARCHIVE_PATH -C $HOME
     - export ECLIPSE_EXE=$HOME/eclipse/eclipse
     # ECJ
-    - wget -nc https://lafo.ssw.uni-linz.ac.at/pub/sulong-deps/ecj-$ECJ_VERSION.jar -O $ECJ_ARCHIVE_PATH
+    - wget -N https://lafo.ssw.uni-linz.ac.at/pub/sulong-deps/ecj-$ECJ_VERSION.jar -O $ECJ_ARCHIVE_PATH
     - export JDT=$ECJ_ARCHIVE_PATH
     # JVMCI
-    - wget -nc https://github.com/dougxc/openjdk8-jvmci-builder/releases/download/jvmci-$JVMCI_VERSION/jdk1.8.0_111-jvmci-$JVMCI_VERSION-linux-amd64.tar.gz -O $JVMCI_ARCHIVE_PATH
+    - wget -N https://github.com/dougxc/openjdk8-jvmci-builder/releases/download/jvmci-$JVMCI_VERSION/jdk1.8.0_111-jvmci-$JVMCI_VERSION-linux-amd64.tar.gz -O $JVMCI_ARCHIVE_PATH
     - tar -xzf $JVMCI_ARCHIVE_PATH -C $HOME
     - export JAVA_HOME=$HOME/jdk1.8.0_111-jvmci-$JVMCI_VERSION
 install:
