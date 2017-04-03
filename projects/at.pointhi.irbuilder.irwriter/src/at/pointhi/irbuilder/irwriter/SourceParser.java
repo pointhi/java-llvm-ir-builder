@@ -67,7 +67,7 @@ public class SourceParser {
             }
 
             @Override
-            public CallTarget parse(Source code, Node context, String... argumentNames) throws IOException {
+            public CallTarget parse(LLVMLanguage language, LLVMContext context, Source code, String... argumentNames) throws IOException {
                 try {
                     return parse(code);
                 } catch (Throwable t) {

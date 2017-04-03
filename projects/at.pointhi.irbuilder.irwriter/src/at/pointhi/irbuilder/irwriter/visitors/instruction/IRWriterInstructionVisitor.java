@@ -55,8 +55,11 @@ import com.oracle.truffle.llvm.parser.model.symbols.instructions.GetElementPoint
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.IndirectBranchInstruction;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.InsertElementInstruction;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.InsertValueInstruction;
+import com.oracle.truffle.llvm.parser.model.symbols.instructions.InvokeInstruction;
+import com.oracle.truffle.llvm.parser.model.symbols.instructions.LandingpadInstruction;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.LoadInstruction;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.PhiInstruction;
+import com.oracle.truffle.llvm.parser.model.symbols.instructions.ResumeInstruction;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.ReturnInstruction;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.SelectInstruction;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.ShuffleVectorInstruction;
@@ -65,6 +68,7 @@ import com.oracle.truffle.llvm.parser.model.symbols.instructions.SwitchInstructi
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.SwitchOldInstruction;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.UnreachableInstruction;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.VoidCallInstruction;
+import com.oracle.truffle.llvm.parser.model.symbols.instructions.VoidInvokeInstruction;
 import com.oracle.truffle.llvm.parser.model.visitors.InstructionVisitor;
 import com.oracle.truffle.llvm.runtime.types.FunctionType;
 import com.oracle.truffle.llvm.runtime.types.PointerType;
@@ -160,8 +164,13 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
     public void visit(CallInstruction call) {
         writeIndent();
 
-        // <result> = [tail] call
-        writef("%s = ", call.getName());
+        // <result> =
+        write(call.getName());
+        write(" = ");
+
+        // [tail] call
+        write(LLVMIR_LABEL_CALL);
+        write(" ");
 
         writeFunctionCall(call);
 
@@ -679,7 +688,89 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
     public void visit(VoidCallInstruction call) {
         writeIndent();
 
+        // [tail] call
+        write(LLVMIR_LABEL_CALL);
+        write(" ");
+
         writeFunctionCall(call);
+
+        writeln();
+    }
+
+    private static final String LLVMIR_LABEL_INVOKE = "invoke";
+
+    @Override
+    public void visit(InvokeInstruction call) {
+        // <result> =
+        write(call.getName());
+        write(" = ");
+
+        // invoke
+        write(LLVMIR_LABEL_INVOKE);
+        write(" ");
+
+        writeFunctionCall(call);
+
+        writeln();
+    }
+
+    @Override
+    public void visit(VoidInvokeInstruction call) {
+        writeIndent();
+
+        // invoke
+        write(LLVMIR_LABEL_CALL);
+        write(" ");
+
+        writeFunctionCall(call);
+
+        writeln();
+    }
+
+    private static final String LLVMIR_LABEL_LANDINGPAD = "landingpad";
+
+    private static final String LLVMIR_LABEL_LANDINGPAD_CLEANUP = "cleanup";
+
+    @Override
+    public void visit(LandingpadInstruction landingpad) {
+        writeIndent();
+
+        // <resultval> =
+        write(landingpad.getName());
+        write(" = ");
+
+        // landingpad
+        write(LLVMIR_LABEL_LANDINGPAD);
+        write(" ");
+
+        // <resultty>
+        writeType(landingpad.getType());
+
+        // [ cleanup ]
+        if (landingpad.isCleanup()) {
+            write(" ");
+            write(LLVMIR_LABEL_LANDINGPAD_CLEANUP);
+
+        }
+
+        // <clause>*
+        // TODO: implement
+
+        writeln();
+    }
+
+    private static final String LLVMIR_LABEL_RESUME = "resume";
+
+    @Override
+    public void visit(ResumeInstruction resume) {
+        writeIndent();
+
+        write(LLVMIR_LABEL_RESUME);
+        write(" ");
+
+        writeSymbolType(resume.getValue());
+        write(" ");
+        writeInnerSymbolValue(resume.getValue());
 
         writeln();
     }
@@ -688,10 +779,6 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
      * @see <a href="http://releases.llvm.org/3.2/docs/LangRef.html#i_call">LangRef</a>
      */
     protected void writeFunctionCall(Call call) {
-        // [tail] call
-        write(LLVMIR_LABEL_CALL);
-        write(" ");
-
         // [cconv] [ret attrs]
 
         /*

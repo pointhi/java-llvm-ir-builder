@@ -7,6 +7,7 @@ mx.irbuilder/eclipse-launches/**
 mxbuild/**
 workingsets.xml
 
+projects/.classpath
 projects/.project
 projects/*/nbproject/
 projects/*/build.xml
