@@ -27,33 +27,37 @@ env:
     global:
         # LLVM 3.8
         - LLVM_VERSION=3.8.0
-        - LLVM_ARCHIVE_PATH=$HOME/.cache/travis/clang+llvm-$LLVM_VERSION.tar.xz
+        - LLVM_FILENAME=clang+llvm-$LLVM_VERSION-x86_64-linux-gnu-ubuntu-14.04.tar.xz
+        - LLVM_ARCHIVE_PATH=$HOME/.cache/travis/$LLVM_FILENAME
         # Eclipse JDK
-        - ECLIPSE_JDK_ARCHIVE_PATH=$HOME/.cache/travis/eclipse-jdk8.tar.gz
+        - ECLIPSE_FILENAME=eclipse-jdk8-linux-x86_64.tar.gz
+        - ECLIPSE_JDK_ARCHIVE_PATH=$HOME/.cache/travis/$ECLIPSE_FILENAME
         # ECJ
         - ECJ_VERSION=4.5.2
-        - ECJ_ARCHIVE_PATH=$HOME/.cache/travis/ecj-$ECJ_VERSION.jar
+        - ECJ_FILENAME=ecj-$ECJ_VERSION.jar
+        - ECJ_ARCHIVE_PATH=$HOME/.cache/travis/$ECJ_FILENAME
         # JVMCI
         - JVMCI_VERSION=0.23
-        - JVMCI_ARCHIVE_PATH=$HOME/.cache/travis/jvmci-$JVMCI_VERSION.tar.gz
+        - JVMCI_FILENAME=jdk1.8.0_111-jvmci-$JVMCI_VERSION-linux-amd64.tar.gz
+        - JVMCI_ARCHIVE_PATH=$HOME/.cache/travis/$JVMCI_FILENAME
 before_install:
     - mkdir -p $HOME/.cache/travis
     # MDL
     - gem install mdl
     # LLVM 3.8
-    - wget -N http://llvm.org/releases/$LLVM_VERSION/clang+llvm-$LLVM_VERSION-x86_64-linux-gnu-ubuntu-14.04.tar.xz -O $LLVM_ARCHIVE_PATH
+    - (cd $HOME/.cache/travis/; wget -N http://llvm.org/releases/$LLVM_VERSION/$LLVM_FILENAME)
     - mkdir $HOME/clang+llvm
     - tar xf $LLVM_ARCHIVE_PATH -C $HOME/clang+llvm --strip-components 1
     - export PATH=$HOME/clang+llvm/bin:$PATH
     # Eclipse JDK
-    - wget -N https://lafo.ssw.uni-linz.ac.at/pub/sulong-deps/eclipse-jdk8-linux-x86_64.tar.gz -O $ECLIPSE_JDK_ARCHIVE_PATH
+    - (cd $HOME/.cache/travis/; wget -N https://lafo.ssw.uni-linz.ac.at/pub/sulong-deps/$ECLIPSE_FILENAME)
     - tar -xvzf $ECLIPSE_JDK_ARCHIVE_PATH -C $HOME
     - export ECLIPSE_EXE=$HOME/eclipse/eclipse
     # ECJ
-    - wget -N https://lafo.ssw.uni-linz.ac.at/pub/sulong-deps/ecj-$ECJ_VERSION.jar -O $ECJ_ARCHIVE_PATH
+    - (cd $HOME/.cache/travis/; wget -N https://lafo.ssw.uni-linz.ac.at/pub/sulong-deps/$ECJ_FILENAME)
     - export JDT=$ECJ_ARCHIVE_PATH
     # JVMCI
-    - wget -N https://github.com/dougxc/openjdk8-jvmci-builder/releases/download/jvmci-$JVMCI_VERSION/jdk1.8.0_111-jvmci-$JVMCI_VERSION-linux-amd64.tar.gz -O $JVMCI_ARCHIVE_PATH
+    - (cd $HOME/.cache/travis/; wget -N https://github.com/dougxc/openjdk8-jvmci-builder/releases/download/jvmci-$JVMCI_VERSION/$JVMCI_FILENAME)
     - tar -xzf $JVMCI_ARCHIVE_PATH -C $HOME
     - export JAVA_HOME=$HOME/jdk1.8.0_111-jvmci-$JVMCI_VERSION
 install:
