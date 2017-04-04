@@ -40,6 +40,9 @@ env:
         - JVMCI_VERSION=0.23
         - JVMCI_FILENAME=jdk1.8.0_111-jvmci-$JVMCI_VERSION-linux-amd64.tar.gz
         - JVMCI_ARCHIVE_PATH=$HOME/.cache/travis/$JVMCI_FILENAME
+        # Required to support allow_failures
+        - BUILD_COMMAND=''
+        - TEST_COMMAND='exit 1'
 before_install:
     - mkdir -p $HOME/.cache/travis
     # MDL
@@ -76,7 +79,6 @@ matrix:
     include:
         # Basic checks
         - env:
-            - BUILD_COMMAND=''
             - TEST_COMMAND='mx su-checks httpcheck checkstyle mdl eclipseformat pylint ecj canonicalizeprojects checkoverlap --verbose'
           jdk: oraclejdk8
         # LLVM 3.2 testcases
