@@ -19,6 +19,10 @@ addons:
             - gfortran-4.6
             - gobjc++-4.6
             - gcc-4.6-plugin-dev
+            - libc++1
+            - libc++abi1
+            - libc++-dev
+            - libc++abi-dev
 env:
     global:
         # LLVM 3.8
