@@ -35,6 +35,7 @@ package at.pointhi.irbuilder.irwriter.visitors.model;
 import com.oracle.truffle.llvm.parser.model.enums.Linkage;
 import com.oracle.truffle.llvm.parser.model.enums.Visibility;
 import com.oracle.truffle.llvm.parser.model.globals.GlobalAlias;
+import com.oracle.truffle.llvm.runtime.types.PointerType;
 import com.oracle.truffle.llvm.runtime.types.symbols.Symbol;
 
 import at.pointhi.irbuilder.irwriter.IRWriter;
@@ -74,7 +75,8 @@ public class IRWriterModelVisitorV38 extends IRWriterModelVisitor {
             writeln(UNRESOLVED_FORWARD_REFERENCE);
             return;
         }
-        writeSymbolType(alias);
+
+        writeType(((PointerType) alias.getType()).getPointeeType());
 
         write(", ");
         writeSymbolType(val);
