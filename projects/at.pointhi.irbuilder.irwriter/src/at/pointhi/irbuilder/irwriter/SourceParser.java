@@ -59,7 +59,9 @@ public class SourceParser {
         return new LLVMLanguage.LLVMLanguageProvider() {
             @Override
             public LLVMContext createContext(Env env) {
-                return null;
+                final LLVMContext context = new LLVMContext(env);
+                context.setParseOnly(true);
+                return context;
             }
 
             @Override
