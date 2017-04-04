@@ -38,6 +38,8 @@ env:
         - JVMCI_ARCHIVE_PATH=$HOME/.cache/travis/jvmci-$JVMCI_VERSION.tar.gz
 before_install:
     - mkdir -p $HOME/.cache/travis
+    # MDL
+    - gem install mdl
     # LLVM 3.8
     - wget -N http://llvm.org/releases/$LLVM_VERSION/clang+llvm-$LLVM_VERSION-x86_64-linux-gnu-ubuntu-14.04.tar.xz -O $LLVM_ARCHIVE_PATH
     - mkdir $HOME/clang+llvm
@@ -68,7 +70,7 @@ script:
 matrix:
     include:
         # Basic checks
-        - env: TEST_COMMAND='mx su-checks --verbose''
+        - env: TEST_COMMAND='mx su-checks --verbose'
           jdk: oraclejdk8
         # LLVM 3.2 testcases
         - env: TEST_COMMAND='mx build; mx irbuilder-test32 sulong nwcc llvm'
