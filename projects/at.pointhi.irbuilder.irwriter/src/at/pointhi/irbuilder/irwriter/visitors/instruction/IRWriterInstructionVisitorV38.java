@@ -130,10 +130,6 @@ public class IRWriterInstructionVisitorV38 extends IRWriterInstructionVisitor {
      */
     @Override
     protected void writeFunctionCall(Call call) {
-        // [tail | musttail | notail ] call
-        write(LLVMIR_LABEL_CALL);
-        write(" ");
-
         // [fast-math flags] [cconv] [ret attrs]
 
         /*

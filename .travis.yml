@@ -64,12 +64,18 @@ install:
     - export MX_BINARY_SUITES="jvmci"
     - export DEFAULT_VM=server
 script:
-    - mx build -f -p --warning-as-error
-    - mx checkstyle
-    - mx eclipseformat --primary
-    - mx pylint
-    - mx checkoverlap
-    - mx canonicalizeprojects
-    - mx clean & mx build
-    - mx irbuilder-test32 sulong nwcc llvm
-    - mx irbuilder-test38 sulong nwcc llvm
+    - $TEST_COMMAND
+matrix:
+    include:
+        # Basic checks
+        - env: TEST_COMMAND='mx su-checks --verbose''
+          jdk: oraclejdk8
+        # LLVM 3.2 testcases
+        - env: TEST_COMMAND='mx build; mx irbuilder-test32 sulong nwcc llvm'
+          jdk: oraclejdk8
+        # LLVM 3.8 testcases
+        - env: TEST_COMMAND='mx build; mx irbuilder-test38 sulong nwcc llvm'
+          jdk: oraclejdk8
+    allow_failures:
+        - env: TEST_COMMAND='mx build; mx irbuilder-test32 gcc'
+          jdk: oraclejdk8
