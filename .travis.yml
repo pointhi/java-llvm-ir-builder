@@ -60,8 +60,7 @@ before_install:
     - (cd $HOME/.cache/travis/; wget -N https://lafo.ssw.uni-linz.ac.at/pub/sulong-deps/$ECJ_FILENAME)
     - export JDT=$ECJ_ARCHIVE_PATH
     # JVMCI
-    # when failed, ignore the (likely) 403 Error, because we should already have a valid package in cache
-    - (cd $HOME/.cache/travis/; wget -N https://github.com/dougxc/openjdk8-jvmci-builder/releases/download/jvmci-$JVMCI_VERSION/$JVMCI_FILENAME; exit 0)
+    - (cd $HOME/.cache/travis/; wget -nc https://github.com/dougxc/openjdk8-jvmci-builder/releases/download/jvmci-$JVMCI_VERSION/$JVMCI_FILENAME)
     - tar -xzf $JVMCI_ARCHIVE_PATH -C $HOME
     - export JAVA_HOME=$HOME/jdk1.8.0_111-jvmci-$JVMCI_VERSION
 install:

@@ -198,8 +198,7 @@ public class IRWriterModelVisitor extends IRWriterBaseVisitor implements ModelVi
             } else {
                 firstIteration = false;
             }
-            writeFunctionParameter(param);
-            writeAttributesGroupByIndex(function.getParamattr(), index);
+            writeFunctionParameter(param, function.getParamattr(), index);
             index++;
         }
 
@@ -226,15 +225,16 @@ public class IRWriterModelVisitor extends IRWriterBaseVisitor implements ModelVi
         }
     }
 
-    protected void writeAttributesGroup(AttributesGroup attr) {
+    private void writeAttributesGroup(AttributesGroup attr) {
         for (Attribute a : attr.getAttributes()) {
             write(" ");
             write(a.getIrString());
         }
     }
 
-    protected void writeFunctionParameter(FunctionParameter param) {
+    protected void writeFunctionParameter(FunctionParameter param, List<AttributesGroup> paramattr, int index) {
         writeType(param.getType());
+        writeAttributesGroupByIndex(paramattr, index);
         if (!param.getName().matches("%\\d+")) {
             write(" ");
             write(param.getName());
