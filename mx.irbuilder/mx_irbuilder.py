@@ -12,9 +12,9 @@ class Tool(object):
     def supports(self, language):
         return language in self.supportedLanguages
 
-    def runTool(self, args, errorMsg=None, **kwargs):
+    def runTool(self, args, errorMsg=None, verbose=None, **kwargs):
         try:
-            if not mx.get_opts().verbose:
+            if not mx.get_opts().verbose and not verbose:
                 f = open(os.devnull, 'w')
                 ret = mx.run(args, out=f, err=f, **kwargs)
             else:
@@ -41,7 +41,7 @@ class LlvmAS(Tool):
         if flags is None:
             flags = []
         tool = mx_sulong.findLLVMProgram('llvm-as', self.supportedVersions)
-        return self.runTool([tool] + flags + [inputFile], errorMsg='Cannot assemble %s with %s' % (inputFile, tool))
+        return self.runTool([tool] + flags + [inputFile], errorMsg='Cannot assemble %s with %s' % (inputFile, tool), verbose=True)
 
 class LlvmLLI(Tool):
     def __init__(self, supportedVersions):
