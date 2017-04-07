@@ -41,7 +41,6 @@ env:
         - JVMCI_FILENAME=jdk1.8.0_111-jvmci-$JVMCI_VERSION-linux-amd64.tar.gz
         - JVMCI_ARCHIVE_PATH=$HOME/.cache/travis/$JVMCI_FILENAME
 before_install:
-    - mkdir -p $HOME/.cache/travis
     # Print content of cached dirs
     - ls -l $HOME/.cache/pip
     - ls -l $HOME/.cache/travis
@@ -77,6 +76,7 @@ script:
     - $BUILD_COMMAND
     - $TEST_COMMAND
 matrix:
+    fast_finish: true
     include:
         # Basic checks
         - env: BUILD_COMMAND='' TEST_COMMAND='mx su-checks httpcheck checkstyle mdl eclipseformat pylint ecj canonicalizeprojects checkoverlap --verbose'
@@ -86,6 +86,9 @@ matrix:
           jdk: oraclejdk8
         # LLVM 3.8 testcases
         - env: BUILD_COMMAND='mx build' TEST_COMMAND='mx irbuilder-test38 sulong nwcc llvm'
+          jdk: oraclejdk8
+        # LLVM 3.2 - GCC testcases
+        - env: BUILD_COMMAND='mx build' TEST_COMMAND='mx irbuilder-test32 gcc'
           jdk: oraclejdk8
     allow_failures:
         - env: BUILD_COMMAND='mx build' TEST_COMMAND='mx irbuilder-test32 gcc'
