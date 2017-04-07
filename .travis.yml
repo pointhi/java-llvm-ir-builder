@@ -88,8 +88,8 @@ matrix:
         - env: BUILD_COMMAND='mx build' TEST_COMMAND='mx irbuilder-test38 sulong nwcc llvm'
           jdk: oraclejdk8
         # LLVM 3.2 - GCC testcases
-        - env: BUILD_COMMAND='mx build' TEST_COMMAND='mx irbuilder-test32 gcc'
+        - env: BUILD_COMMAND='mx build' TEST_COMMAND='mx irbuilder-test38 gcc'
           jdk: oraclejdk8
     allow_failures:
-        - env: BUILD_COMMAND='mx build' TEST_COMMAND='mx irbuilder-test32 gcc'
+        - env: BUILD_COMMAND='mx build' TEST_COMMAND='mx irbuilder-test38 gcc'
           jdk: oraclejdk8
