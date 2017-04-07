@@ -42,6 +42,10 @@ env:
         - JVMCI_ARCHIVE_PATH=$HOME/.cache/travis/$JVMCI_FILENAME
 before_install:
     - mkdir -p $HOME/.cache/travis
+    # Print content of cached dirs
+    - ls -l $HOME/.cache/pip
+    - ls -l $HOME/.cache/travis
+    - ls -l $HOME/.mx/cache
     # MDL
     - gem install mdl
     # LLVM 3.8
