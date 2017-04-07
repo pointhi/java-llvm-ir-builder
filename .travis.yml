@@ -40,9 +40,6 @@ env:
         - JVMCI_VERSION=0.23
         - JVMCI_FILENAME=jdk1.8.0_111-jvmci-$JVMCI_VERSION-linux-amd64.tar.gz
         - JVMCI_ARCHIVE_PATH=$HOME/.cache/travis/$JVMCI_FILENAME
-        # Required to support allow_failures
-        - BUILD_COMMAND=''
-        - TEST_COMMAND='exit 1'
 before_install:
     - mkdir -p $HOME/.cache/travis
     # MDL
@@ -78,21 +75,14 @@ script:
 matrix:
     include:
         # Basic checks
-        - env:
-            - TEST_COMMAND='mx su-checks httpcheck checkstyle mdl eclipseformat pylint ecj canonicalizeprojects checkoverlap --verbose'
+        - env: BUILD_COMMAND='' TEST_COMMAND='mx su-checks httpcheck checkstyle mdl eclipseformat pylint ecj canonicalizeprojects checkoverlap --verbose'
           jdk: oraclejdk8
         # LLVM 3.2 testcases
-        - env:
-            - BUILD_COMMAND='mx build'
-            - TEST_COMMAND='mx irbuilder-test32 sulong nwcc llvm'
+        - env: BUILD_COMMAND='mx build' TEST_COMMAND='mx irbuilder-test32 sulong nwcc llvm'
           jdk: oraclejdk8
         # LLVM 3.8 testcases
-        - env:
-            - BUILD_COMMAND='mx build'
-            - TEST_COMMAND='mx irbuilder-test38 sulong nwcc llvm'
+        - env: BUILD_COMMAND='mx build' TEST_COMMAND='mx irbuilder-test38 sulong nwcc llvm'
           jdk: oraclejdk8
     allow_failures:
-        - env:
-            - BUILD_COMMAND='mx build'
-            - TEST_COMMAND='mx irbuilder-test32 gcc'
+        - env: BUILD_COMMAND='mx build' TEST_COMMAND='mx irbuilder-test32 gcc'
           jdk: oraclejdk8
