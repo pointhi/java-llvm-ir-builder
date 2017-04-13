@@ -310,7 +310,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
         writeln();
     }
 
-    private static final String LLVMIR_LABEL_EXTRACT_VALUE = "extractvalue";
+    protected static final String LLVMIR_LABEL_EXTRACT_VALUE = "extractvalue";
 
     @Override
     public void visit(ExtractValueInstruction extract) {
@@ -318,7 +318,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
 
         /*
          * TODO: not perfect, but should detect most of the hacked occurrences for
-         * CompareExchangeInstructions correctly.
+         * CompareExchangeInstructions correctly, but only works with LLVM 3.2 correctly.
          *
          * This code is required, because Sulong is inserting a ExtractValueInstruction after a
          * CompareExchangeInstruction, which would be invalid LLVM IR in our case.

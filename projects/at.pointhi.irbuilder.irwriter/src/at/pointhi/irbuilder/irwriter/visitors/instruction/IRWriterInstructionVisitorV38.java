@@ -36,6 +36,7 @@ import com.oracle.truffle.llvm.parser.model.enums.AtomicOrdering;
 import com.oracle.truffle.llvm.parser.model.enums.SynchronizationScope;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.Call;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.CompareExchangeInstruction;
+import com.oracle.truffle.llvm.parser.model.symbols.instructions.ExtractValueInstruction;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.GetElementPointerInstruction;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.LoadInstruction;
 import com.oracle.truffle.llvm.runtime.types.FunctionType;
@@ -93,6 +94,23 @@ public class IRWriterInstructionVisitorV38 extends IRWriterInstructionVisitor {
         write(cmpxchg.getSuccessOrdering().getIrString());
         write(" ");
         write(cmpxchg.getFailureOrdering().getIrString());
+
+        writeln();
+    }
+
+    @Override
+    public void visit(ExtractValueInstruction extract) {
+        writeIndent();
+
+        // <result> = extractvalue <aggregate type> <val>, <idx>{, <idx>}*
+        write(extract.getName());
+        write(" = ");
+        write(LLVMIR_LABEL_EXTRACT_VALUE);
+        write(" ");
+        writeType(extract.getAggregate().getType());
+        write(" ");
+        writeInnerSymbolValue(extract.getAggregate());
+        writef(", %d", extract.getIndex());
 
         writeln();
     }
