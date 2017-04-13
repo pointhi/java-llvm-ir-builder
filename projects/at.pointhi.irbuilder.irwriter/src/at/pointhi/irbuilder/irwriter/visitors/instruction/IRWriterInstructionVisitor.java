@@ -34,6 +34,7 @@ package at.pointhi.irbuilder.irwriter.visitors.instruction;
 
 import com.oracle.truffle.llvm.parser.model.blocks.InstructionBlock;
 import com.oracle.truffle.llvm.parser.model.enums.AtomicOrdering;
+import com.oracle.truffle.llvm.parser.model.enums.BinaryOperator;
 import com.oracle.truffle.llvm.parser.model.enums.Flag;
 import com.oracle.truffle.llvm.parser.model.enums.SynchronizationScope;
 import com.oracle.truffle.llvm.parser.model.functions.FunctionDeclaration;
@@ -75,6 +76,7 @@ import com.oracle.truffle.llvm.parser.model.visitors.InstructionVisitor;
 import com.oracle.truffle.llvm.runtime.types.FunctionType;
 import com.oracle.truffle.llvm.runtime.types.PointerType;
 import com.oracle.truffle.llvm.runtime.types.Type;
+import com.oracle.truffle.llvm.runtime.types.VectorType;
 import com.oracle.truffle.llvm.runtime.types.VoidType;
 import com.oracle.truffle.llvm.runtime.types.symbols.Symbol;
 import com.oracle.truffle.llvm.runtime.types.symbols.ValueSymbol;
@@ -315,6 +317,20 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
     @Override
     public void visit(ExtractValueInstruction extract) {
         writeIndent();
+
+        /*
+         * TODO: not perfect, but should detect most of the hacked occurrences for
+         * CompareExchangeInstructions correctly.
+         *
+         * This code is required, because Sulong is inserting a ExtractValueInstruction after a
+         * CompareExchangeInstruction, which would be invalid LLVM IR in our case.
+         */
+        if (extract.getAggregate() instanceof CompareExchangeInstruction) {
+            writeAssignment(extract.getAggregate(), extract, extract.getType());
+
+            // write original instruction as comment
+            write(" ;");
+        }
 
         // <result> = extractvalue <aggregate type> <val>, <idx>{, <idx>}*
         write(extract.getName());
@@ -984,5 +1000,45 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
             writeInnerSymbolValue(arg);
         }
         write(")");
+    }
+
+    /**
+     * Write LLVM IR which would be equivalent to an assignment.
+     *
+     * @param from variable we want to assign
+     * @param to resulting variable where we want to place the result
+     * @param type type of the variable which is assigned
+     */
+    protected void writeAssignment(Symbol from, ValueSymbol to, Type type) {
+        final String tmpPtrName = "%irwriter_tmp_" + to.getName().substring(1);
+        final PointerType tmpPointer = new PointerType(type);
+
+        write(tmpPtrName);
+        write(" = ");
+        write(LLVMIR_LABEL_ALLOCATE);
+        write(" ");
+        writeType(type);
+        writeln();
+
+        writeIndent();
+        write(LLVMIR_LABEL_STORE);
+        write(" ");
+        writeType(type);
+        write(" ");
+        writeInnerSymbolValue(from);
+        write(", ");
+        writeType(tmpPointer);
+        write(" ");
+        write(tmpPtrName);
+        writeln();
+
+        writeIndent();
+        write(to.getName());
+        write(" = ");
+        write(LLVMIR_LABEL_LOAD);
+        write(" ");
+        writeType(tmpPointer);
+        write(" ");
+        write(tmpPtrName);
     }
 }
