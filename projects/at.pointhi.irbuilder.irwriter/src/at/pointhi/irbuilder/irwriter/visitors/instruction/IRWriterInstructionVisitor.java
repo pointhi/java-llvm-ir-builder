@@ -34,7 +34,6 @@ package at.pointhi.irbuilder.irwriter.visitors.instruction;
 
 import com.oracle.truffle.llvm.parser.model.blocks.InstructionBlock;
 import com.oracle.truffle.llvm.parser.model.enums.AtomicOrdering;
-import com.oracle.truffle.llvm.parser.model.enums.BinaryOperator;
 import com.oracle.truffle.llvm.parser.model.enums.Flag;
 import com.oracle.truffle.llvm.parser.model.enums.SynchronizationScope;
 import com.oracle.truffle.llvm.parser.model.functions.FunctionDeclaration;
@@ -76,7 +75,6 @@ import com.oracle.truffle.llvm.parser.model.visitors.InstructionVisitor;
 import com.oracle.truffle.llvm.runtime.types.FunctionType;
 import com.oracle.truffle.llvm.runtime.types.PointerType;
 import com.oracle.truffle.llvm.runtime.types.Type;
-import com.oracle.truffle.llvm.runtime.types.VectorType;
 import com.oracle.truffle.llvm.runtime.types.VoidType;
 import com.oracle.truffle.llvm.runtime.types.symbols.Symbol;
 import com.oracle.truffle.llvm.runtime.types.symbols.ValueSymbol;
