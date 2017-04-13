@@ -165,14 +165,14 @@ public class IRWriterModelVisitor extends IRWriterBaseVisitor implements ModelVi
         writeln();
 
         write("declare");
-        writeAttributesGroupByIndex(function.getParamattr(), AttributesGroup.RETURN_VALUE_IDX);
+        writeAttributesGroupIfPresent(function.getReturnAttributesGroup());
         write(" ");
         writeType(function.getType().getReturnType());
 
         writef(" %s", function.getName());
 
         writeFormalArguments(function.getType());
-        writeAttributesGroupByIndex(function.getParamattr(), AttributesGroup.FUNCTION_ATTRIBUTE_IDX);
+        writeAttributesGroupIfPresent(function.getFunctionAttributesGroup());
 
         writeln();
     }
@@ -182,7 +182,7 @@ public class IRWriterModelVisitor extends IRWriterBaseVisitor implements ModelVi
         writeln();
 
         write("define");
-        writeAttributesGroupByIndex(function.getParamattr(), AttributesGroup.RETURN_VALUE_IDX);
+        writeAttributesGroupIfPresent(function.getReturnAttributesGroup());
         write(" ");
         writeType(function.getType().getReturnType());
 
@@ -191,15 +191,13 @@ public class IRWriterModelVisitor extends IRWriterBaseVisitor implements ModelVi
         write("(");
 
         boolean firstIteration = true;
-        int index = 1;
         for (FunctionParameter param : function.getParameters()) {
             if (!firstIteration) {
                 write(", ");
             } else {
                 firstIteration = false;
             }
-            writeFunctionParameter(param, function.getParamattr(), index);
-            index++;
+            writeAttributesGroupIfPresent(param.getParamattr());
         }
 
         if (function.getType().isVarargs()) {
@@ -211,7 +209,7 @@ public class IRWriterModelVisitor extends IRWriterBaseVisitor implements ModelVi
         }
 
         write(")");
-        writeAttributesGroupByIndex(function.getParamattr(), AttributesGroup.FUNCTION_ATTRIBUTE_IDX);
+        writeAttributesGroupIfPresent(function.getFunctionAttributesGroup());
 
         writeln(" {");
         writeFunction(function);
@@ -220,6 +218,10 @@ public class IRWriterModelVisitor extends IRWriterBaseVisitor implements ModelVi
 
     protected void writeAttributesGroupByIndex(List<AttributesGroup> paramattr, int index) {
         Optional<AttributesGroup> attrGroup = paramattr.stream().filter(p -> p.getParamIdx() == index).findAny();
+        writeAttributesGroupIfPresent(attrGroup);
+    }
+
+    private void writeAttributesGroupIfPresent(Optional<AttributesGroup> attrGroup) {
         if (attrGroup.isPresent()) {
             writeAttributesGroup(attrGroup.get());
         }

@@ -48,7 +48,7 @@ before_install:
     # MDL
     - gem install mdl
     # LLVM 3.8
-    - (cd $HOME/.cache/travis/; wget -N http://llvm.org/releases/$LLVM_VERSION/$LLVM_FILENAME)
+    - (cd $HOME/.cache/travis/; wget -nc http://llvm.org/releases/$LLVM_VERSION/$LLVM_FILENAME)
     - mkdir $HOME/clang+llvm
     - tar xf $LLVM_ARCHIVE_PATH -C $HOME/clang+llvm --strip-components 1
     - export PATH=$HOME/clang+llvm/bin:$PATH
@@ -57,7 +57,7 @@ before_install:
     - tar -xvzf $ECLIPSE_JDK_ARCHIVE_PATH -C $HOME
     - export ECLIPSE_EXE=$HOME/eclipse/eclipse
     # ECJ
-    - (cd $HOME/.cache/travis/; wget -N https://lafo.ssw.uni-linz.ac.at/pub/sulong-deps/$ECJ_FILENAME)
+    - (cd $HOME/.cache/travis/; wget -nc https://lafo.ssw.uni-linz.ac.at/pub/sulong-deps/$ECJ_FILENAME)
     - export JDT=$ECJ_ARCHIVE_PATH
     # JVMCI
     - (cd $HOME/.cache/travis/; wget -nc https://github.com/dougxc/openjdk8-jvmci-builder/releases/download/jvmci-$JVMCI_VERSION/$JVMCI_FILENAME)

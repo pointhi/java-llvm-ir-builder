@@ -138,7 +138,7 @@ public class IRWriterInstructionVisitorV38 extends IRWriterInstructionVisitor {
          * 'ty': the type of the call instruction itself which is also the type of the return value.
          * Functions that return no value are marked void.
          */
-        writeType(getCallSymbolType(call));
+        writeType(getSymbolType(call));
         write(" ");
 
         /*
@@ -149,7 +149,7 @@ public class IRWriterInstructionVisitorV38 extends IRWriterInstructionVisitor {
          * if the function is not varargs and if the function type does not return a pointer to a
          * function.
          */
-        final FunctionType funcType = getFunctionType(call);
+        final FunctionType funcType = getFunctionType(call.getCallTarget());
         final Type retType = funcType.getReturnType();
         if (funcType.isVarargs() || (retType instanceof PointerType && ((PointerType) retType).getPointeeType() instanceof FunctionType)) {
             writeFormalArguments(funcType);

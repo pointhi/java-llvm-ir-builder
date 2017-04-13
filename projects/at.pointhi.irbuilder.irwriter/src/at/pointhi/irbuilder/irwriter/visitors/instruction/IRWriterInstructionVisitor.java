@@ -47,6 +47,7 @@ import com.oracle.truffle.llvm.parser.model.symbols.instructions.BranchInstructi
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.Call;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.CallInstruction;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.CastInstruction;
+import com.oracle.truffle.llvm.parser.model.symbols.instructions.CompareExchangeInstruction;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.CompareInstruction;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.ConditionalBranchInstruction;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.ExtractElementInstruction;
@@ -55,6 +56,7 @@ import com.oracle.truffle.llvm.parser.model.symbols.instructions.GetElementPoint
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.IndirectBranchInstruction;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.InsertElementInstruction;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.InsertValueInstruction;
+import com.oracle.truffle.llvm.parser.model.symbols.instructions.Invoke;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.InvokeInstruction;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.LandingpadInstruction;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.LoadInstruction;
@@ -709,7 +711,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
         write(LLVMIR_LABEL_INVOKE);
         write(" ");
 
-        writeFunctionCall(call);
+        writeFunctionInvoke(call);
 
         writeln();
     }
@@ -722,7 +724,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
         write(LLVMIR_LABEL_CALL);
         write(" ");
 
-        writeFunctionCall(call);
+        writeFunctionInvoke(call);
 
         writeln();
     }
@@ -787,7 +789,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
          * 'ty': the type of the call instruction itself which is also the type of the return value.
          * Functions that return no value are marked void.
          */
-        writeType(getCallSymbolType(call));
+        writeType(getSymbolType(call));
         write(" ");
 
         /*
@@ -798,7 +800,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
          * if the function is not varargs and if the function type does not return a pointer to a
          * function.
          */
-        final FunctionType funcType = getFunctionType(call);
+        final FunctionType funcType = getFunctionType(call.getCallTarget());
         final Type retType = funcType.getReturnType();
         if (funcType.isVarargs() || (retType instanceof PointerType && ((PointerType) retType).getPointeeType() instanceof FunctionType)) {
             writeFormalArguments(funcType);
@@ -828,7 +830,24 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
         // [fn attrs]
     }
 
-    protected static Type getCallSymbolType(Call call) {
+    protected void writeFunctionInvoke(Invoke call) {
+        writeType(getSymbolType(call));
+        write(" ");
+
+        final FunctionType funcType = getFunctionType(call.getCallTarget());
+        final Type retType = funcType.getReturnType();
+        if (funcType.isVarargs() || (retType instanceof PointerType && ((PointerType) retType).getPointeeType() instanceof FunctionType)) {
+            writeFormalArguments(funcType);
+            write("*");
+            write(" ");
+        }
+
+        writeInnerSymbolValue(call.getCallTarget());
+
+        writeActualArgs(call);
+    }
+
+    protected static Type getSymbolType(Call call) {
         if (call instanceof VoidCallInstruction) {
             return ((VoidCallInstruction) call).getType();
         } else if (call instanceof CallInstruction) {
@@ -838,9 +857,17 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
         }
     }
 
-    protected static FunctionType getFunctionType(Call call) {
-        final Symbol callTarget = call.getCallTarget();
+    protected static Type getSymbolType(Invoke call) {
+        if (call instanceof VoidInvokeInstruction) {
+            return ((VoidInvokeInstruction) call).getType();
+        } else if (call instanceof InvokeInstruction) {
+            return ((InvokeInstruction) call).getType();
+        } else {
+            throw new RuntimeException("unexpected type");
+        }
+    }
 
+    protected static FunctionType getFunctionType(Symbol callTarget) {
         if (callTarget instanceof FunctionDeclaration) {
             return ((FunctionDeclaration) callTarget).getType();
         } else if (callTarget instanceof FunctionDefinition) {
@@ -899,5 +926,26 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
             writeInnerSymbolValue(arg);
         }
         write(")");
+    }
+
+    protected void writeActualArgs(Invoke call) {
+        write("(");
+        for (int i = 0; i < call.getArgumentCount(); i++) {
+            final Symbol arg = call.getArgument(i);
+
+            if (i != 0) {
+                write(", ");
+            }
+
+            writeSymbolType(arg);
+            write(" ");
+            writeInnerSymbolValue(arg);
+        }
+        write(")");
+    }
+
+    public void visit(CompareExchangeInstruction cmpxchg) {
+        // TODO Auto-generated method stub
+
     }
 }
