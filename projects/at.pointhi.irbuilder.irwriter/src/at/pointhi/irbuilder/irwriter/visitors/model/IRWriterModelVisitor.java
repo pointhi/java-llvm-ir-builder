@@ -32,7 +32,6 @@
 
 package at.pointhi.irbuilder.irwriter.visitors.model;
 
-import java.util.List;
 import java.util.Optional;
 
 import com.oracle.truffle.llvm.parser.model.attributes.Attribute;
@@ -197,7 +196,7 @@ public class IRWriterModelVisitor extends IRWriterBaseVisitor implements ModelVi
             } else {
                 firstIteration = false;
             }
-            writeAttributesGroupIfPresent(param.getParamattr());
+            writeFunctionParameter(param);
         }
 
         if (function.getType().isVarargs()) {
@@ -216,11 +215,6 @@ public class IRWriterModelVisitor extends IRWriterBaseVisitor implements ModelVi
         writeln("}");
     }
 
-    protected void writeAttributesGroupByIndex(List<AttributesGroup> paramattr, int index) {
-        Optional<AttributesGroup> attrGroup = paramattr.stream().filter(p -> p.getParamIdx() == index).findAny();
-        writeAttributesGroupIfPresent(attrGroup);
-    }
-
     private void writeAttributesGroupIfPresent(Optional<AttributesGroup> attrGroup) {
         if (attrGroup.isPresent()) {
             writeAttributesGroup(attrGroup.get());
@@ -234,9 +228,9 @@ public class IRWriterModelVisitor extends IRWriterBaseVisitor implements ModelVi
         }
     }
 
-    protected void writeFunctionParameter(FunctionParameter param, List<AttributesGroup> paramattr, int index) {
+    protected void writeFunctionParameter(FunctionParameter param) {
         writeType(param.getType());
-        writeAttributesGroupByIndex(paramattr, index);
+        writeAttributesGroupIfPresent(param.getParamattr());
         if (!param.getName().matches("%\\d+")) {
             write(" ");
             write(param.getName());
