@@ -193,6 +193,48 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
         writeln();
     }
 
+    protected static final String LLVMIR_LABEL_COMPARE_EXCHANGE = "cmpxchg";
+
+    /*
+     * @see http://releases.llvm.org/3.2/docs/LangRef.html#i_cmpxchg
+     */
+    @Override
+    public void visit(CompareExchangeInstruction cmpxchg) {
+        writeIndent();
+
+        write(cmpxchg.getName());
+        write(" = ");
+        write(LLVMIR_LABEL_COMPARE_EXCHANGE);
+
+        if (cmpxchg.isVolatile()) {
+            write(" volatile");
+        }
+
+        write(" ");
+        writeType(cmpxchg.getPtr().getType());
+        write(" ");
+        writeInnerSymbolValue(cmpxchg.getPtr());
+
+        write(", ");
+        writeSymbolType(cmpxchg.getCmp());
+        write(" ");
+        writeInnerSymbolValue(cmpxchg.getCmp());
+
+        write(", ");
+        writeSymbolType(cmpxchg.getReplace());
+        write(" ");
+        writeInnerSymbolValue(cmpxchg.getReplace());
+
+        if (cmpxchg.getSynchronizationScope().equals(SynchronizationScope.SINGLE_THREAD)) {
+            write(" singlethread");
+        }
+
+        write(" ");
+        write(cmpxchg.getSuccessOrdering().getIrString());
+
+        writeln();
+    }
+
     private static final String LLVMIR_LABEL_COMPARE = "icmp";
     private static final String LLVMIR_LABEL_COMPARE_FP = "fcmp";
 
@@ -942,10 +984,5 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
             writeInnerSymbolValue(arg);
         }
         write(")");
-    }
-
-    public void visit(CompareExchangeInstruction cmpxchg) {
-        // TODO Auto-generated method stub
-
     }
 }

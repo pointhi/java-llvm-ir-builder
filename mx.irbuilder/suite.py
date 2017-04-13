@@ -7,7 +7,7 @@ suite = {
         "suites" : [
             {
                 "name" : "sulong",
-                "version" : "79d4fbf486eb20973a32c82196ed342623c6cf1b",
+                "version" : "92e30b4edcd1259544caa7bff862cf75c6b58315",
                 "urls" : [
                     {
                         "url" : "https://github.com/pointhi/sulong",

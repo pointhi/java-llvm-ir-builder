@@ -35,6 +35,7 @@ package at.pointhi.irbuilder.irwriter.visitors.instruction;
 import com.oracle.truffle.llvm.parser.model.enums.AtomicOrdering;
 import com.oracle.truffle.llvm.parser.model.enums.SynchronizationScope;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.Call;
+import com.oracle.truffle.llvm.parser.model.symbols.instructions.CompareExchangeInstruction;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.GetElementPointerInstruction;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.LoadInstruction;
 import com.oracle.truffle.llvm.runtime.types.FunctionType;
@@ -48,6 +49,52 @@ public class IRWriterInstructionVisitorV38 extends IRWriterInstructionVisitor {
 
     public IRWriterInstructionVisitorV38(IRWriterVersion.IRWriterVisitors visitors, IRWriter.PrintTarget target) {
         super(visitors, target);
+    }
+
+    /*
+     * @see http://releases.llvm.org/3.8.0/docs/LangRef.html#cmpxchg-instruction
+     */
+    @Override
+    public void visit(CompareExchangeInstruction cmpxchg) {
+        writeIndent();
+
+        write(cmpxchg.getName());
+        write(" = ");
+        write(LLVMIR_LABEL_COMPARE_EXCHANGE);
+
+        if (cmpxchg.isWeak()) {
+            write(" weak");
+        }
+
+        if (cmpxchg.isVolatile()) {
+            write(" volatile");
+        }
+
+        write(" ");
+        writeType(cmpxchg.getPtr().getType());
+        write(" ");
+        writeInnerSymbolValue(cmpxchg.getPtr());
+
+        write(", ");
+        writeSymbolType(cmpxchg.getCmp());
+        write(" ");
+        writeInnerSymbolValue(cmpxchg.getCmp());
+
+        write(", ");
+        writeSymbolType(cmpxchg.getReplace());
+        write(" ");
+        writeInnerSymbolValue(cmpxchg.getReplace());
+
+        if (cmpxchg.getSynchronizationScope().equals(SynchronizationScope.SINGLE_THREAD)) {
+            write(" singlethread");
+        }
+
+        write(" ");
+        write(cmpxchg.getSuccessOrdering().getIrString());
+        write(" ");
+        write(cmpxchg.getFailureOrdering().getIrString());
+
+        writeln();
     }
 
     @Override
