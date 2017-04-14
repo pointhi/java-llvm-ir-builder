@@ -929,7 +929,17 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
         } else if (callTarget instanceof FunctionDefinition) {
             return ((FunctionDefinition) callTarget).getType();
         } else if (callTarget instanceof FunctionParameter) {
-            return ((FunctionDefinition) callTarget).getType();
+            Type targetType = ((FunctionParameter) callTarget).getType();
+
+            while (targetType instanceof PointerType) {
+                targetType = ((PointerType) targetType).getPointeeType();
+            }
+
+            if (targetType instanceof FunctionType) {
+                return (FunctionType) targetType;
+            } else {
+                throw new AssertionError("unexpected target type: " + targetType.getClass().getName());
+            }
         } else if (callTarget instanceof CallInstruction) {
             Type targetType = ((CallInstruction) callTarget).getType();
             targetType = ((PointerType) targetType).getPointeeType(); // TODO: check
