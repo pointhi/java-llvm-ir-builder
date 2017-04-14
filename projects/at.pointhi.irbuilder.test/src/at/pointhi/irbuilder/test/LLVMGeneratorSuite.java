@@ -29,28 +29,18 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package at.pointhi.irbuilder.test;
 
 import com.oracle.truffle.llvm.runtime.options.LLVMOptions;
-import com.oracle.truffle.llvm.test.alpha.BaseSuiteHarness;
-import com.oracle.truffle.llvm.test.alpha.BaseTestHarness;
-
-import at.pointhi.irbuilder.irwriter.SourceParser;
-
-import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import java.io.File;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @RunWith(Parameterized.class)
-public final class LLVMGeneratorSuite extends BaseSuiteHarness {
+public final class LLVMGeneratorSuite extends BaseGeneratorSuite {
 
     private static final Path LLVM_SUITE_DIR = new File(LLVMOptions.ENGINE.projectRoot() + "/../cache/tests/llvm").toPath();
     private static final Path LLVM_SOURCE_DIR = new File(LLVMOptions.ENGINE.projectRoot() + "/../tests/llvm").toPath();
@@ -77,21 +67,6 @@ public final class LLVMGeneratorSuite extends BaseSuiteHarness {
     @Override
     protected String getTestName() {
         return testName;
-    }
-
-    @Override
-    @Test
-    public void test() throws Exception {
-        final List<Path> testCandidates = Files.walk(path).filter(BaseTestHarness.isFile).filter(BaseTestHarness.isSulong).collect(Collectors.toList());
-        for (Path candidate : testCandidates) {
-
-            if (!candidate.toAbsolutePath().toFile().exists()) {
-                throw new AssertionError("File " + candidate.toAbsolutePath().toFile() + " does not exist.");
-            }
-
-            SourceParser.parseAndOutputFile(candidate.toFile());
-        }
-
     }
 
 }

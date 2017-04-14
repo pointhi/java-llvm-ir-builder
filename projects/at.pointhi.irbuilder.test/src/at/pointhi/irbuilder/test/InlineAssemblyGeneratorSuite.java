@@ -31,38 +31,45 @@
  */
 package at.pointhi.irbuilder.test;
 
-import com.oracle.truffle.llvm.runtime.options.LLVMOptions;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Collection;
+import java.util.stream.Collectors;
 
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameter;
+import org.junit.runners.Parameterized.Parameters;
 
-import java.io.File;
-import java.nio.file.Path;
-import java.util.Collection;
+import com.oracle.truffle.llvm.runtime.options.LLVMOptions;
 
 @RunWith(Parameterized.class)
-public final class GCCGeneratorSuite extends BaseGeneratorSuite {
+public final class InlineAssemblyGeneratorSuite extends BaseGeneratorSuite {
 
-    private static final Path GCC_SUITE_DIR = new File(LLVMOptions.ENGINE.projectRoot() + "/../cache/tests/gcc").toPath();
-    private static final Path GCC_SOURCE_DIR = new File(LLVMOptions.ENGINE.projectRoot() + "/../tests/gcc").toPath();
-    private static final Path GCC_CONFIG_DIR = new File(LLVMOptions.ENGINE.projectRoot() + "/../tests/gcc/configs").toPath();
+    private static final Path ASSEMBLY_SUITE_DIR = new File(LLVMOptions.ENGINE.projectRoot() + "/../cache/tests/inlineassemblytests").toPath();
 
-    @Parameterized.Parameter(value = 0) public Path path;
-    @Parameterized.Parameter(value = 1) public String testName;
+    @Parameter(value = 0) public Path path;
+    @Parameter(value = 1) public String testName;
 
-    @Parameterized.Parameters(name = "{1}")
+    @Parameters(name = "{1}")
     public static Collection<Object[]> data() {
-        return collectTestCases(GCC_CONFIG_DIR, GCC_SUITE_DIR, GCC_SOURCE_DIR);
-    }
-
-    @Override
-    protected Path getSuiteDirectory() {
-        return GCC_SUITE_DIR;
+        try {
+            return Files.walk(ASSEMBLY_SUITE_DIR).filter(isExecutable).map(f -> f.getParent()).map(f -> new Object[]{f, f.toString()}).collect(Collectors.toList());
+        } catch (IOException e) {
+            throw new AssertionError("Test cases not found", e);
+        }
     }
 
     @Override
     protected Path getTestDirectory() {
         return path;
+    }
+
+    @Override
+    protected Path getSuiteDirectory() {
+        return ASSEMBLY_SUITE_DIR;
     }
 
     @Override

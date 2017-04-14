@@ -31,43 +31,32 @@
  */
 package at.pointhi.irbuilder.test;
 
-import com.oracle.truffle.llvm.runtime.options.LLVMOptions;
-
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-
-import java.io.File;
+import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 
-@RunWith(Parameterized.class)
-public final class GCCGeneratorSuite extends BaseGeneratorSuite {
+import org.junit.Test;
 
-    private static final Path GCC_SUITE_DIR = new File(LLVMOptions.ENGINE.projectRoot() + "/../cache/tests/gcc").toPath();
-    private static final Path GCC_SOURCE_DIR = new File(LLVMOptions.ENGINE.projectRoot() + "/../tests/gcc").toPath();
-    private static final Path GCC_CONFIG_DIR = new File(LLVMOptions.ENGINE.projectRoot() + "/../tests/gcc/configs").toPath();
+import com.oracle.truffle.llvm.test.alpha.BaseTestHarness;
 
-    @Parameterized.Parameter(value = 0) public Path path;
-    @Parameterized.Parameter(value = 1) public String testName;
+import at.pointhi.irbuilder.irwriter.SourceParser;
 
-    @Parameterized.Parameters(name = "{1}")
-    public static Collection<Object[]> data() {
-        return collectTestCases(GCC_CONFIG_DIR, GCC_SUITE_DIR, GCC_SOURCE_DIR);
-    }
+public abstract class BaseGeneratorSuite extends BaseTestHarness {
 
     @Override
-    protected Path getSuiteDirectory() {
-        return GCC_SUITE_DIR;
-    }
+    @Test
+    public void test() throws Exception {
+        final List<Path> testCandidates = Files.walk(getTestDirectory()).filter(BaseTestHarness.isFile).filter(BaseTestHarness.isSulong).collect(Collectors.toList());
+        for (Path candidate : testCandidates) {
 
-    @Override
-    protected Path getTestDirectory() {
-        return path;
-    }
+            if (!candidate.toAbsolutePath().toFile().exists()) {
+                throw new AssertionError("File " + candidate.toAbsolutePath().toFile() + " does not exist.");
+            }
 
-    @Override
-    protected String getTestName() {
-        return testName;
+            SourceParser.parseAndOutputFile(candidate.toFile());
+        }
+
     }
 
 }

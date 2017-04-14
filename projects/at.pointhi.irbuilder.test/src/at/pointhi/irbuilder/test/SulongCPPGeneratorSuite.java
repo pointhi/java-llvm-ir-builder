@@ -31,33 +31,30 @@
  */
 package at.pointhi.irbuilder.test;
 
-import com.oracle.truffle.llvm.runtime.options.LLVMOptions;
-
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Collection;
 
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameter;
+import org.junit.runners.Parameterized.Parameters;
+
+import com.oracle.truffle.llvm.runtime.options.LLVMOptions;
+
 @RunWith(Parameterized.class)
-public final class GCCGeneratorSuite extends BaseGeneratorSuite {
+public final class SulongCPPGeneratorSuite extends BaseGeneratorSuite {
 
-    private static final Path GCC_SUITE_DIR = new File(LLVMOptions.ENGINE.projectRoot() + "/../cache/tests/gcc").toPath();
-    private static final Path GCC_SOURCE_DIR = new File(LLVMOptions.ENGINE.projectRoot() + "/../tests/gcc").toPath();
-    private static final Path GCC_CONFIG_DIR = new File(LLVMOptions.ENGINE.projectRoot() + "/../tests/gcc/configs").toPath();
+    private static final Path SULONG_SUITE_DIR = new File(LLVMOptions.ENGINE.projectRoot() + "/../cache/tests/sulongcpp").toPath();
+    private static final Path SULONG_SOURCE_DIR = new File(LLVMOptions.ENGINE.projectRoot() + "/../tests/sulongcpp").toPath();
+    private static final Path SULONG_CONFIG_DIR = new File(LLVMOptions.ENGINE.projectRoot() + "/../tests/sulongcpp/configs").toPath();
 
-    @Parameterized.Parameter(value = 0) public Path path;
-    @Parameterized.Parameter(value = 1) public String testName;
+    @Parameter(value = 0) public Path path;
+    @Parameter(value = 1) public String testName;
 
-    @Parameterized.Parameters(name = "{1}")
+    @Parameters(name = "{1}")
     public static Collection<Object[]> data() {
-        return collectTestCases(GCC_CONFIG_DIR, GCC_SUITE_DIR, GCC_SOURCE_DIR);
-    }
-
-    @Override
-    protected Path getSuiteDirectory() {
-        return GCC_SUITE_DIR;
+        return collectTestCases(SULONG_CONFIG_DIR, SULONG_SUITE_DIR, SULONG_SOURCE_DIR);
     }
 
     @Override
@@ -66,8 +63,12 @@ public final class GCCGeneratorSuite extends BaseGeneratorSuite {
     }
 
     @Override
+    protected Path getSuiteDirectory() {
+        return SULONG_SUITE_DIR;
+    }
+
+    @Override
     protected String getTestName() {
         return testName;
     }
-
 }
