@@ -51,7 +51,7 @@ class LlvmLLI(Tool):
         if flags is None:
             flags = []
         tool = mx_sulong.findLLVMProgram('lli', self.supportedVersions)
-        return self.runTool([tool] + flags + [inputFile], nonZeroIsFatal=False, errorMsg='Cannot run %s with %s' % (inputFile, tool))
+        return self.runTool([tool] + flags + [inputFile], nonZeroIsFatal=False, timeout=30, errorMsg='Cannot run %s with %s' % (inputFile, tool))
 
 def getIRWriterClasspathOptions():
     """gets the classpath of the IRWRITER distributions"""
