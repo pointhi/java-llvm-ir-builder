@@ -135,8 +135,11 @@ def _runIRGeneratorSuite(assembler, lli, sulongSuiteCacheDir):
                         passed.append(inputFile)
                         sys.stdout.flush()
                     else:
-                        sys.stdout.write('E')
-                        failed.append(inputFile)
+                        if exit_code_ref == 134:
+                            sys.stdout.write('S') # reference code had a segfault, don't count
+                        else:
+                            sys.stdout.write('E')
+                            failed.append(inputFile)
                         sys.stdout.flush()
                 else:
                     sys.stdout.write('E')

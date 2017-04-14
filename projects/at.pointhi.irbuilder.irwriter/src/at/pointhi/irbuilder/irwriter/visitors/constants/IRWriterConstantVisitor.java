@@ -222,8 +222,8 @@ public class IRWriterConstantVisitor extends IRWriterBaseVisitor implements Cons
         final byte[] value = x86fp80Constant.getValue();
         write("0xK");
         for (byte aValue : value) {
-            write(String.valueOf((aValue >>> BYTE_MSB_SHIFT) & HEX_MASK));
-            write(String.valueOf(aValue & HEX_MASK));
+            write(Integer.toHexString((aValue >>> BYTE_MSB_SHIFT) & HEX_MASK).toUpperCase());
+            write(Integer.toHexString(aValue & HEX_MASK).toUpperCase());
         }
     }
 
