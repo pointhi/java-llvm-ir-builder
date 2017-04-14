@@ -60,6 +60,7 @@ import com.oracle.truffle.llvm.runtime.types.AggregateType;
 import com.oracle.truffle.llvm.runtime.types.ArrayType;
 import com.oracle.truffle.llvm.runtime.types.FunctionType;
 import com.oracle.truffle.llvm.runtime.types.PointerType;
+import com.oracle.truffle.llvm.runtime.types.PrimitiveType;
 import com.oracle.truffle.llvm.runtime.types.Type;
 import com.oracle.truffle.llvm.runtime.types.symbols.Symbol;
 
@@ -341,7 +342,15 @@ public class IRWriterConstantVisitor extends IRWriterBaseVisitor implements Cons
             }
 
         } else if (Type.isFloatingpointType(nullConstant.getType())) {
-            write(String.valueOf(0.0));
+            switch (((PrimitiveType) nullConstant.getType()).getPrimitiveKind()) {
+                case X86_FP80:
+                    write("0xK00000000000000000000");
+                    break;
+
+                default:
+                    write(String.valueOf(0.0));
+                    break;
+            }
         } else if (nullConstant.getType() instanceof AggregateType) {
             write(LLVMIR_LABEL_ZEROINITIALIZER);
         } else {
