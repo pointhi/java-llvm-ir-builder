@@ -490,7 +490,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
             }
 
             write(" ");
-            write(load.getAtomicOrdering().toString());
+            write(load.getAtomicOrdering().getIrString());
         }
 
         if (load.getAlign() != 0) {
