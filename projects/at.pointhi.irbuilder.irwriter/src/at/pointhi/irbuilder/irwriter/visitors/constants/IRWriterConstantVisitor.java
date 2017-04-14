@@ -185,12 +185,12 @@ public class IRWriterConstantVisitor extends IRWriterBaseVisitor implements Cons
         write(compareConstant.getOperator().getIrString());
         write(" (");
 
-        writeType(compareConstant.getLHS().getType());
+        writeSymbolType(compareConstant.getLHS());
         write(" ");
         writeInnerSymbolValue(compareConstant.getLHS());
         write(", ");
 
-        writeType(compareConstant.getRHS().getType());
+        writeSymbolType(compareConstant.getRHS());
         write(" ");
         writeInnerSymbolValue(compareConstant.getRHS());
 
