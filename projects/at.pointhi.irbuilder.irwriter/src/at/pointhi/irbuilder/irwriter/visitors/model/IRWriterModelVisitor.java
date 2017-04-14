@@ -249,14 +249,14 @@ public class IRWriterModelVisitor extends IRWriterBaseVisitor implements ModelVi
 
             public void visit(OpaqueType opaqueType) {
                 if (!opaqueType.getName().equals(LLVMIdentifier.UNKNOWN)) {
-                    writef("%%%s = type opaque", opaqueType.getName());
+                    writef("%s = type opaque", opaqueType.getName());
                     writeln();
                 }
             }
 
             public void visit(StructureType structureType) {
                 if (!structureType.getName().equals(LLVMIdentifier.UNKNOWN)) {
-                    writef("%%%s = type ", structureType.getName());
+                    writef("%s = type ", structureType.getName());
                     writeStructDeclaration(structureType);
                     writeln();
                 }

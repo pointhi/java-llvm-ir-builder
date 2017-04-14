@@ -127,7 +127,7 @@ public class IRWriterTypeVisitor extends IRWriterBaseVisitor implements TypeVisi
         if (LLVMIdentifier.UNKNOWN.equals(structureType.getName())) {
             writeStructDeclaration(structureType);
         } else {
-            write("%" + structureType.getName());
+            write(structureType.getName());
         }
     }
 
@@ -143,7 +143,7 @@ public class IRWriterTypeVisitor extends IRWriterBaseVisitor implements TypeVisi
         if (LLVMIdentifier.UNKNOWN.equals(opaqueType.getName())) {
             write("opaque");
         } else {
-            write("%" + opaqueType.getName());
+            write(opaqueType.getName());
         }
     }
 }
