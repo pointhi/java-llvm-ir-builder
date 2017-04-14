@@ -569,12 +569,12 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
         writeInnerSymbolValue(select.getCondition());
         write(", ");
 
-        writeType(select.getTrueValue().getType());
+        writeSymbolType(select.getTrueValue());
         write(" ");
         writeInnerSymbolValue(select.getTrueValue());
         write(", ");
 
-        writeType(select.getFalseValue().getType());
+        writeSymbolType(select.getFalseValue());
         write(" ");
         writeInnerSymbolValue(select.getFalseValue());
 
