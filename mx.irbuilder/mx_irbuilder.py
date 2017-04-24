@@ -3,6 +3,8 @@ import os
 import mx
 import mx_sulong
 import mx_testsuites
+
+import multiprocessing
 import argparse
 import sys
 
@@ -122,35 +124,64 @@ def runIRBuilderTest38(vmArgs):
 
     return returnCode
 
-def _runIRGeneratorSuite(assembler, lli, sulongSuiteCacheDir):
-    mx.log('Testing Reassembly')
-    mx.log(sulongSuiteCacheDir)
+def _testFile(param):
+    inputFile = param[0]
+    assembler = param[1]
+    lli = param[2]
+
     failed = []
     segfaulted = []
     passed = []
-    for root, _, files in os.walk(sulongSuiteCacheDir):
-        for fileName in files:
-            inputFile = os.path.join(sulongSuiteCacheDir, root, fileName)
-            if inputFile.endswith('.out.ll'):
-                if assembler.run(inputFile) == 0:
-                    exit_code_ref = lli.run(inputFile[:-7] + ".bc")
-                    exit_code_out = lli.run(inputFile[:-7] + ".out.bc")
-                    if exit_code_ref == exit_code_out:
-                        sys.stdout.write('.')
-                        passed.append(inputFile)
-                        sys.stdout.flush()
-                    else:
-                        if exit_code_ref == 139:
-                            sys.stdout.write('S') # reference code had a segfault, don't count
-                            segfaulted.append(inputFile)
-                        else:
-                            sys.stdout.write('E')
-                            failed.append(inputFile)
-                        sys.stdout.flush()
+
+    if inputFile.endswith('.out.ll'):
+        if assembler.run(inputFile) == 0:
+            exit_code_ref = lli.run(inputFile[:-7] + ".bc")
+            exit_code_out = lli.run(inputFile[:-7] + ".out.bc")
+            if exit_code_ref == exit_code_out:
+                sys.stdout.write('.')
+                passed.append(inputFile)
+                sys.stdout.flush()
+            else:
+                sys.stdout.write(str(exit_code_ref))
+                if exit_code_ref == 139:
+                    sys.stdout.write('S')  # reference code had a segfault, don't count
+                    segfaulted.append(inputFile)
                 else:
                     sys.stdout.write('E')
                     failed.append(inputFile)
-                    sys.stdout.flush()
+                sys.stdout.flush()
+        else:
+            sys.stdout.write('E')
+            failed.append(inputFile)
+            sys.stdout.flush()
+
+    return passed, failed, segfaulted
+
+def _runIRGeneratorSuite(assembler, lli, sulongSuiteCacheDir):
+    mx.log('Testing Reassembly')
+    mx.log(sulongSuiteCacheDir)
+
+    passed = []
+    failed = []
+    segfaulted = []
+
+    pool = multiprocessing.Pool(multiprocessing.cpu_count() * 2)
+    inputFiles = []
+
+    for root, _, files in os.walk(sulongSuiteCacheDir):
+        for fileName in files:
+            inputFile = os.path.join(sulongSuiteCacheDir, root, fileName)
+            #testFile(inputFile)
+            inputFiles.append([inputFile, assembler, lli])
+
+    results = pool.map(_testFile, inputFiles)
+
+    for result in results:
+        passed += result[0]
+        failed += result[1]
+        segfaulted += result[2]
+
+
     total = len(failed) + len(passed)
     mx.log()
 
