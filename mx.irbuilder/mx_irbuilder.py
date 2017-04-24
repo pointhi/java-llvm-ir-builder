@@ -119,7 +119,7 @@ def runIRBuilderTest38(vmArgs):
             mx_sulong.mx_testsuites.run38(vmArgs, suite[1], [])
         except:
             pass
-        if _runIRGeneratorSuite(LlvmAS(['3.8', '3.9']), LlvmLLI(['3.8', '3.9']), suite[2]) != 0:
+        if _runIRGeneratorSuite(LlvmAS(['3.8', '3.9', '4.0']), LlvmLLI(['3.8', '3.9', '4.0']), suite[2]) != 0:
             returnCode = 1
 
     return returnCode

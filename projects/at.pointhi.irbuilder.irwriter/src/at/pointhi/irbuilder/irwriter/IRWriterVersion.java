@@ -94,6 +94,7 @@ public enum IRWriterVersion {
 
             case "3.8":
             case "3.9":
+            case "4.0":
                 return LLVM_IR_3_8;
 
             default:
