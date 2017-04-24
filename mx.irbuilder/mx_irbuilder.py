@@ -142,8 +142,8 @@ def _testFile(param):
                 passed.append(inputFile)
                 sys.stdout.flush()
             else:
-                if exit_code_ref == -11:
-                    sys.stdout.write('S')  # reference code had a segfault, don't count
+                if exit_code_ref == -6 or exit_code_ref == -11:
+                    sys.stdout.write('S')  # reference code had a segfault or aborted, don't count
                     segfaulted.append(inputFile[:-7] + ".bc")
                 else:
                     sys.stdout.write('E')

@@ -58,7 +58,7 @@ public abstract class BaseGeneratorSuite extends BaseTestHarness {
             }
 
             if (isExcluded(candidateFile)) {
-                System.err.println("File is excluded: " + candidateFile);
+                System.out.println("X");
                 continue;
             }
 
