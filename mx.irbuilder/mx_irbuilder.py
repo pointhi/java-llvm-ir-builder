@@ -142,10 +142,9 @@ def _testFile(param):
                 passed.append(inputFile)
                 sys.stdout.flush()
             else:
-                sys.stdout.write(str(exit_code_ref))
-                if exit_code_ref == 139:
+                if exit_code_ref == -11:
                     sys.stdout.write('S')  # reference code had a segfault, don't count
-                    segfaulted.append(inputFile)
+                    segfaulted.append(inputFile[:-7] + ".bc")
                 else:
                     sys.stdout.write('E')
                     failed.append(inputFile)
@@ -186,7 +185,7 @@ def _runIRGeneratorSuite(assembler, lli, sulongSuiteCacheDir):
     mx.log()
 
     if len(segfaulted):
-        mx.log_error(str(len(segfaulted)) + ' compiled Tests segfaulted in it\'s original compilation!')
+        mx.log_error(str(len(segfaulted)) + ' compiled Tests segfaulted in lli!')
         for x in range(0, len(segfaulted)):
             mx.log_error(str(x) + ') ' + segfaulted[x])
         mx.log()
