@@ -31,6 +31,7 @@
  */
 package at.pointhi.irbuilder.test;
 
+import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -50,13 +51,23 @@ public abstract class BaseGeneratorSuite extends BaseTestHarness {
         final List<Path> testCandidates = Files.walk(getTestDirectory()).filter(BaseTestHarness.isFile).filter(BaseTestHarness.isSulong).collect(Collectors.toList());
         for (Path candidate : testCandidates) {
 
-            if (!candidate.toAbsolutePath().toFile().exists()) {
-                throw new AssertionError("File " + candidate.toAbsolutePath().toFile() + " does not exist.");
+            File candidateFile = candidate.toAbsolutePath().toFile();
+
+            if (!candidateFile.exists()) {
+                throw new AssertionError("File " + candidateFile + " does not exist.");
+            }
+
+            if (isExcluded(candidateFile)) {
+                System.err.println("File is excluded: " + candidateFile);
+                continue;
             }
 
             SourceParser.parseAndOutputFile(candidate.toFile());
         }
+    }
 
+    public boolean isExcluded(@SuppressWarnings("unused") File file) {
+        return false;
     }
 
 }

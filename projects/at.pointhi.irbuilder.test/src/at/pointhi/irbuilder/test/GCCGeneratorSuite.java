@@ -33,11 +33,14 @@ package at.pointhi.irbuilder.test;
 
 import com.oracle.truffle.llvm.runtime.options.LLVMOptions;
 
+import at.pointhi.irbuilder.irwriter.IRWriterVersion;
+
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Collection;
 
 @RunWith(Parameterized.class)
@@ -46,6 +49,16 @@ public final class GCCGeneratorSuite extends BaseGeneratorSuite {
     private static final Path GCC_SUITE_DIR = new File(LLVMOptions.ENGINE.projectRoot() + "/../cache/tests/gcc").toPath();
     private static final Path GCC_SOURCE_DIR = new File(LLVMOptions.ENGINE.projectRoot() + "/../tests/gcc").toPath();
     private static final Path GCC_CONFIG_DIR = new File(LLVMOptions.ENGINE.projectRoot() + "/../tests/gcc/configs").toPath();
+
+    // Sulong exception handling not supported in Sulong v3.2 mode; use Sulong mode v3.8 or higher.
+    private static final File[] GCC_EXCLUDED_FILES_32 = new File[]{
+                    new File(GCC_SUITE_DIR.toFile(), "/gcc-5.2.0/gcc/testsuite/g++.dg/torture/pr47541/pr47541_clangcpp_O0.bc"),
+                    new File(GCC_SUITE_DIR.toFile(), "/gcc-5.2.0/gcc/testsuite/g++.dg/opt/pr15054-2/pr15054-2_clangcpp_O0.bc"),
+                    new File(GCC_SUITE_DIR.toFile(), "/gcc-5.2.0/gcc/testsuite/g++.dg/opt/pr17697-1/pr17697-1_clangcpp_O0.bc"),
+                    new File(GCC_SUITE_DIR.toFile(), "/gcc-5.2.0/gcc/testsuite/g++.dg/opt/pr43655/pr43655_clangcpp_O0.bc"),
+                    new File(GCC_SUITE_DIR.toFile(), "/gcc-5.2.0/gcc/testsuite/g++.dg/opt/dtor1/dtor1_clangcpp_O0.bc"),
+                    new File(GCC_SUITE_DIR.toFile(), "/gcc-5.2.0/gcc/testsuite/g++.dg/template/repo9/repo9_clangcpp_O0.bc")
+    };
 
     @Parameterized.Parameter(value = 0) public Path path;
     @Parameterized.Parameter(value = 1) public String testName;
@@ -70,4 +83,11 @@ public final class GCCGeneratorSuite extends BaseGeneratorSuite {
         return testName;
     }
 
+    @Override
+    public boolean isExcluded(File file) {
+        if (IRWriterVersion.fromSulongOptions() == IRWriterVersion.LLVM_IR_3_2) {
+            return Arrays.stream(GCC_EXCLUDED_FILES_32).filter(f -> f.equals(file)).findAny().isPresent();
+        }
+        return false;
+    }
 }
