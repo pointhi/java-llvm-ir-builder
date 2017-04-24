@@ -80,14 +80,16 @@ def runIRBuilderTest32(vmArgs):
     vmArgs, otherArgs = mx_sulong.truffle_extract_VM_args(vmArgs)
     parser = argparse.ArgumentParser(description="Compiles all or selected test suites.")
     parser.add_argument('suite', nargs='*', help=' '.join(irBuilderTests32.keys()), default=irBuilderTests32.keys())
+    parser.add_argument('--skip-compilation', help='skip suite compilation', action='store_true')  # TODO: makefile
     parsedArgs = parser.parse_args(otherArgs)
 
     returnCode = 0
     for testSuiteName in parsedArgs.suite:
         suite = irBuilderTests32[testSuiteName]
         """runs the test suite"""
-        mx_sulong.ensureDragonEggExists()
-        mx_sulong.mx_testsuites.compileSuite([suite[0]])
+        if parsedArgs.skip_compilation is False:
+            mx_sulong.ensureDragonEggExists()
+            mx_sulong.mx_testsuites.compileSuite([suite[0]])
         try:
             mx_sulong.mx_testsuites.run32(vmArgs, suite[1], [])
         except:
@@ -101,14 +103,16 @@ def runIRBuilderTest38(vmArgs):
     vmArgs, otherArgs = mx_sulong.truffle_extract_VM_args(vmArgs)
     parser = argparse.ArgumentParser(description="Compiles all or selected test suites.")
     parser.add_argument('suite', nargs='*', help=' '.join(irBuilderTests38.keys()), default=irBuilderTests38.keys())
+    parser.add_argument('--skip-compilation', help='skip suite compilation', action='store_true')  # TODO: makefile
     parsedArgs = parser.parse_args(otherArgs)
 
     returnCode = 0
     for testSuiteName in parsedArgs.suite:
         suite = irBuilderTests38[testSuiteName]
         """runs the test suite"""
-        mx_sulong.ensureDragonEggExists()
-        mx_sulong.mx_testsuites.compileSuite([suite[0]])
+        if parsedArgs.skip_compilation is False:
+            mx_sulong.ensureDragonEggExists()
+            mx_sulong.mx_testsuites.compileSuite([suite[0]])
         try:
             mx_sulong.mx_testsuites.run38(vmArgs, suite[1], [])
         except:
