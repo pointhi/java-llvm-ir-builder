@@ -126,6 +126,7 @@ def _runIRGeneratorSuite(assembler, lli, sulongSuiteCacheDir):
     mx.log('Testing Reassembly')
     mx.log(sulongSuiteCacheDir)
     failed = []
+    segfaulted = []
     passed = []
     for root, _, files in os.walk(sulongSuiteCacheDir):
         for fileName in files:
@@ -139,8 +140,9 @@ def _runIRGeneratorSuite(assembler, lli, sulongSuiteCacheDir):
                         passed.append(inputFile)
                         sys.stdout.flush()
                     else:
-                        if exit_code_ref == 134:
+                        if exit_code_ref == 139:
                             sys.stdout.write('S') # reference code had a segfault, don't count
+                            segfaulted.append(inputFile)
                         else:
                             sys.stdout.write('E')
                             failed.append(inputFile)
@@ -151,6 +153,13 @@ def _runIRGeneratorSuite(assembler, lli, sulongSuiteCacheDir):
                     sys.stdout.flush()
     total = len(failed) + len(passed)
     mx.log()
+
+    if len(segfaulted):
+        mx.log_error(str(len(segfaulted)) + ' compiled Tests segfaulted in it\'s original compilation!')
+        for x in range(0, len(segfaulted)):
+            mx.log_error(str(x) + ') ' + segfaulted[x])
+        mx.log()
+
     if len(failed) != 0:
         mx.log_error('Failed ' + str(len(failed)) + ' of ' + str(total) + ' Tests!')
         for x in range(0, len(failed)):
