@@ -91,10 +91,16 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
 
     protected static final String LLVMIR_LABEL_ALIGN = "align";
 
-    protected static final String INDENTATION = "  ";
+    private static final String INDENTATION = "  ";
+    private static final String DEEP_INDENTATION = "        ";
 
     protected void writeIndent() {
         write(INDENTATION);
+    }
+
+    protected void writeDeepIndent() {
+        write(INDENTATION);
+        write(DEEP_INDENTATION);
     }
 
     private static final String LLVMIR_LABEL_ALLOCATE = "alloca";
@@ -777,7 +783,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
         writeIndent();
 
         // invoke
-        write(LLVMIR_LABEL_CALL);
+        write(LLVMIR_LABEL_INVOKE);
         write(" ");
 
         writeFunctionInvoke(call);
@@ -806,7 +812,8 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
 
         // [ cleanup ]
         if (landingpad.isCleanup()) {
-            write(" ");
+            writeln();
+            writeDeepIndent();
             write(LLVMIR_LABEL_LANDINGPAD_CLEANUP);
 
         }
@@ -826,7 +833,8 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
         write(LLVMIR_LABEL_RESUME);
         write(" ");
 
-        writeSymbolType(resume.getValue());
+        // writeSymbolType(resume.getValue());
+        writeType(resume.getType());
         write(" ");
         writeInnerSymbolValue(resume.getValue());
 
@@ -901,6 +909,15 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
         writeInnerSymbolValue(call.getCallTarget());
 
         writeActualArgs(call);
+
+        writeln();
+        writeDeepIndent();
+
+        write("to label ");
+        writeBlockName(call.normalSuccessor());
+
+        write(" unwind label ");
+        writeBlockName(call.unwindSuccessor());
     }
 
     protected static Type getSymbolType(Call call) {

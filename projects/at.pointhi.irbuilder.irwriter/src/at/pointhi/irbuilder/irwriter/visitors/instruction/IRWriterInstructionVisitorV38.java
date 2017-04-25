@@ -117,7 +117,8 @@ public class IRWriterInstructionVisitorV38 extends IRWriterInstructionVisitor {
 
     @Override
     public void visit(GetElementPointerInstruction gep) {
-        write(INDENTATION);
+        writeIndent();
+
         // <result> = getelementptr
         writef("%s = %s ", gep.getName(), LLVMIR_LABEL_GET_ELEMENT_POINTER);
 
@@ -148,7 +149,8 @@ public class IRWriterInstructionVisitorV38 extends IRWriterInstructionVisitor {
 
     @Override
     public void visit(LoadInstruction load) {
-        write(INDENTATION);
+        writeIndent();
+
         writef("%s = %s", load.getName(), LLVMIR_LABEL_LOAD);
 
         if (load.getAtomicOrdering() != AtomicOrdering.NOT_ATOMIC) {
@@ -161,13 +163,10 @@ public class IRWriterInstructionVisitorV38 extends IRWriterInstructionVisitor {
             write(LLVMIR_LABEL_VOLATILE);
         }
 
-        if (load.getAtomicOrdering() == AtomicOrdering.NOT_ATOMIC) {
-            write(" ");
-            writeType(load.getType());
-            write(",");
-        }
-
         write(" ");
+        writeType(load.getType());
+
+        write(", ");
         writeType(load.getSource().getType());
 
         write(" ");
