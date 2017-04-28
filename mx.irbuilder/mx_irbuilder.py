@@ -164,7 +164,9 @@ def _runIRGeneratorSuite(assembler, lli, sulongSuiteCacheDir):
     failed = []
     segfaulted = []
 
-    pool = multiprocessing.Pool(multiprocessing.cpu_count() * 2)
+    processes = multiprocessing.cpu_count() * 2
+    processes = 1
+    pool = multiprocessing.Pool(processes)
     inputFiles = []
 
     for root, _, files in os.walk(sulongSuiteCacheDir):
