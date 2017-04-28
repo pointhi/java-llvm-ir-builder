@@ -169,13 +169,15 @@ def _runIRGeneratorSuite(assembler, lli, sulongSuiteCacheDir):
     pool = multiprocessing.Pool(processes)
     inputFiles = []
 
+    results = []
+
     for root, _, files in os.walk(sulongSuiteCacheDir):
         for fileName in files:
             inputFile = os.path.join(sulongSuiteCacheDir, root, fileName)
-            #testFile(inputFile)
-            inputFiles.append([inputFile, assembler, lli])
+            results += [_testFile([inputFile, assembler, lli])]
+            #inputFiles.append([inputFile, assembler, lli])
 
-    results = pool.map(_testFile, inputFiles)
+    #results = pool.map(_testFile, inputFiles)
 
     for result in results:
         passed += result[0]

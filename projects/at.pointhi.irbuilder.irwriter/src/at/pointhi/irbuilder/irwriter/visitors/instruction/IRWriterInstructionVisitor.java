@@ -834,7 +834,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
         write(" ");
 
         // writeSymbolType(resume.getValue());
-        writeType(resume.getType());
+        writeSymbolType(resume.getValue());
         write(" ");
         writeInnerSymbolValue(resume.getValue());
 
