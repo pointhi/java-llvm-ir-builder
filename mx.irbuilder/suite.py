@@ -28,6 +28,7 @@ suite = {
                 "sulong:SULONG",
             ],
             "checkstyle" : "at.pointhi.irbuilder.irwriter",
+            "annotationProcessors" : ["truffle:TRUFFLE_DSL_PROCESSOR"],
             "javaCompliance" : "1.8",
             "license" : "BSD-new",
         },

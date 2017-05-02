@@ -39,23 +39,65 @@ import java.io.PrintWriter;
 
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.Truffle;
-import com.oracle.truffle.api.TruffleLanguage.Env;
+import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.vm.PolyglotEngine;
 import com.oracle.truffle.api.vm.PolyglotEngine.Builder;
+import com.oracle.truffle.llvm.Sulong;
+import com.oracle.truffle.llvm.Sulong.LLVMLanguageProvider;
 import com.oracle.truffle.llvm.parser.BitcodeParserResult;
 import com.oracle.truffle.llvm.parser.model.ModelModule;
 import com.oracle.truffle.llvm.runtime.LLVMContext;
 import com.oracle.truffle.llvm.runtime.LLVMLanguage;
 
-public class SourceParser {
-    static {
-        LLVMLanguage.provider = getProvider();
+@TruffleLanguage.Registration(name = "SourceParser", version = "0.01", mimeType = {SourceParser.LLVM_BITCODE_MIME_TYPE, SourceParser.LLVM_BITCODE_BASE64_MIME_TYPE,
+                SourceParser.SULONG_LIBRARY_MIME_TYPE})
+public class SourceParser extends LLVMLanguage {
+
+    public static final LLVMLanguageProvider provider = getProvider();
+
+    private Env environment;
+
+    @Override
+    public LLVMContext findLLVMContext() {
+        return getContextReference().get();
     }
 
-    private static LLVMLanguage.LLVMLanguageProvider getProvider() {
-        return new LLVMLanguage.LLVMLanguageProvider() {
+    @Override
+    protected LLVMContext createContext(Env env) {
+        environment = env;
+        return provider.createContext(env);
+    }
+
+    @Override
+    public Env getEnvironment() {
+        return environment;
+    }
+
+    @Override
+    protected Object findExportedSymbol(LLVMContext context, String globalName, boolean onlyExplicit) {
+        return null; // not required
+    }
+
+    @Override
+    protected Object getLanguageGlobal(LLVMContext context) {
+        return context;
+    }
+
+    @Override
+    protected boolean isObjectOfLanguage(Object object) {
+        throw new AssertionError();
+    }
+
+    @Override
+    protected CallTarget parse(com.oracle.truffle.api.TruffleLanguage.ParsingRequest request) throws Exception {
+        Source source = request.getSource();
+        return provider.parse(this, findLLVMContext(), source, request.getArgumentNames().toArray(new String[request.getArgumentNames().size()]));
+    }
+
+    private static Sulong.LLVMLanguageProvider getProvider() {
+        return new Sulong.LLVMLanguageProvider() {
             @Override
             public LLVMContext createContext(Env env) {
                 final LLVMContext context = new LLVMContext(env);
@@ -77,10 +119,9 @@ public class SourceParser {
             }
 
             private CallTarget parse(Source code) {
-
                 switch (code.getMimeType()) {
-                    case LLVMLanguage.LLVM_BITCODE_MIME_TYPE:
-                    case LLVMLanguage.LLVM_BITCODE_BASE64_MIME_TYPE:
+                    case SourceParser.LLVM_BITCODE_MIME_TYPE:
+                    case SourceParser.LLVM_BITCODE_BASE64_MIME_TYPE:
                         // we are only interested in the parsed model
                         final ModelModule model = BitcodeParserResult.getFromSource(code).getModel();
 
@@ -138,7 +179,7 @@ public class SourceParser {
 
     private static void evaluateFromSource(Source fileSource) {
         Builder engineBuilder = PolyglotEngine.newBuilder();
-        engineBuilder.config(LLVMLanguage.LLVM_BITCODE_MIME_TYPE, LLVMLanguage.LLVM_SOURCE_FILE_KEY, fileSource);
+        engineBuilder.config(SourceParser.LLVM_BITCODE_MIME_TYPE, Sulong.LLVM_SOURCE_FILE_KEY, fileSource);
         PolyglotEngine vm = engineBuilder.build();
         try {
             vm.eval(fileSource);

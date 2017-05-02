@@ -58,8 +58,6 @@ import com.oracle.truffle.llvm.runtime.types.Type;
 import com.oracle.truffle.llvm.runtime.types.VariableBitWidthType;
 import com.oracle.truffle.llvm.runtime.types.VectorType;
 import com.oracle.truffle.llvm.runtime.types.VoidType;
-import com.oracle.truffle.llvm.runtime.types.metadata.MetadataConstantPointerType;
-import com.oracle.truffle.llvm.runtime.types.metadata.MetadataConstantType;
 import com.oracle.truffle.llvm.runtime.types.symbols.LLVMIdentifier;
 import com.oracle.truffle.llvm.runtime.types.symbols.Symbol;
 import com.oracle.truffle.llvm.runtime.types.visitors.TypeVisitor;
@@ -278,12 +276,6 @@ public class IRWriterModelVisitor extends IRWriterBaseVisitor implements ModelVi
             }
 
             public void visit(MetaType metaType) {
-            }
-
-            public void visit(MetadataConstantPointerType metadataConstantPointerType) {
-            }
-
-            public void visit(MetadataConstantType metadataConstantType) {
             }
 
             public void visit(PrimitiveType primitiveType) {

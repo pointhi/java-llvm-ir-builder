@@ -45,8 +45,6 @@ import com.oracle.truffle.llvm.runtime.types.Type;
 import com.oracle.truffle.llvm.runtime.types.VariableBitWidthType;
 import com.oracle.truffle.llvm.runtime.types.VectorType;
 import com.oracle.truffle.llvm.runtime.types.VoidType;
-import com.oracle.truffle.llvm.runtime.types.metadata.MetadataConstantPointerType;
-import com.oracle.truffle.llvm.runtime.types.metadata.MetadataConstantType;
 import com.oracle.truffle.llvm.runtime.types.symbols.LLVMIdentifier;
 import com.oracle.truffle.llvm.runtime.types.visitors.TypeVisitor;
 
@@ -93,19 +91,18 @@ public class IRWriterTypeVisitor extends IRWriterBaseVisitor implements TypeVisi
     }
 
     @Override
-    public void visit(MetadataConstantType metadataConstantType) {
-        writeType(MetaType.METADATA);
-        writef(" %d", metadataConstantType.getValue());
-    }
-
-    @Override
-    public void visit(MetadataConstantPointerType metadataConstantPointerType) {
-        writef("!!%d", metadataConstantPointerType.getSymbolIndex());
-    }
-
-    @Override
     public void visit(MetaType metaType) {
-        write(metaType.name().toLowerCase());
+        if (MetaType.UNKNOWN.equals(metaType)) {
+            write("unknown");
+        } else if (MetaType.LABEL.equals(metaType)) {
+            write("label");
+        } else if (MetaType.TOKEN.equals(metaType)) {
+            write("token");
+        } else if (MetaType.METADATA.equals(metaType)) {
+            write("metadata");
+        } else if (MetaType.X86MMX.equals(metaType)) {
+            write("x86mmx");
+        }
     }
 
     @Override
