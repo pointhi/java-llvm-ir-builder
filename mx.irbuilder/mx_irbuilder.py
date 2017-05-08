@@ -4,7 +4,7 @@ import mx
 import mx_sulong
 import mx_testsuites
 
-import multiprocessing
+#import multiprocessing
 import argparse
 import sys
 
@@ -164,10 +164,10 @@ def _runIRGeneratorSuite(assembler, lli, sulongSuiteCacheDir):
     failed = []
     segfaulted = []
 
-    processes = multiprocessing.cpu_count() * 2
-    processes = 1
-    pool = multiprocessing.Pool(processes)
-    inputFiles = []
+    #processes = multiprocessing.cpu_count() * 2
+    #processes = 1
+    #pool = multiprocessing.Pool(processes)
+    #inputFiles = []
 
     results = []
 
