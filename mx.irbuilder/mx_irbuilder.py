@@ -85,7 +85,7 @@ def runIRBuilderTest32(vmArgs):
     parser.add_argument('--skip-compilation', help='skip suite compilation', action='store_true')  # TODO: makefile
     parsedArgs = parser.parse_args(otherArgs)
 
-    old_llvmir_version = os.environ["LLVMIR_VERSION"]
+    oldLLVMIRVersion = os.environ.get("LLVMIR_VERSION")
     os.environ["LLVMIR_VERSION"] = "3.2"  # set version of LLVM IR output
 
     returnCode = 0
@@ -102,7 +102,8 @@ def runIRBuilderTest32(vmArgs):
         if _runIRGeneratorSuite(LlvmAS(['3.2', '3.3']), LlvmLLI(['3.2', '3.3']), suite[2]) != 0:
             returnCode = 1
 
-    os.environ["LLVMIR_VERSION"] = old_llvmir_version
+    if oldLLVMIRVersion is not None:
+        os.environ["LLVMIR_VERSION"] = oldLLVMIRVersion
     return returnCode
 
 def runIRBuilderTest38(vmArgs):
@@ -112,7 +113,7 @@ def runIRBuilderTest38(vmArgs):
     parser.add_argument('--skip-compilation', help='skip suite compilation', action='store_true')  # TODO: makefile
     parsedArgs = parser.parse_args(otherArgs)
 
-    old_llvmir_version = os.environ["LLVMIR_VERSION"]
+    oldLLVMIRVersion = os.environ.get("LLVMIR_VERSION")
     os.environ["LLVMIR_VERSION"] = "3.8"  # set version of LLVM IR output
 
     returnCode = 0
@@ -129,7 +130,8 @@ def runIRBuilderTest38(vmArgs):
         if _runIRGeneratorSuite(LlvmAS(['3.8', '3.9', '4.0']), LlvmLLI(['3.8', '3.9', '4.0']), suite[2]) != 0:
             returnCode = 1
 
-    os.environ["LLVMIR_VERSION"] = old_llvmir_version
+    if oldLLVMIRVersion is not None:
+        os.environ["LLVMIR_VERSION"] = oldLLVMIRVersion
     return returnCode
 
 def _testFile(param):
