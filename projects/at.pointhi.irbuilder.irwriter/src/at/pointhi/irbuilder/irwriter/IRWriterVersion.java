@@ -32,7 +32,7 @@
 
 package at.pointhi.irbuilder.irwriter;
 
-import com.oracle.truffle.llvm.runtime.options.LLVMOptions;
+import java.util.Objects;
 
 import at.pointhi.irbuilder.irwriter.visitors.constants.IRWriterConstantVisitor;
 import at.pointhi.irbuilder.irwriter.visitors.constants.IRWriterConstantVisitorV38;
@@ -85,8 +85,13 @@ public enum IRWriterVersion {
         IRWriterTypeVisitor instantiate(IRWriterVisitors out, IRWriter.PrintTarget target);
     }
 
-    public static IRWriterVersion fromSulongOptions() {
-        final String llvmVersion = LLVMOptions.ENGINE.llvmVersion();
+    public static IRWriterVersion fromEnviromentVariables() {
+        final String llvmVersion = System.getenv("LLVMIR_VERSION"); // TODO: using better techniques
+
+        if (Objects.isNull(llvmVersion)) {
+            return LLVM_IR_3_8; // default IR version
+        }
+
         switch (llvmVersion) {
             case "3.2":
             case "3.3":

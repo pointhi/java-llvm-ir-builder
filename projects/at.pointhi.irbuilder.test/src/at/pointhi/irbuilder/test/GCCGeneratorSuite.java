@@ -85,7 +85,7 @@ public final class GCCGeneratorSuite extends BaseGeneratorSuite {
 
     @Override
     public boolean isExcluded(File file) {
-        if (IRWriterVersion.fromSulongOptions() == IRWriterVersion.LLVM_IR_3_2) {
+        if (IRWriterVersion.fromEnviromentVariables() == IRWriterVersion.LLVM_IR_3_2) {
             return Arrays.stream(GCC_EXCLUDED_FILES_32).filter(f -> f.equals(file)).findAny().isPresent();
         }
         return false;

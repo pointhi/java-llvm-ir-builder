@@ -137,8 +137,7 @@ public class SourceParser extends LLVMLanguage {
                             throw new RuntimeException("Could not open File Stream");
                         }
 
-                        final IRWriterVersion llvmVersion = IRWriterVersion.fromSulongOptions();
-
+                        final IRWriterVersion llvmVersion = IRWriterVersion.fromEnviromentVariables();
                         IRWriter.writeIRToStream(model, llvmVersion, writer);
 
                         // because we are only parsing the file, there is nothing to execute
