@@ -35,7 +35,6 @@ import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -104,7 +103,7 @@ public class BinaryVectorOperatorTest {
     private static final long VECTOR2_2 = 1442968193L; // prim
 
     @Test
-    public void test() throws IOException {
+    public void test() {
         assert PrimitiveType.isIntegerType(type);
         assert !operator.isFloatingPoint();
 
