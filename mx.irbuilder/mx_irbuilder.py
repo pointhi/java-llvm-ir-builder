@@ -3,6 +3,7 @@ import os
 import mx
 import mx_sulong
 import mx_testsuites
+from mx_irbuilder_util import TemporaryEnv
 
 #import multiprocessing
 import argparse
@@ -95,26 +96,21 @@ def runIRBuilderTest32(vmArgs):
     parser.add_argument('--skip-compilation', help='skip suite compilation', action='store_true')  # TODO: makefile
     parsedArgs = parser.parse_args(otherArgs)
 
-    oldLLVMIRVersion = os.environ.get("LLVMIR_VERSION")
-    os.environ["LLVMIR_VERSION"] = "3.2"  # set version of LLVM IR output
-
-    returnCode = 0
-    for testSuiteName in parsedArgs.suite:
-        suite = irBuilderTests32[testSuiteName]
-        """runs the test suite"""
-        if parsedArgs.skip_compilation is False:
-            mx_sulong.ensureDragonEggExists()
-            mx_sulong.mx_testsuites.compileSuite([suite[0]])
-        try:
-            mx_sulong.mx_testsuites.run32(vmArgs, suite[1], [])
-        except:
-            pass
-        if _runIRGeneratorSuite(LlvmAS_32, LlvmLLI_32, suite[2]) != 0:
-            returnCode = 1
-
-    if oldLLVMIRVersion is not None:
-        os.environ["LLVMIR_VERSION"] = oldLLVMIRVersion
-    return returnCode
+    with TemporaryEnv("LLVMIR_VERSION", "3.2"):
+        returnCode = 0
+        for testSuiteName in parsedArgs.suite:
+            suite = irBuilderTests32[testSuiteName]
+            """runs the test suite"""
+            if parsedArgs.skip_compilation is False:
+                mx_sulong.ensureDragonEggExists()
+                mx_sulong.mx_testsuites.compileSuite([suite[0]])
+            try:
+                mx_sulong.mx_testsuites.run32(vmArgs, suite[1], [])
+            except:
+                pass
+            if _runIRGeneratorSuite(LlvmAS_32, LlvmLLI_32, suite[2]) != 0:
+                returnCode = 1
+        return returnCode
 
 def runIRBuilderTest38(vmArgs):
     vmArgs, otherArgs = mx_sulong.truffle_extract_VM_args(vmArgs)
@@ -123,26 +119,21 @@ def runIRBuilderTest38(vmArgs):
     parser.add_argument('--skip-compilation', help='skip suite compilation', action='store_true')  # TODO: makefile
     parsedArgs = parser.parse_args(otherArgs)
 
-    oldLLVMIRVersion = os.environ.get("LLVMIR_VERSION")
-    os.environ["LLVMIR_VERSION"] = "3.8"  # set version of LLVM IR output
-
-    returnCode = 0
-    for testSuiteName in parsedArgs.suite:
-        suite = irBuilderTests38[testSuiteName]
-        """runs the test suite"""
-        if parsedArgs.skip_compilation is False:
-            mx_sulong.ensureDragonEggExists()
-            mx_sulong.mx_testsuites.compileSuite([suite[0]])
-        try:
-            mx_sulong.mx_testsuites.run38(vmArgs, suite[1], [])
-        except:
-            pass
-        if _runIRGeneratorSuite(LlvmAS_38, LlvmLLI_38, suite[2]) != 0:
-            returnCode = 1
-
-    if oldLLVMIRVersion is not None:
-        os.environ["LLVMIR_VERSION"] = oldLLVMIRVersion
-    return returnCode
+    with TemporaryEnv("LLVMIR_VERSION", "3.8"):
+        returnCode = 0
+        for testSuiteName in parsedArgs.suite:
+            suite = irBuilderTests38[testSuiteName]
+            """runs the test suite"""
+            if parsedArgs.skip_compilation is False:
+                mx_sulong.ensureDragonEggExists()
+                mx_sulong.mx_testsuites.compileSuite([suite[0]])
+            try:
+                mx_sulong.mx_testsuites.run38(vmArgs, suite[1], [])
+            except:
+                pass
+            if _runIRGeneratorSuite(LlvmAS_38, LlvmLLI_38, suite[2]) != 0:
+                returnCode = 1
+        return returnCode
 
 def runIRBuilderTestGen38(vmArgs):
     vmArgs, otherArgs = mx_sulong.truffle_extract_VM_args(vmArgs)
@@ -150,23 +141,18 @@ def runIRBuilderTestGen38(vmArgs):
     parser.add_argument('suite', nargs='*', help=' '.join(irBuilderTestsGen38.keys()), default=irBuilderTestsGen38.keys())
     parsedArgs = parser.parse_args(otherArgs)
 
-    oldLLVMIRVersion = os.environ.get("LLVMIR_VERSION")
-    os.environ["LLVMIR_VERSION"] = "3.8"  # set version of LLVM IR output
-
-    returnCode = 0
-    for testSuiteName in parsedArgs.suite:
-        suite = irBuilderTestsGen38[testSuiteName]
-        """runs the test suite"""
-        try:
-            mx_sulong.mx_testsuites.run38(vmArgs, suite[0], [])
-        except:
-            pass
-        if _runIRGeneratorBuilderSuite(LlvmAS_38, LlvmLLI_38, suite[1]) != 0:
-            returnCode = 1
-
-    if oldLLVMIRVersion is not None:
-        os.environ["LLVMIR_VERSION"] = oldLLVMIRVersion
-    return returnCode
+    with TemporaryEnv("LLVMIR_VERSION", "3.8"):
+        returnCode = 0
+        for testSuiteName in parsedArgs.suite:
+            suite = irBuilderTestsGen38[testSuiteName]
+            """runs the test suite"""
+            try:
+                mx_sulong.mx_testsuites.run38(vmArgs, suite[0], [])
+            except:
+                pass
+            if _runIRGeneratorBuilderSuite(LlvmAS_38, LlvmLLI_38, suite[1]) != 0:
+                returnCode = 1
+        return returnCode
 
 def _testFile(param):
     inputFile = param[0]
