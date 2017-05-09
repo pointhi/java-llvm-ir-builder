@@ -32,7 +32,9 @@
 
 package at.pointhi.irbuilder.irwriter;
 
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.PrintWriter;
 
 import com.oracle.truffle.llvm.parser.model.ModelModule;
@@ -68,6 +70,21 @@ public class IRWriter {
             throw new IllegalArgumentException("Cannot print LLVMIR to this file: " + filename, e);
         }
         writeIRToStream(model, version, fileWriter); // TODO: Exceptions?
+    }
+
+    /**
+     * Write the LLVM IR representation of a model into a file.
+     *
+     * @param model the model which we want to parse
+     * @param version actual version of the LLVM IR we want to write
+     * @param file file where we want to write the generated LLVM IR
+     */
+    public static void writeIRToFile(ModelModule model, IRWriterVersion version, File file) {
+        try {
+            writeIRToFile(model, version, file.getCanonicalPath());
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Cannot print LLVMIR to this file: " + file, e);
+        }
     }
 
     /**
