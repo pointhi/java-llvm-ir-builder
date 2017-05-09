@@ -57,6 +57,20 @@ suite = {
             "javaCompliance": "1.8",
             "license": "BSD-new",
         },
+
+        "at.pointhi.irbuilder.testgenerator": {
+            "subDir": "projects",
+            "sourceDirs": ["src"],
+            "dependencies": [
+                "at.pointhi.irbuilder.irbuilder",
+                "at.pointhi.irbuilder.irwriter",
+                "sulong:SULONG",
+                "mx:JUNIT",
+            ],
+            "checkstyle": "at.pointhi.irbuilder.irwriter",
+            "javaCompliance": "1.8",
+            "license": "BSD-new",
+        },
     },
 
     "distributions" : {
