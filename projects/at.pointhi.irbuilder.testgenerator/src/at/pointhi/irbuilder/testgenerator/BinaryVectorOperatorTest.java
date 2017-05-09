@@ -65,7 +65,7 @@ import at.pointhi.irbuilder.irwriter.IRWriterVersion;
 @RunWith(Parameterized.class)
 public class BinaryVectorOperatorTest {
 
-    private static final Path VECTOR_SUITE_DIR = new File(LLVMOptions.ENGINE.projectRoot() + "/../cache/tests/generated/vector").toPath();
+    private static final Path VECTOR_SUITE_DIR = new File(LLVMOptions.ENGINE.projectRoot() + "/../cache/tests/irbuilder/vector").toPath();
 
     private final PrimitiveType type;
     private final BinaryOperator operator;
@@ -113,12 +113,11 @@ public class BinaryVectorOperatorTest {
         createMain(builder);
 
         File resultFile = getOutputPath();
-        System.out.println(resultFile.getCanonicalPath());
 
         VECTOR_SUITE_DIR.toFile().mkdirs(); // TODO: do only once
-
-        IRWriter.writeIRToStream(builder.getModelModule(), IRWriterVersion.fromEnviromentVariables(), new PrintWriter(System.out));
         IRWriter.writeIRToFile(builder.getModelModule(), IRWriterVersion.fromEnviromentVariables(), resultFile);
+
+        System.out.print("."); // TODO
     }
 
     private File getOutputPath() {

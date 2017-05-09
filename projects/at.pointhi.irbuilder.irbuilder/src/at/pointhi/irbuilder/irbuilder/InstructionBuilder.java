@@ -175,6 +175,7 @@ public class InstructionBuilder {
         return getLastInstruction();
     }
 
+    @SuppressWarnings("unused")
     public Instruction createExtractValue(Instruction struct, Symbol vector, int index) {
         Type type = ((AggregateType) vector.getType()).getElementType(index); // TODO: correct?
         int vectorIdx = addSymbol(vector);

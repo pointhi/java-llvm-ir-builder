@@ -92,7 +92,8 @@ suite = {
             "subDir" : "graal",
             "sourcesPath" : "build/irwriter_test.src.zip",
             "dependencies" : [
-                "at.pointhi.irbuilder.test"
+                "at.pointhi.irbuilder.test",
+                "at.pointhi.irbuilder.testgenerator"
             ],
             "exclude" : [
                 "mx:JUNIT"

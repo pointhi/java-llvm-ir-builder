@@ -78,6 +78,10 @@ irBuilderTests38 = {
     'nwcc' : ['nwcc38', "at.pointhi.irbuilder.test.NWCCGeneratorSuite", os.path.join(mx_testsuites._cacheDir, 'nwcc')],
 }
 
+irBuilderTestsGen38 = {
+    'binary_vector' : ["at.pointhi.irbuilder.testgenerator.BinaryVectorOperatorTest", os.path.join(mx_testsuites._cacheDir, 'irbuilder/vector')],
+}
+
 def runIRBuilderTest32(vmArgs):
     vmArgs, otherArgs = mx_sulong.truffle_extract_VM_args(vmArgs)
     parser = argparse.ArgumentParser(description="Compiles all or selected test suites.")
@@ -128,6 +132,30 @@ def runIRBuilderTest38(vmArgs):
         except:
             pass
         if _runIRGeneratorSuite(LlvmAS(['3.8', '3.9', '4.0']), LlvmLLI(['3.8', '3.9', '4.0']), suite[2]) != 0:
+            returnCode = 1
+
+    if oldLLVMIRVersion is not None:
+        os.environ["LLVMIR_VERSION"] = oldLLVMIRVersion
+    return returnCode
+
+def runIRBuilderTestGen38(vmArgs):
+    vmArgs, otherArgs = mx_sulong.truffle_extract_VM_args(vmArgs)
+    parser = argparse.ArgumentParser(description="Compiles all or selected test suites.")
+    parser.add_argument('suite', nargs='*', help=' '.join(irBuilderTestsGen38.keys()), default=irBuilderTestsGen38.keys())
+    parsedArgs = parser.parse_args(otherArgs)
+
+    oldLLVMIRVersion = os.environ.get("LLVMIR_VERSION")
+    os.environ["LLVMIR_VERSION"] = "3.8"  # set version of LLVM IR output
+
+    returnCode = 0
+    for testSuiteName in parsedArgs.suite:
+        suite = irBuilderTestsGen38[testSuiteName]
+        """runs the test suite"""
+        try:
+            mx_sulong.mx_testsuites.run38(vmArgs, suite[0], [])
+        except:
+            pass
+        if _runIRGeneratorBuilderSuite(LlvmAS(['3.8', '3.9', '4.0']), LlvmLLI(['3.8', '3.9', '4.0']), suite[1]) != 0:
             returnCode = 1
 
     if oldLLVMIRVersion is not None:
@@ -216,9 +244,89 @@ def _runIRGeneratorSuite(assembler, lli, sulongSuiteCacheDir):
         mx.log('Passed all ' + str(total) + ' Tests!')
         return 0
 
+def _testGeneratedFile(param):
+    inputFile = param[0]
+    assembler = param[1]
+    lli = param[2]
+
+    failed = []
+    wrong = []
+    passed = []
+
+    if inputFile.endswith('.ll'):
+        if assembler.run(inputFile) == 0:
+            exit_code_ref = lli.run(inputFile[:-3] + ".bc")
+            try:
+                exit_code_out = mx_sulong.runLLVM([inputFile[:-3] + ".bc"])
+            except:
+                # why is there sometimes a exceptions.SystemExit thrown? Arithmetic overflows?
+                exit_code_out = -1
+
+            if exit_code_ref == 0 and exit_code_out == 0:
+                sys.stdout.write('.')
+                passed.append(inputFile)
+                sys.stdout.flush()
+            elif exit_code_ref != 0:
+                sys.stdout.write('W')  # reference code returned with a non-null
+                wrong.append(inputFile[:-3] + ".bc")
+            else:
+                sys.stdout.write('E')
+                failed.append(inputFile)
+            sys.stdout.flush()
+        else:
+            sys.stdout.write('E')
+            failed.append(inputFile)
+            sys.stdout.flush()
+
+    return passed, failed, wrong
+
+def _runIRGeneratorBuilderSuite(assembler, lli, sulongSuiteCacheDir):
+    mx.log('Testing Reassembly')
+    mx.log(sulongSuiteCacheDir)
+
+    passed = []
+    failed = []
+    wrong = []
+
+    results = []
+
+    for root, _, files in os.walk(sulongSuiteCacheDir):
+        for fileName in files:
+            inputFile = os.path.join(sulongSuiteCacheDir, root, fileName)
+            results += [_testGeneratedFile([inputFile, assembler, lli])]
+
+    for result in results:
+        passed += result[0]
+        failed += result[1]
+        wrong += result[2]
+
+    print("finished")
+
+    total = len(failed) + len(passed)
+    mx.log()
+
+    if len(wrong):
+        mx.log_error(str(len(wrong)) + ' compiled Tests returned not 0 in lli!')
+        for x in range(0, len(wrong)):
+            mx.log_error(str(x) + ') ' + wrong[x])
+        mx.log()
+
+    if len(failed) != 0:
+        mx.log_error('Failed ' + str(len(failed)) + ' of ' + str(total) + ' Tests!')
+        for x in range(0, len(failed)):
+            mx.log_error(str(x) + ') ' + failed[x])
+        return 1
+    elif total == 0:
+        mx.log_error('There is something odd with the testsuite, ' + str(total) + ' Tests executed!')
+        return 1
+    else:
+        mx.log('Passed all ' + str(total) + ' Tests!')
+        return 0
+
 mx.update_commands(_suite, {
     'irbuilder-out' : [runIRBuilderOut, ''],
     'irbuilder-test32' : [runIRBuilderTest32, ''],
     'irbuilder-test38' : [runIRBuilderTest38, ''],
+    'irbuilder-testgen38' : [runIRBuilderTestGen38, ''],
 })
 
