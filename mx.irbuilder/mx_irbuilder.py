@@ -55,6 +55,12 @@ class LlvmLLI(Tool):
         tool = mx_sulong.findLLVMProgram('lli', self.supportedVersions)
         return self.runTool([tool] + flags + [inputFile], nonZeroIsFatal=False, timeout=30, errorMsg='Cannot run %s with %s' % (inputFile, tool))
 
+LlvmAS_32 = LlvmAS(['3.2', '3.3'])
+LlvmAS_38 = LlvmAS(['3.8', '3.9', '4.0'])
+
+LlvmLLI_32 = LlvmLLI(['3.2', '3.3'])
+LlvmLLI_38 = LlvmLLI(['3.8', '3.9', '4.0'])
+
 def getIRWriterClasspathOptions():
     """gets the classpath of the IRWRITER distributions"""
     return mx.get_runtime_jvm_args('IRWRITER')
@@ -103,7 +109,7 @@ def runIRBuilderTest32(vmArgs):
             mx_sulong.mx_testsuites.run32(vmArgs, suite[1], [])
         except:
             pass
-        if _runIRGeneratorSuite(LlvmAS(['3.2', '3.3']), LlvmLLI(['3.2', '3.3']), suite[2]) != 0:
+        if _runIRGeneratorSuite(LlvmAS_32, LlvmLLI_32, suite[2]) != 0:
             returnCode = 1
 
     if oldLLVMIRVersion is not None:
@@ -131,7 +137,7 @@ def runIRBuilderTest38(vmArgs):
             mx_sulong.mx_testsuites.run38(vmArgs, suite[1], [])
         except:
             pass
-        if _runIRGeneratorSuite(LlvmAS(['3.8', '3.9', '4.0']), LlvmLLI(['3.8', '3.9', '4.0']), suite[2]) != 0:
+        if _runIRGeneratorSuite(LlvmAS_38, LlvmLLI_38, suite[2]) != 0:
             returnCode = 1
 
     if oldLLVMIRVersion is not None:
@@ -155,7 +161,7 @@ def runIRBuilderTestGen38(vmArgs):
             mx_sulong.mx_testsuites.run38(vmArgs, suite[0], [])
         except:
             pass
-        if _runIRGeneratorBuilderSuite(LlvmAS(['3.8', '3.9', '4.0']), LlvmLLI(['3.8', '3.9', '4.0']), suite[1]) != 0:
+        if _runIRGeneratorBuilderSuite(LlvmAS_38, LlvmLLI_38, suite[1]) != 0:
             returnCode = 1
 
     if oldLLVMIRVersion is not None:
@@ -299,8 +305,6 @@ def _runIRGeneratorBuilderSuite(assembler, lli, sulongSuiteCacheDir):
         passed += result[0]
         failed += result[1]
         wrong += result[2]
-
-    print("finished")
 
     total = len(failed) + len(passed)
     mx.log()
