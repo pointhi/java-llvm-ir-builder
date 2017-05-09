@@ -7,7 +7,7 @@ suite = {
         "suites" : [
             {
                 "name" : "sulong",
-                "version" : "0599c475f19f2f124b9a1c5eea5b1acd13ca30b9",
+                "version" : "b132c25836bdcca3da9f8518c73784b478445ba3",
                 "urls" : [
                     {
                         "url" : "https://github.com/pointhi/sulong",
@@ -21,6 +21,17 @@ suite = {
     "javac.lint.overrides" : "none",
 
     "projects" : {
+        "at.pointhi.irbuilder.irbuilder" : {
+            "subDir" : "projects",
+            "sourceDirs" : ["src"],
+            "dependencies" : [
+                "sulong:SULONG",
+            ],
+            "checkstyle" : "at.pointhi.irbuilder.irwriter",
+            "javaCompliance" : "1.8",
+            "license" : "BSD-new",
+        },
+
         "at.pointhi.irbuilder.irwriter" : {
             "subDir" : "projects",
             "sourceDirs" : ["src"],
