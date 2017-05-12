@@ -144,13 +144,8 @@ public class BinaryVectorOperatorTest {
         Instruction vec1 = instr.allocate(new VectorType(type, 2));
         Instruction vec2 = instr.allocate(new VectorType(type, 2));
 
-        vec1 = instr.load(vec1);
-        vec1 = instr.insertElement(vec1, resultValue1.getSeed1(), 0);
-        vec1 = instr.insertElement(vec1, resultValue2.getSeed1(), 1);
-
-        vec2 = instr.load(vec2);
-        vec2 = instr.insertElement(vec2, resultValue1.getSeed2(), 0);
-        vec2 = instr.insertElement(vec2, resultValue2.getSeed2(), 1);
+        vec1 = instr.fillVector(vec1, resultValue1.getSeed1(), resultValue2.getSeed1());
+        vec2 = instr.fillVector(vec2, resultValue1.getSeed2(), resultValue2.getSeed2());
 
         Instruction retVec = instr.binaryOperator(operator, vec1, vec2);
 

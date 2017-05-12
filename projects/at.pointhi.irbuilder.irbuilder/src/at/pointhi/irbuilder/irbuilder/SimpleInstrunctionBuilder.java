@@ -149,6 +149,39 @@ public class SimpleInstrunctionBuilder {
         return builder.createExtractElement(vector, index);
     }
 
+    // Fill Vector (constructed node)
+    public Instruction fillVector(Instruction source, Constant... values) {
+        Instruction vector = load(source);
+        for (int i = 0; i < values.length; i++) {
+            vector = insertElement(vector, values[i], i);
+        }
+        return vector;
+    }
+
+    public Instruction fillVector(Instruction source, long... values) {
+        Instruction vector = load(source);
+        for (int i = 0; i < values.length; i++) {
+            vector = insertElement(vector, values[i], i);
+        }
+        return vector;
+    }
+
+    public Instruction fillVector(Instruction source, BigInteger... values) {
+        Instruction vector = load(source);
+        for (int i = 0; i < values.length; i++) {
+            vector = insertElement(vector, values[i], i);
+        }
+        return vector;
+    }
+
+    public Instruction fillVector(Instruction source, double... values) {
+        Instruction vector = load(source);
+        for (int i = 0; i < values.length; i++) {
+            vector = insertElement(vector, values[i], i);
+        }
+        return vector;
+    }
+
     // Insert Element
     public Instruction insertElement(Instruction vector, Constant value, int index) {
         return builder.createInsertElement(vector, value, index);
