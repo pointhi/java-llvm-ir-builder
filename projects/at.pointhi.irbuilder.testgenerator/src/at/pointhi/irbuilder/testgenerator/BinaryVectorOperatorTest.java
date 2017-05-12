@@ -34,6 +34,7 @@ package at.pointhi.irbuilder.testgenerator;
 import static org.junit.Assert.fail;
 
 import java.io.File;
+import java.math.BigInteger;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -101,7 +102,7 @@ public class BinaryVectorOperatorTest {
     private static final long VECTOR2_1 = 200560490131L; // prim
     private static final long VECTOR2_2 = 1442968193L; // prim
 
-    @Test
+    @Test(timeout = 100)
     public void test() {
         assert PrimitiveType.isIntegerType(type);
         assert !operator.isFloatingPoint();
@@ -127,23 +128,13 @@ public class BinaryVectorOperatorTest {
     private void createMain(ModelModuleBuilder builder) {
         long maxValue = type.getBitSize() < 64 ? 1L << (type.getBitSize() - 1) : Long.MAX_VALUE;
 
-        long vector11 = VECTOR1_1 % maxValue;
-        long vector12 = VECTOR1_2 % maxValue;
-        long vector21 = VECTOR2_1 % maxValue;
-        long vector22 = VECTOR2_2 % maxValue;
+        OperatorResult resultValue1 = new OperatorResult(operator,
+                        BigInteger.valueOf(VECTOR1_1), BigInteger.valueOf(VECTOR1_2),
+                        BigInteger.ZERO, BigInteger.valueOf(maxValue));
 
-        switch (operator) {
-            case INT_SHIFT_LEFT:
-                // TODO: workaround for bug, or is this expected behaviour?
-                vector21 %= (type.getBitSize() / 2);
-                vector22 %= (type.getBitSize() / 2);
-                break;
-            default:
-                break;
-        }
-
-        long result1 = calculateResultValue(vector11, vector21, maxValue);
-        long result2 = calculateResultValue(vector12, vector22, maxValue);
+        OperatorResult resultValue2 = new OperatorResult(operator,
+                        BigInteger.valueOf(VECTOR2_1), BigInteger.valueOf(VECTOR2_2),
+                        BigInteger.ZERO, BigInteger.valueOf(maxValue));
 
         FunctionDefinition main = builder.createFunctionDefinition("main", 1, new FunctionType(PrimitiveType.I1, new Type[]{}, false));
         InstructionBuilder mainBuilder = new InstructionBuilder(main);
@@ -153,20 +144,20 @@ public class BinaryVectorOperatorTest {
         Instruction vec2 = mainBuilder.createAllocate(new VectorType(type, 2));
 
         vec1 = mainBuilder.createLoad(vec1);
-        vec1 = mainBuilder.createInsertElement(vec1, new IntegerConstant(type, vector11), 0);
-        vec1 = mainBuilder.createInsertElement(vec1, new IntegerConstant(type, vector12), 1);
+        vec1 = mainBuilder.createInsertElement(vec1, new IntegerConstant(type, resultValue1.getSeed1().longValue()), 0);
+        vec1 = mainBuilder.createInsertElement(vec1, new IntegerConstant(type, resultValue2.getSeed1().longValue()), 1);
 
         vec2 = mainBuilder.createLoad(vec2);
-        vec2 = mainBuilder.createInsertElement(vec2, new IntegerConstant(type, vector21), 0);
-        vec2 = mainBuilder.createInsertElement(vec2, new IntegerConstant(type, vector22), 1);
+        vec2 = mainBuilder.createInsertElement(vec2, new IntegerConstant(type, resultValue1.getSeed2().longValue()), 0);
+        vec2 = mainBuilder.createInsertElement(vec2, new IntegerConstant(type, resultValue2.getSeed2().longValue()), 1);
 
         Instruction retVec = mainBuilder.createBinaryOperation(vec1, vec2, operator);
 
         Instruction retVec1 = mainBuilder.createExtractElement(retVec, 0);
         Instruction retVec2 = mainBuilder.createExtractElement(retVec, 1);
 
-        retVec1 = mainBuilder.createCompare(CompareOperator.INT_NOT_EQUAL, retVec1, new IntegerConstant(type, result1));
-        retVec2 = mainBuilder.createCompare(CompareOperator.INT_NOT_EQUAL, retVec2, new IntegerConstant(type, result2));
+        retVec1 = mainBuilder.createCompare(CompareOperator.INT_NOT_EQUAL, retVec1, new IntegerConstant(type, resultValue1.getResult().longValue()));
+        retVec2 = mainBuilder.createCompare(CompareOperator.INT_NOT_EQUAL, retVec2, new IntegerConstant(type, resultValue2.getResult().longValue()));
 
         Instruction ret = mainBuilder.createBinaryOperation(retVec1, retVec2, BinaryOperator.INT_OR);
         mainBuilder.createReturn(ret); // 0=OK, 1=ERROR
@@ -174,38 +165,115 @@ public class BinaryVectorOperatorTest {
         mainBuilder.exitFunction();
     }
 
-    private long calculateResultValue(long vector1, long vector2, long maxValue) {
-        // TODO: signed/unsigned?
-        switch (operator) {
-            case INT_ADD:
-                return (vector1 + vector2) % maxValue;
-            case INT_SUBTRACT:
-                return (vector1 - vector2) % maxValue;
-            case INT_MULTIPLY:
-                return (vector1 * vector2) % maxValue;
-            case INT_UNSIGNED_DIVIDE:
-                return (vector1 / vector2) % maxValue;
-            case INT_SIGNED_DIVIDE:
-                return (vector1 / vector2) % maxValue;
-            case INT_UNSIGNED_REMAINDER:
-                return (vector1 % vector2) % maxValue;
-            case INT_SIGNED_REMAINDER:
-                return (vector1 % vector2) % maxValue;
-            case INT_SHIFT_LEFT:
-                return (vector1 << vector2) % maxValue;
-            case INT_LOGICAL_SHIFT_RIGHT:
-                return (vector1 >> vector2) % maxValue;
-            case INT_ARITHMETIC_SHIFT_RIGHT:
-                return (vector1 >>> vector2) % maxValue;
-            case INT_AND:
-                return (vector1 & vector2) % maxValue;
-            case INT_OR:
-                return (vector1 | vector2) % maxValue;
-            case INT_XOR:
-                return (vector1 ^ vector2) % maxValue;
-            default:
-                fail("unexpected operator");
-                return 0;
+    private static class OperatorResult {
+        private final BinaryOperator operator;
+        private final BigInteger seed1;
+        private final BigInteger seed2;
+
+        private OperatorResult(BinaryOperator operator, BigInteger seed1, BigInteger seed2, BigInteger minValue, BigInteger maxValue) {
+            this.operator = operator;
+
+            BigInteger tmpSeed1 = seed1.mod(maxValue);
+            BigInteger tmpSeed2 = getMinSeed2(getMaxSeed2(seed2.mod(maxValue)));
+
+            // minimize the values until no overflow error occurs
+            minimize: for (;;) {
+                // TODO: better code
+                switch (operator) {
+                    case INT_SHIFT_LEFT:
+                    case INT_LOGICAL_SHIFT_RIGHT:
+                    case INT_ARITHMETIC_SHIFT_RIGHT:
+                        break minimize; // in those cases, a overflow is not problematic
+                    default:
+                        break;
+                }
+                try {
+                    BigInteger result = calculateResult(tmpSeed1, tmpSeed2);
+                    if (result.compareTo(minValue) < 0 || result.compareTo(maxValue) > 0) {
+                        if (tmpSeed1.abs().compareTo(tmpSeed2.abs()) >= 0) {
+                            tmpSeed1 = tmpSeed1.divide(BigInteger.valueOf(2));
+                        } else {
+                            tmpSeed2 = tmpSeed2.divide(BigInteger.valueOf(2));
+                        }
+                        continue;
+                    }
+                    break;
+                } catch (ArithmeticException e) {
+                    tmpSeed2 = tmpSeed2.add(BigInteger.valueOf(2));
+                }
+            }
+
+            this.seed1 = tmpSeed1;
+            this.seed2 = tmpSeed2;
+        }
+
+        public BigInteger getSeed1() {
+            return seed1;
+        }
+
+        public BigInteger getSeed2() {
+            return seed2;
+        }
+
+        public BigInteger getResult() {
+            return calculateResult(seed1, seed2);
+        }
+
+        private BigInteger getMinSeed2(BigInteger minValue) {
+            switch (operator) {
+                case INT_UNSIGNED_DIVIDE:
+                case INT_UNSIGNED_REMAINDER:
+                    return BigInteger.ZERO;
+                default:
+                    return minValue;
+            }
+        }
+
+        private BigInteger getMaxSeed2(BigInteger maxValue) {
+            switch (operator) {
+                case INT_SHIFT_LEFT:
+                case INT_LOGICAL_SHIFT_RIGHT:
+                case INT_ARITHMETIC_SHIFT_RIGHT:
+                    // limit the value range, to construct a useful example
+                    return BigInteger.valueOf(maxValue.bitCount() / 2);
+                default:
+                    return maxValue;
+            }
+        }
+
+        private BigInteger calculateResult(BigInteger vector1, BigInteger vector2) {
+            // TODO: signed/unsigned?
+            switch (operator) {
+                case INT_ADD:
+                    return vector1.add(vector2);
+                case INT_SUBTRACT:
+                    return vector1.subtract(vector2);
+                case INT_MULTIPLY:
+                    return vector1.multiply(vector2);
+                case INT_UNSIGNED_DIVIDE:
+                    return vector1.divide(vector2); // TODO: difference?
+                case INT_SIGNED_DIVIDE:
+                    return vector1.divide(vector2);
+                case INT_UNSIGNED_REMAINDER:
+                    return vector1.remainder(vector2); // TODO: difference?
+                case INT_SIGNED_REMAINDER:
+                    return vector1.remainder(vector2);
+                case INT_SHIFT_LEFT:
+                    return vector1.shiftLeft(vector2.intValue()); // TODO: overflow?
+                case INT_LOGICAL_SHIFT_RIGHT:
+                    return vector1.shiftRight(vector2.intValue()); // TODO
+                case INT_ARITHMETIC_SHIFT_RIGHT:
+                    return vector1.shiftRight(vector2.intValue());
+                case INT_AND:
+                    return vector1.and(vector2);
+                case INT_OR:
+                    return vector1.or(vector2);
+                case INT_XOR:
+                    return vector1.xor(vector2);
+                default:
+                    fail("unexpected operator");
+                    return BigInteger.ZERO;
+            }
         }
     }
 }

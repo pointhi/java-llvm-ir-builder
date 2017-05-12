@@ -14,7 +14,7 @@ class TemporaryEnv():
         os.environ[self.name] = self.val
         return os.environ
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, exception_type, exception_value, traceback):
         if self.oldVal is not None:
             os.environ[self.name] = self.oldVa
         elif self.name in os.environ:
