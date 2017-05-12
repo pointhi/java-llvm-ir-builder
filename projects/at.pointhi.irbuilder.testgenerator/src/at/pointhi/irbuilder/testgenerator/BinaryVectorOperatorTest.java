@@ -79,9 +79,9 @@ public class BinaryVectorOperatorTest {
         List<Object[]> parameters = new LinkedList<>();
 
         // TODO: other Vector arrays have some implementation gaps
-        final PrimitiveType[] types = new PrimitiveType[]{PrimitiveType.I16, PrimitiveType.I32, PrimitiveType.I64};
+        final Type[] types = new Type[]{PrimitiveType.I16, PrimitiveType.I32, PrimitiveType.I64};
 
-        for (PrimitiveType type : types) {
+        for (Type type : types) {
             if (!PrimitiveType.isIntegerType(type)) {
                 continue;
             }
@@ -165,7 +165,7 @@ public class BinaryVectorOperatorTest {
         mainBuilder.exitFunction();
     }
 
-    private static class OperatorResult {
+    private static final class OperatorResult {
         private final BinaryOperator operator;
         private final BigInteger seed1;
         private final BigInteger seed2;
@@ -175,6 +175,10 @@ public class BinaryVectorOperatorTest {
 
             BigInteger tmpSeed1 = seed1.mod(maxValue);
             BigInteger tmpSeed2 = getMinSeed2(getMaxSeed2(seed2.mod(maxValue)));
+
+            if (tmpSeed2.equals(BigInteger.ZERO)) {
+                tmpSeed2 = BigInteger.ONE;
+            }
 
             // minimize the values until no overflow error occurs
             minimize: for (;;) {
@@ -194,6 +198,9 @@ public class BinaryVectorOperatorTest {
                             tmpSeed1 = tmpSeed1.divide(BigInteger.valueOf(2));
                         } else {
                             tmpSeed2 = tmpSeed2.divide(BigInteger.valueOf(2));
+                        }
+                        if (tmpSeed2.equals(BigInteger.ZERO)) {
+                            tmpSeed2 = BigInteger.ONE;
                         }
                         continue;
                     }
