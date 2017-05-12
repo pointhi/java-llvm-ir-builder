@@ -36,15 +36,19 @@ import com.oracle.truffle.llvm.parser.model.blocks.InstructionBlock;
 import com.oracle.truffle.llvm.parser.model.enums.BinaryOperator;
 import com.oracle.truffle.llvm.parser.model.enums.CastOperator;
 import com.oracle.truffle.llvm.parser.model.enums.CompareOperator;
+import com.oracle.truffle.llvm.parser.model.enums.Linkage;
+import com.oracle.truffle.llvm.parser.model.enums.Visibility;
 import com.oracle.truffle.llvm.parser.model.functions.FunctionDefinition;
 import com.oracle.truffle.llvm.parser.model.functions.FunctionParameter;
 import com.oracle.truffle.llvm.parser.model.symbols.Symbols;
 import com.oracle.truffle.llvm.parser.model.symbols.constants.Constant;
 import com.oracle.truffle.llvm.parser.model.symbols.constants.integer.IntegerConstant;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.Instruction;
+import com.oracle.truffle.llvm.parser.model.symbols.instructions.LoadInstruction;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.ValueInstruction;
 import com.oracle.truffle.llvm.runtime.types.AggregateType;
 import com.oracle.truffle.llvm.runtime.types.DataSpecConverter;
+import com.oracle.truffle.llvm.runtime.types.FunctionType;
 import com.oracle.truffle.llvm.runtime.types.PointerType;
 import com.oracle.truffle.llvm.runtime.types.PrimitiveType;
 import com.oracle.truffle.llvm.runtime.types.Type;
@@ -82,6 +86,14 @@ public class InstructionBuilder {
 
     public void exitFunction() {
         function.exitFunction();
+    }
+
+    public FunctionDefinition getFunctionDefinition() {
+        return function;
+    }
+
+    public int getArgCounter() {
+        return argCounter;
     }
 
     private static IntegerConstant createI32Constant(int value) {
@@ -159,7 +171,31 @@ public class InstructionBuilder {
         return getLastInstruction();
     }
 
-    // TODO: createCall
+    public Instruction createCall(Symbol target, Symbol[] arguments) {
+        Type returnType;
+        if (target.getType() instanceof FunctionType) {
+            returnType = ((FunctionType) target.getType()).getReturnType();
+        } else if (target instanceof LoadInstruction) {
+            Type pointeeType = ((LoadInstruction) target).getSource().getType();
+            while (pointeeType instanceof PointerType) {
+                pointeeType = ((PointerType) pointeeType).getPointeeType();
+            }
+            if (pointeeType instanceof FunctionType) {
+                returnType = ((FunctionType) pointeeType).getReturnType();
+            } else {
+                throw new RuntimeException("cannot handle target type: " + pointeeType.getClass().getName());
+            }
+        } else {
+            throw new RuntimeException("cannot handle target type: " + target.getClass().getName());
+        }
+        int targetIdx = addSymbol(target);
+        int[] argumentsIdx = new int[arguments.length];
+        for (int i = 0; i < arguments.length; i++) {
+            argumentsIdx[i] = addSymbol(arguments[i]);
+        }
+        curBlock.createCall(returnType, targetIdx, argumentsIdx);
+        return getLastInstruction();
+    }
 
     public Instruction createCast(Type type, CastOperator op, Symbol value) {
         int valueIdx = addSymbol(value);

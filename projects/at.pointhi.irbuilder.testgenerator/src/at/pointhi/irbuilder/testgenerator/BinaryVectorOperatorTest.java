@@ -58,6 +58,7 @@ import com.oracle.truffle.llvm.runtime.types.VectorType;
 
 import at.pointhi.irbuilder.irbuilder.InstructionBuilder;
 import at.pointhi.irbuilder.irbuilder.ModelModuleBuilder;
+import at.pointhi.irbuilder.irbuilder.SimpleInstrunctionBuilder;
 import at.pointhi.irbuilder.irwriter.IRWriter;
 import at.pointhi.irbuilder.irwriter.IRWriterVersion;
 
@@ -137,32 +138,32 @@ public class BinaryVectorOperatorTest {
                         BigInteger.ZERO, BigInteger.valueOf(maxValue));
 
         FunctionDefinition main = builder.createFunctionDefinition("main", 1, new FunctionType(PrimitiveType.I1, new Type[]{}, false));
-        InstructionBuilder mainBuilder = new InstructionBuilder(main);
+        SimpleInstrunctionBuilder instr = new SimpleInstrunctionBuilder(main);
 
         // TODO: wrong align?
-        Instruction vec1 = mainBuilder.createAllocate(new VectorType(type, 2));
-        Instruction vec2 = mainBuilder.createAllocate(new VectorType(type, 2));
+        Instruction vec1 = instr.allocate(new VectorType(type, 2));
+        Instruction vec2 = instr.allocate(new VectorType(type, 2));
 
-        vec1 = mainBuilder.createLoad(vec1);
-        vec1 = mainBuilder.createInsertElement(vec1, new IntegerConstant(type, resultValue1.getSeed1().longValue()), 0);
-        vec1 = mainBuilder.createInsertElement(vec1, new IntegerConstant(type, resultValue2.getSeed1().longValue()), 1);
+        vec1 = instr.load(vec1);
+        vec1 = instr.insertElement(vec1, resultValue1.getSeed1(), 0);
+        vec1 = instr.insertElement(vec1, resultValue2.getSeed1(), 1);
 
-        vec2 = mainBuilder.createLoad(vec2);
-        vec2 = mainBuilder.createInsertElement(vec2, new IntegerConstant(type, resultValue1.getSeed2().longValue()), 0);
-        vec2 = mainBuilder.createInsertElement(vec2, new IntegerConstant(type, resultValue2.getSeed2().longValue()), 1);
+        vec2 = instr.load(vec2);
+        vec2 = instr.insertElement(vec2, resultValue1.getSeed2(), 0);
+        vec2 = instr.insertElement(vec2, resultValue2.getSeed2(), 1);
 
-        Instruction retVec = mainBuilder.createBinaryOperation(vec1, vec2, operator);
+        Instruction retVec = instr.binaryOperator(operator, vec1, vec2);
 
-        Instruction retVec1 = mainBuilder.createExtractElement(retVec, 0);
-        Instruction retVec2 = mainBuilder.createExtractElement(retVec, 1);
+        Instruction retVec1 = instr.extractElement(retVec, 0);
+        Instruction retVec2 = instr.extractElement(retVec, 1);
 
-        retVec1 = mainBuilder.createCompare(CompareOperator.INT_NOT_EQUAL, retVec1, new IntegerConstant(type, resultValue1.getResult().longValue()));
-        retVec2 = mainBuilder.createCompare(CompareOperator.INT_NOT_EQUAL, retVec2, new IntegerConstant(type, resultValue2.getResult().longValue()));
+        retVec1 = instr.compare(CompareOperator.INT_NOT_EQUAL, retVec1, resultValue1.getResult());
+        retVec2 = instr.compare(CompareOperator.INT_NOT_EQUAL, retVec2, resultValue2.getResult());
 
-        Instruction ret = mainBuilder.createBinaryOperation(retVec1, retVec2, BinaryOperator.INT_OR);
-        mainBuilder.createReturn(ret); // 0=OK, 1=ERROR
+        Instruction ret = instr.binaryOperator(BinaryOperator.INT_OR, retVec1, retVec2);
+        instr.return_(ret); // 0=OK, 1=ERROR
 
-        mainBuilder.exitFunction();
+        instr.getInstructionBuilder().exitFunction();
     }
 
     private static final class OperatorResult {
