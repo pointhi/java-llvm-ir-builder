@@ -34,7 +34,6 @@ package at.pointhi.irbuilder.testgenerator;
 import static org.junit.Assert.fail;
 
 import java.io.File;
-import java.io.PrintWriter;
 import java.math.BigInteger;
 import java.nio.file.Path;
 import java.util.Collection;
