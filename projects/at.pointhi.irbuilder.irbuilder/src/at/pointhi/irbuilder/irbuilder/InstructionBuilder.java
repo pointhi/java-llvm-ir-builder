@@ -36,8 +36,6 @@ import com.oracle.truffle.llvm.parser.model.blocks.InstructionBlock;
 import com.oracle.truffle.llvm.parser.model.enums.BinaryOperator;
 import com.oracle.truffle.llvm.parser.model.enums.CastOperator;
 import com.oracle.truffle.llvm.parser.model.enums.CompareOperator;
-import com.oracle.truffle.llvm.parser.model.enums.Linkage;
-import com.oracle.truffle.llvm.parser.model.enums.Visibility;
 import com.oracle.truffle.llvm.parser.model.functions.FunctionDefinition;
 import com.oracle.truffle.llvm.parser.model.functions.FunctionParameter;
 import com.oracle.truffle.llvm.parser.model.symbols.Symbols;
@@ -211,8 +209,7 @@ public class InstructionBuilder {
         return getLastInstruction();
     }
 
-    @SuppressWarnings("unused")
-    public Instruction createExtractValue(Instruction struct, Symbol vector, int index) {
+    public Instruction createExtractValue(@SuppressWarnings("unused") Instruction struct, Symbol vector, int index) {
         Type type = ((AggregateType) vector.getType()).getElementType(index); // TODO: correct?
         int vectorIdx = addSymbol(vector);
         int indexIdx = addSymbol(createI32Constant(index));

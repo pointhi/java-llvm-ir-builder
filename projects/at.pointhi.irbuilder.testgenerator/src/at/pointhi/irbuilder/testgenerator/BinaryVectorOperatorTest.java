@@ -34,6 +34,7 @@ package at.pointhi.irbuilder.testgenerator;
 import static org.junit.Assert.fail;
 
 import java.io.File;
+import java.io.PrintWriter;
 import java.math.BigInteger;
 import java.nio.file.Path;
 import java.util.Collection;
@@ -48,7 +49,6 @@ import org.junit.runners.Parameterized.Parameters;
 import com.oracle.truffle.llvm.parser.model.enums.BinaryOperator;
 import com.oracle.truffle.llvm.parser.model.enums.CompareOperator;
 import com.oracle.truffle.llvm.parser.model.functions.FunctionDefinition;
-import com.oracle.truffle.llvm.parser.model.symbols.constants.integer.IntegerConstant;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.Instruction;
 import com.oracle.truffle.llvm.runtime.options.LLVMOptions;
 import com.oracle.truffle.llvm.runtime.types.FunctionType;
@@ -56,7 +56,6 @@ import com.oracle.truffle.llvm.runtime.types.PrimitiveType;
 import com.oracle.truffle.llvm.runtime.types.Type;
 import com.oracle.truffle.llvm.runtime.types.VectorType;
 
-import at.pointhi.irbuilder.irbuilder.InstructionBuilder;
 import at.pointhi.irbuilder.irbuilder.ModelModuleBuilder;
 import at.pointhi.irbuilder.irbuilder.SimpleInstrunctionBuilder;
 import at.pointhi.irbuilder.irwriter.IRWriter;
@@ -143,20 +142,16 @@ public class BinaryVectorOperatorTest {
         // TODO: wrong align?
         Instruction vec1 = instr.allocate(new VectorType(type, 2));
         Instruction vec2 = instr.allocate(new VectorType(type, 2));
+        Instruction resVec = instr.allocate(new VectorType(type, 2));
 
         vec1 = instr.fillVector(vec1, resultValue1.getSeed1(), resultValue2.getSeed1());
         vec2 = instr.fillVector(vec2, resultValue1.getSeed2(), resultValue2.getSeed2());
+        resVec = instr.fillVector(resVec, resultValue1.getResult(), resultValue2.getResult());
 
-        Instruction retVec = instr.binaryOperator(operator, vec1, vec2);
+        Instruction retVec = instr.binaryOperator(operator, vec1, vec2); // Instruction under test
 
-        Instruction retVec1 = instr.extractElement(retVec, 0);
-        Instruction retVec2 = instr.extractElement(retVec, 1);
-
-        retVec1 = instr.compare(CompareOperator.INT_NOT_EQUAL, retVec1, resultValue1.getResult());
-        retVec2 = instr.compare(CompareOperator.INT_NOT_EQUAL, retVec2, resultValue2.getResult());
-
-        Instruction ret = instr.binaryOperator(BinaryOperator.INT_OR, retVec1, retVec2);
-        instr.return_(ret); // 0=OK, 1=ERROR
+        Instruction ret = instr.compareVector(CompareOperator.INT_NOT_EQUAL, retVec, resVec);
+        instr.returnx(ret); // 0=OK, 1=ERROR
 
         instr.getInstructionBuilder().exitFunction();
     }
@@ -184,6 +179,14 @@ public class BinaryVectorOperatorTest {
                     case INT_LOGICAL_SHIFT_RIGHT:
                     case INT_ARITHMETIC_SHIFT_RIGHT:
                         break minimize; // in those cases, a overflow is not problematic
+
+                    case INT_SUBTRACT:
+                        if (maxValue.longValue() == 1) {
+                            tmpSeed1 = seed1.mod(BigInteger.valueOf(2));
+                            tmpSeed2 = seed2.mod(BigInteger.valueOf(2));
+                            break minimize;
+                        }
+                        break;
                     default:
                         break;
                 }
