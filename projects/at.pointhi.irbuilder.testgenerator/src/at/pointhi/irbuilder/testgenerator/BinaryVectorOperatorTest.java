@@ -33,18 +33,18 @@ package at.pointhi.irbuilder.testgenerator;
 
 import static org.junit.Assert.fail;
 
-import java.io.File;
 import java.math.BigInteger;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
+import com.oracle.truffle.llvm.parser.model.ModelModule;
 import com.oracle.truffle.llvm.parser.model.enums.BinaryOperator;
 import com.oracle.truffle.llvm.parser.model.enums.CompareOperator;
 import com.oracle.truffle.llvm.parser.model.functions.FunctionDefinition;
@@ -57,13 +57,11 @@ import com.oracle.truffle.llvm.runtime.types.VectorType;
 
 import at.pointhi.irbuilder.irbuilder.ModelModuleBuilder;
 import at.pointhi.irbuilder.irbuilder.SimpleInstrunctionBuilder;
-import at.pointhi.irbuilder.irwriter.IRWriter;
-import at.pointhi.irbuilder.irwriter.IRWriterVersion;
 
 @RunWith(Parameterized.class)
-public class BinaryVectorOperatorTest {
+public class BinaryVectorOperatorTest extends BaseSuite {
 
-    private static final Path VECTOR_SUITE_DIR = new File(LLVMOptions.ENGINE.projectRoot() + "/../cache/tests/irbuilder/vector").toPath();
+    private static final Path VECTOR_SUITE_DIR = Paths.get(LLVMOptions.ENGINE.projectRoot() + "/../cache/tests/irbuilder/vector");
 
     private final PrimitiveType type;
     private final BinaryOperator operator;
@@ -101,27 +99,25 @@ public class BinaryVectorOperatorTest {
     private static final long VECTOR2_1 = 200560490131L; // prim
     private static final long VECTOR2_2 = 1442968193L; // prim
 
-    @Test(timeout = 100)
-    public void test() {
+    @Override
+    public ModelModule constructModelModule() {
         assert PrimitiveType.isIntegerType(type);
         assert !operator.isFloatingPoint();
 
         ModelModuleBuilder builder = new ModelModuleBuilder();
-
         createMain(builder);
 
-        File resultFile = getOutputPath();
-
-        VECTOR_SUITE_DIR.toFile().mkdirs(); // TODO: do only once
-        IRWriter.writeIRToFile(builder.getModelModule(), IRWriterVersion.fromEnviromentVariables(), resultFile);
-
-        System.out.print("."); // TODO
+        return builder.getModelModule();
     }
 
-    private File getOutputPath() {
-        String filename = String.format("test_vector_i%d_%s.ll", type.getBitSize(), operator.getIrString());
+    @Override
+    public Path getSuiteDir() {
+        return VECTOR_SUITE_DIR;
+    }
 
-        return new File(VECTOR_SUITE_DIR.toFile(), filename);
+    @Override
+    public Path getFilename() {
+        return Paths.get(String.format("test_vector_i%d_%s.ll", type.getBitSize(), operator.getIrString()));
     }
 
     private void createMain(ModelModuleBuilder builder) {

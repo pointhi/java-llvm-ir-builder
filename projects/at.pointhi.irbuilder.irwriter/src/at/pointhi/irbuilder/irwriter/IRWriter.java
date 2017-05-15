@@ -32,10 +32,10 @@
 
 package at.pointhi.irbuilder.irwriter;
 
-import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import com.oracle.truffle.llvm.parser.model.ModelModule;
 
@@ -63,13 +63,7 @@ public class IRWriter {
      * @param filename name of file where we want to write the generated LLVM IR
      */
     public static void writeIRToFile(ModelModule model, IRWriterVersion version, String filename) {
-        PrintWriter fileWriter;
-        try {
-            fileWriter = new PrintWriter(filename);
-        } catch (FileNotFoundException e) {
-            throw new IllegalArgumentException("Cannot print LLVMIR to this file: " + filename, e);
-        }
-        writeIRToStream(model, version, fileWriter); // TODO: Exceptions?
+        writeIRToFile(model, version, Paths.get(filename));
     }
 
     /**
@@ -79,12 +73,14 @@ public class IRWriter {
      * @param version actual version of the LLVM IR we want to write
      * @param file file where we want to write the generated LLVM IR
      */
-    public static void writeIRToFile(ModelModule model, IRWriterVersion version, File file) {
+    public static void writeIRToFile(ModelModule model, IRWriterVersion version, Path file) {
+        final PrintWriter fileWriter;
         try {
-            writeIRToFile(model, version, file.getCanonicalPath());
-        } catch (IOException e) {
-            throw new IllegalArgumentException("Cannot print LLVMIR to this file: " + file, e);
+            fileWriter = new PrintWriter(file.toAbsolutePath().toFile());
+        } catch (FileNotFoundException e) {
+            throw new IllegalArgumentException("Cannot print LLVMIR to this file: " + file.toAbsolutePath(), e);
         }
+        writeIRToStream(model, version, fileWriter); // TODO: Exceptions?
     }
 
     /**
