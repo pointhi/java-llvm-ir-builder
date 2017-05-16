@@ -52,12 +52,12 @@ public class IntegerBinaryOperations {
         this.type = type;
     }
 
-    public BigInteger calculateResult(BinaryOperator operator, long vector1, long vector2) throws UndefinedArithmeticResult {
-        return calculateResult(operator, BigInteger.valueOf(vector1), BigInteger.valueOf(vector2));
+    public long calculateResult(BinaryOperator operator, long vector1, long vector2) throws UndefinedArithmeticResult {
+        return calculateResult(operator, BigInteger.valueOf(vector1), BigInteger.valueOf(vector2)).longValue();
     }
 
-    public BigInteger calculateResult(BinaryOperator operator, boolean vector1, boolean vector2) throws UndefinedArithmeticResult {
-        return calculateResult(operator, BigInteger.valueOf(vector1 ? 1 : 0), BigInteger.valueOf(vector2 ? 1 : 0));
+    public boolean calculateResult(BinaryOperator operator, boolean vector1, boolean vector2) throws UndefinedArithmeticResult {
+        return !calculateResult(operator, BigInteger.valueOf(vector1 ? 1 : 0), BigInteger.valueOf(vector2 ? 1 : 0)).equals(BigInteger.ZERO);
     }
 
     public BigInteger calculateResult(BinaryOperator operator, BigInteger vector1, BigInteger vector2) throws UndefinedArithmeticResult {

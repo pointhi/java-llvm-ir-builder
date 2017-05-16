@@ -66,6 +66,16 @@ public class SimpleInstrunctionBuilder {
         return FloatingPointConstant.create(type, new long[]{Double.doubleToRawLongBits(value)});
     }
 
+    private static Constant toConstant(Type type, boolean value) {
+        if (PrimitiveType.isIntegerType(type)) {
+            return new IntegerConstant(type, value ? 1 : 0);
+        } else if (PrimitiveType.isFloatingpointType(type)) {
+            return toConstant(type, value ? 1. : 0.);
+        } else {
+            throw new AssertionError("unexpected type: " + type);
+        }
+    }
+
     private static Constant toConstant(Type type, long value) {
         if (PrimitiveType.isIntegerType(type)) {
             return new IntegerConstant(type, value);
@@ -117,6 +127,14 @@ public class SimpleInstrunctionBuilder {
         return builder.createBinaryOperation(lhs, rhs, op);
     }
 
+    public Instruction binaryOperator(BinaryOperator op, boolean lhs, Symbol rhs) {
+        return builder.createBinaryOperation(toConstant(rhs.getType(), lhs), rhs, op);
+    }
+
+    public Instruction binaryOperator(BinaryOperator op, Symbol lhs, boolean rhs) {
+        return builder.createBinaryOperation(lhs, toConstant(lhs.getType(), rhs), op);
+    }
+
     public Instruction binaryOperator(BinaryOperator op, long lhs, Symbol rhs) {
         return builder.createBinaryOperation(toConstant(rhs.getType(), lhs), rhs, op);
     }
@@ -144,6 +162,14 @@ public class SimpleInstrunctionBuilder {
     // Compare
     public Instruction compare(CompareOperator op, Symbol lhs, Symbol rhs) {
         return builder.createCompare(op, lhs, rhs);
+    }
+
+    public Instruction compare(CompareOperator op, boolean lhs, Symbol rhs) {
+        return builder.createCompare(op, toConstant(rhs.getType(), lhs), rhs);
+    }
+
+    public Instruction compare(CompareOperator op, Symbol lhs, boolean rhs) {
+        return builder.createCompare(op, lhs, toConstant(lhs.getType(), rhs));
     }
 
     public Instruction compare(CompareOperator op, long lhs, Symbol rhs) {
@@ -216,6 +242,14 @@ public class SimpleInstrunctionBuilder {
         return vector;
     }
 
+    public Instruction fillVector(Instruction source, boolean... values) {
+        Instruction vector = load(source);
+        for (int i = 0; i < values.length; i++) {
+            vector = insertElement(vector, values[i], i);
+        }
+        return vector;
+    }
+
     public Instruction fillVector(Instruction source, long... values) {
         Instruction vector = load(source);
         for (int i = 0; i < values.length; i++) {
@@ -243,6 +277,11 @@ public class SimpleInstrunctionBuilder {
     // Insert Element
     public Instruction insertElement(Instruction vector, Constant value, int index) {
         return builder.createInsertElement(vector, value, index);
+    }
+
+    public Instruction insertElement(Instruction vector, boolean value, int index) {
+        AggregateType type = (AggregateType) vector.getType();
+        return builder.createInsertElement(vector, toConstant(type.getElementType(index), value), index);
     }
 
     public Instruction insertElement(Instruction vector, long value, int index) {
