@@ -76,7 +76,7 @@ public class BinaryVectorOperatorTest extends BaseSuite {
         List<Object[]> parameters = new LinkedList<>();
 
         // TODO: other Vector arrays have some implementation gaps
-        final Type[] types = new Type[]{PrimitiveType.I16, PrimitiveType.I32, PrimitiveType.I64};
+        final Type[] types = new Type[]{PrimitiveType.I8, PrimitiveType.I16, PrimitiveType.I32, PrimitiveType.I64};
 
         for (Type type : types) {
             if (!PrimitiveType.isIntegerType(type)) {
