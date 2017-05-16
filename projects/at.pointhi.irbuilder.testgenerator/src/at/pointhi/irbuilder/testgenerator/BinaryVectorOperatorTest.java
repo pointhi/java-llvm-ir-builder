@@ -31,8 +31,6 @@
  */
 package at.pointhi.irbuilder.testgenerator;
 
-import static org.junit.Assert.fail;
-
 import java.math.BigInteger;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -57,6 +55,8 @@ import com.oracle.truffle.llvm.runtime.types.VectorType;
 
 import at.pointhi.irbuilder.irbuilder.ModelModuleBuilder;
 import at.pointhi.irbuilder.irbuilder.SimpleInstrunctionBuilder;
+import at.pointhi.irbuilder.testgenerator.util.IntegerBinaryOperations;
+import at.pointhi.irbuilder.testgenerator.util.IntegerBinaryOperations.UndefinedArithmeticResult;
 
 @RunWith(Parameterized.class)
 public class BinaryVectorOperatorTest extends BaseSuite {
@@ -100,7 +100,7 @@ public class BinaryVectorOperatorTest extends BaseSuite {
     private static final long VECTOR2_2 = 1442968193L; // prim
 
     @Override
-    public ModelModule constructModelModule() {
+    public ModelModule constructModelModule() throws UndefinedArithmeticResult {
         assert PrimitiveType.isIntegerType(type);
         assert !operator.isFloatingPoint();
 
@@ -120,7 +120,7 @@ public class BinaryVectorOperatorTest extends BaseSuite {
         return Paths.get(String.format("test_vector_i%d_%s.ll", type.getBitSize(), operator.getIrString()));
     }
 
-    private void createMain(ModelModuleBuilder builder) {
+    private void createMain(ModelModuleBuilder builder) throws UndefinedArithmeticResult {
         long maxValue = type.getBitSize() < 64 ? 1L << (type.getBitSize() - 1) : Long.MAX_VALUE;
 
         OperatorResult resultValue1 = new OperatorResult(operator,
@@ -186,7 +186,7 @@ public class BinaryVectorOperatorTest extends BaseSuite {
                         break;
                 }
                 try {
-                    BigInteger result = calculateResult(tmpSeed1, tmpSeed2);
+                    BigInteger result = IntegerBinaryOperations.I64.calculateResult(operator, tmpSeed1, tmpSeed2);
                     if (result.compareTo(minValue) < 0 || result.compareTo(maxValue) > 0) {
                         if (tmpSeed1.abs().compareTo(tmpSeed2.abs()) >= 0) {
                             tmpSeed1 = tmpSeed1.divide(BigInteger.valueOf(2));
@@ -199,7 +199,7 @@ public class BinaryVectorOperatorTest extends BaseSuite {
                         continue;
                     }
                     break;
-                } catch (ArithmeticException e) {
+                } catch (ArithmeticException | UndefinedArithmeticResult e) {
                     tmpSeed2 = tmpSeed2.add(BigInteger.valueOf(2));
                 }
             }
@@ -216,8 +216,8 @@ public class BinaryVectorOperatorTest extends BaseSuite {
             return seed2;
         }
 
-        public BigInteger getResult() {
-            return calculateResult(seed1, seed2);
+        public BigInteger getResult() throws UndefinedArithmeticResult {
+            return IntegerBinaryOperations.I64.calculateResult(operator, seed1, seed2);
         }
 
         private BigInteger getMinSeed2(BigInteger minValue) {
@@ -242,39 +242,5 @@ public class BinaryVectorOperatorTest extends BaseSuite {
             }
         }
 
-        private BigInteger calculateResult(BigInteger vector1, BigInteger vector2) {
-            // TODO: signed/unsigned?
-            switch (operator) {
-                case INT_ADD:
-                    return vector1.add(vector2);
-                case INT_SUBTRACT:
-                    return vector1.subtract(vector2);
-                case INT_MULTIPLY:
-                    return vector1.multiply(vector2);
-                case INT_UNSIGNED_DIVIDE:
-                    return vector1.divide(vector2); // TODO: difference?
-                case INT_SIGNED_DIVIDE:
-                    return vector1.divide(vector2);
-                case INT_UNSIGNED_REMAINDER:
-                    return vector1.remainder(vector2); // TODO: difference?
-                case INT_SIGNED_REMAINDER:
-                    return vector1.remainder(vector2);
-                case INT_SHIFT_LEFT:
-                    return vector1.shiftLeft(vector2.intValue()); // TODO: overflow?
-                case INT_LOGICAL_SHIFT_RIGHT:
-                    return vector1.shiftRight(vector2.intValue()); // TODO
-                case INT_ARITHMETIC_SHIFT_RIGHT:
-                    return vector1.shiftRight(vector2.intValue());
-                case INT_AND:
-                    return vector1.and(vector2);
-                case INT_OR:
-                    return vector1.or(vector2);
-                case INT_XOR:
-                    return vector1.xor(vector2);
-                default:
-                    fail("unexpected operator");
-                    return BigInteger.ZERO;
-            }
-        }
     }
 }

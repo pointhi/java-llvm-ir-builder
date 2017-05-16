@@ -148,8 +148,7 @@ public class BinaryI1VectorOperations extends BaseSuite {
 
     private static void addParameter(List<Object[]> parameters, BinaryOperator operator, boolean op1, boolean op2) {
         try {
-            IntegerBinaryOperations intOp = new IntegerBinaryOperations(PrimitiveType.I1);
-            boolean res = intOp.calculateResult(operator, op1, op2);
+            boolean res = IntegerBinaryOperations.I1.calculateResult(operator, op1, op2);
 
             parameters.add(new Object[]{operator, op1, op2, res});
         } catch (UndefinedArithmeticResult res) {

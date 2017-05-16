@@ -136,8 +136,8 @@ public class BinaryI1Operations extends BaseSuite {
 
         Instruction opRet = instr.binaryOperator(operator, op1Sym, op2Sym); // Instruction under
 
-        IntegerBinaryOperations intOp = new IntegerBinaryOperations(PrimitiveType.I1);
-        Instruction ret = instr.compare(CompareOperator.INT_NOT_EQUAL, opRet, intOp.calculateResult(operator, op1, op2));
+        boolean opResult = IntegerBinaryOperations.I1.calculateResult(operator, op1, op2);
+        Instruction ret = instr.compare(CompareOperator.INT_NOT_EQUAL, opRet, opResult);
         instr.returnx(ret); // 0=OK, 1=ERROR
 
         instr.getInstructionBuilder().exitFunction();
