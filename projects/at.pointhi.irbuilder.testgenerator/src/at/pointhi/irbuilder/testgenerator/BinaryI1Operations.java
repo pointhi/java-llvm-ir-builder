@@ -100,16 +100,16 @@ public class BinaryI1Operations extends BaseSuite {
                     break;
             }
 
-            addParamter(parameters, operator, false, false);
-            addParamter(parameters, operator, false, true);
-            addParamter(parameters, operator, true, false);
-            addParamter(parameters, operator, true, true);
+            addParameter(parameters, operator, false, false);
+            addParameter(parameters, operator, false, true);
+            addParameter(parameters, operator, true, false);
+            addParameter(parameters, operator, true, true);
         }
 
         return parameters;
     }
 
-    private static void addParamter(List<Object[]> parameters, BinaryOperator operator, boolean op1, boolean op2) {
+    private static void addParameter(List<Object[]> parameters, BinaryOperator operator, boolean op1, boolean op2) {
         try {
             IntegerBinaryOperations intOp = new IntegerBinaryOperations(PrimitiveType.I1);
             intOp.calculateResult(operator, op1, op2);
