@@ -53,14 +53,14 @@ public abstract class BaseSuite {
     }
 
     @Test(timeout = 1000)
-    public final void test() {
+    public final void test() throws Exception {
         final ModelModule model = constructModelModule();
         final Path resultPath = getOutputPath();
 
         IRWriter.writeIRToFile(model, IRWriterVersion.fromEnviromentVariables(), resultPath);
     }
 
-    public abstract ModelModule constructModelModule();
+    public abstract ModelModule constructModelModule() throws Exception;
 
     public abstract Path getSuiteDir();
 
