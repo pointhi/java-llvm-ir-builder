@@ -32,8 +32,6 @@
 
 package at.pointhi.irbuilder.irwriter.visitors.model;
 
-import java.util.Optional;
-
 import com.oracle.truffle.llvm.parser.model.attributes.Attribute;
 import com.oracle.truffle.llvm.parser.model.attributes.AttributesGroup;
 import com.oracle.truffle.llvm.parser.model.enums.Linkage;
@@ -213,9 +211,9 @@ public class IRWriterModelVisitor extends IRWriterBaseVisitor implements ModelVi
         writeln("}");
     }
 
-    private void writeAttributesGroupIfPresent(Optional<AttributesGroup> attrGroup) {
-        if (attrGroup.isPresent()) {
-            writeAttributesGroup(attrGroup.get());
+    private void writeAttributesGroupIfPresent(AttributesGroup attrGroup) {
+        if (attrGroup != null) {
+            writeAttributesGroup(attrGroup);
         }
     }
 
@@ -228,7 +226,7 @@ public class IRWriterModelVisitor extends IRWriterBaseVisitor implements ModelVi
 
     protected void writeFunctionParameter(FunctionParameter param) {
         writeType(param.getType());
-        writeAttributesGroupIfPresent(param.getParamattr());
+        writeAttributesGroupIfPresent(param.getParameterAttribute());
         if (!param.getName().matches("%\\d+")) {
             write(" ");
             write(param.getName());
