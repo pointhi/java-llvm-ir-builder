@@ -1,7 +1,6 @@
 import os
 import argparse
 import sys
-from enum import Enum
 
 from mx_irbuilder_util import TemporaryEnv
 
@@ -169,7 +168,7 @@ def runIRBuilderTestGen38(vmArgs):
         return returnCode
 
 
-class CompareFileResult(Enum):
+class CompareFileResult(object):
     PASSED = 0
     FAILED = 1
     FAILED_REFERENCE = 2
