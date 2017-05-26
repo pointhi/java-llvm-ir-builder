@@ -167,7 +167,7 @@ def runIRBuilderTest38(vmArgs):
             except:
                 pass
 
-            testSuite = IRGeneratorSuite(LlvmAS_38,LlvmLLI_38 )
+            testSuite = IRGeneratorSuite(LlvmAS_38, LlvmLLI_38)
             testSuite.run(suite[2])
             if not testSuite.wasSuccessfull():
                 returnCode = 1
@@ -206,9 +206,9 @@ class CompareFileResult(object):
 
 def testFiles(assembler, lli, lliReference, lliFiles, sulongFiles, expectedExitVal=None):
     # test Files which need to be run with lli
-    for file in lliReference:
+    for srcFile in lliReference:
         # run file using lli
-        exitVal = lli.run(file)
+        exitVal = lli.run(srcFile)
 
         # test for errrors
         if expectedExitVal is None:
@@ -219,9 +219,9 @@ def testFiles(assembler, lli, lliReference, lliFiles, sulongFiles, expectedExitV
         elif expectedExitVal is not None and exitVal != expectedExitVal:
             return CompareFileResult.FAILED_REFERENCE
 
-    for file in lliFiles:
+    for srcFile in lliFiles:
         # run file using lli
-        exitVal = lli.run(file)
+        exitVal = lli.run(srcFile)
 
         # test for errrors
         if expectedExitVal is None:
@@ -230,16 +230,16 @@ def testFiles(assembler, lli, lliReference, lliFiles, sulongFiles, expectedExitV
             return CompareFileResult.FAILED
 
     # test Files which need to be run with sulong
-    for file in sulongFiles:
+    for srcFile in sulongFiles:
         # assemble file if required
-        if file.endswith('.ll'):
-            if assembler.run(file) == 0:
-                file = file[:-3] + ".bc"
+        if srcFile.endswith('.ll'):
+            if assembler.run(srcFile) == 0:
+                srcFile = srcFile[:-3] + ".bc"
             else:
                 return CompareFileResult.FAILED
 
         # run file using sulong
-        exitVal = mx_sulong.runLLVM([file])
+        exitVal = mx_sulong.runLLVM([srcFile])
 
         # test for errrors
         if expectedExitVal is None:
