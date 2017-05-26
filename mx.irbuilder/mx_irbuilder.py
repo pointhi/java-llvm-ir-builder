@@ -1,13 +1,13 @@
 import os
+import argparse
+import sys
+from enum import Enum
+
+from mx_irbuilder_util import TemporaryEnv
 
 import mx
 import mx_sulong
 import mx_testsuites
-from mx_irbuilder_util import TemporaryEnv
-
-#import multiprocessing
-import argparse
-import sys
 
 _suite = mx.suite('irbuilder')
 
@@ -110,7 +110,7 @@ def runIRBuilderTest32(vmArgs):
                 mx_sulong.mx_testsuites.run32(vmArgs, suite[1], [])
             except:
                 pass
-            if _runIRGeneratorSuite(LlvmAS_32, LlvmLLI_32, suite[2]) != 0:
+            if runIRGeneratorSuite(LlvmAS_32, LlvmLLI_32, suite[2]) != 0:
                 returnCode = 1
         return returnCode
 
@@ -133,7 +133,7 @@ def runIRBuilderTest38(vmArgs):
                 mx_sulong.mx_testsuites.run38(vmArgs, suite[1], [])
             except:
                 pass
-            if _runIRGeneratorSuite(LlvmAS_38, LlvmLLI_38, suite[2]) != 0:
+            if runIRGeneratorSuite(LlvmAS_38, LlvmLLI_38, suite[2]) != 0:
                 returnCode = 1
         return returnCode
 
@@ -152,78 +152,99 @@ def runIRBuilderTestGen38(vmArgs):
                 mx_sulong.mx_testsuites.run38(vmArgs, suite[0], [])
             except:
                 pass
-            if _runIRGeneratorBuilderSuite(LlvmAS_38, LlvmLLI_38, suite[1]) != 0:
+            if runIRGeneratorBuilderSuite(LlvmAS_38, LlvmLLI_38, suite[1]) != 0:
                 returnCode = 1
         return returnCode
 
-def _testFile(param):
-    inputFile = param[0]
-    assembler = param[1]
-    lli = param[2]
 
-    failed = []
-    segfaulted = []
-    passed = []
+class CompareFileResult(Enum):
+    PASSED = 0
+    FAILED = 1
+    FAILED_REFERENCE = 2
 
-    if inputFile.endswith('.out.ll'):
-        if assembler.run(inputFile) == 0:
-            exit_code_ref = lli.run(inputFile[:-7] + ".bc")
-            exit_code_out = lli.run(inputFile[:-7] + ".out.bc")
-            if exit_code_ref == exit_code_out:
-                sys.stdout.write('.')
-                passed.append(inputFile)
-                sys.stdout.flush()
+
+def testFiles(assembler, lli, lliReference, lliFiles, sulongFiles, expectedExitVal=None):
+    # test Files which need to be run with lli
+    for file in lliReference:
+        # run file using lli
+        exitVal = lli.run(file)
+
+        # test for errrors
+        if expectedExitVal is None:
+            if exitVal == -6 or exitVal == -11:
+                # there was either a segfault or a abort
+                return CompareFileResult.FAILED_REFERENCE
+            expectedExitVal = exitVal
+        elif expectedExitVal is not None and exitVal != expectedExitVal:
+            return CompareFileResult.FAILED_REFERENCE
+
+    for file in lliFiles:
+        # run file using lli
+        exitVal = lli.run(file)
+
+        # test for errrors
+        if expectedExitVal is None:
+            expectedExitVal = exitVal
+        elif expectedExitVal is not None and exitVal != expectedExitVal:
+            return CompareFileResult.FAILED
+
+    # test Files which need to be run with sulong
+    for file in sulongFiles:
+        # assemble file if required
+        if file.endswith('.ll'):
+            if assembler.run(file) == 0:
+                file = file[:-3] + ".bc"
             else:
-                if exit_code_ref == -6 or exit_code_ref == -11:
-                    sys.stdout.write('S')  # reference code had a segfault or aborted, don't count
-                    segfaulted.append(inputFile[:-7] + ".bc")
-                else:
+                return CompareFileResult.FAILED
+
+        # run file using sulong
+        exitVal = mx_sulong.runLLVM([file])
+
+        # test for errrors
+        if expectedExitVal is None:
+            expectedExitVal = exitVal
+        elif expectedExitVal is not None and exitVal != expectedExitVal:
+            return CompareFileResult.FAILED
+
+    return CompareFileResult.PASSED
+
+
+def runIRGeneratorSuite(assembler, lli, cacheDir):
+    mx.log('Testing Generated LLVM IR Files')
+    mx.log(cacheDir)
+
+    passed = []
+    failed = []
+    failed_references = []
+
+    for root, _, files in os.walk(cacheDir):
+        for fileName in files:
+            inputFile = os.path.join(cacheDir, root, fileName)
+            if inputFile.endswith('.out.ll'):
+                ref_file = inputFile[:-7] + ".bc"
+
+                ret = testFiles(assembler, lli, [ref_file], [inputFile], [])
+
+                if ret is CompareFileResult.PASSED:
+                    sys.stdout.write('.')
+                    sys.stdout.flush()
+                    passed.append(inputFile)
+                elif ret is CompareFileResult.FAILED:
                     sys.stdout.write('E')
+                    sys.stdout.flush()
                     failed.append(inputFile)
-                sys.stdout.flush()
-        else:
-            sys.stdout.write('E')
-            failed.append(inputFile)
-            sys.stdout.flush()
-
-    return passed, failed, segfaulted
-
-def _runIRGeneratorSuite(assembler, lli, sulongSuiteCacheDir):
-    mx.log('Testing Reassembly')
-    mx.log(sulongSuiteCacheDir)
-
-    passed = []
-    failed = []
-    segfaulted = []
-
-    #processes = multiprocessing.cpu_count() * 2
-    #processes = 1
-    #pool = multiprocessing.Pool(processes)
-    #inputFiles = []
-
-    results = []
-
-    for root, _, files in os.walk(sulongSuiteCacheDir):
-        for fileName in files:
-            inputFile = os.path.join(sulongSuiteCacheDir, root, fileName)
-            results += [_testFile([inputFile, assembler, lli])]
-            #inputFiles.append([inputFile, assembler, lli])
-
-    #results = pool.map(_testFile, inputFiles)
-
-    for result in results:
-        passed += result[0]
-        failed += result[1]
-        segfaulted += result[2]
-
+                elif ret is CompareFileResult.FAILED_REFERENCE:
+                    sys.stdout.write('W')
+                    sys.stdout.flush()
+                    failed_references.append(inputFile)
 
     total = len(failed) + len(passed)
     mx.log()
 
-    if len(segfaulted):
-        mx.log_error(str(len(segfaulted)) + ' compiled Tests segfaulted in lli!')
-        for x in range(0, len(segfaulted)):
-            mx.log_error(str(x) + ') ' + segfaulted[x])
+    if len(failed_references):
+        mx.log_error(str(len(failed_references)) + ' compiled reference Tests failed!')
+        for x in range(0, len(failed_references)):
+            mx.log_error(str(x) + ') ' + failed_references[x])
         mx.log()
 
     if len(failed) != 0:
@@ -238,69 +259,41 @@ def _runIRGeneratorSuite(assembler, lli, sulongSuiteCacheDir):
         mx.log('Passed all ' + str(total) + ' Tests!')
         return 0
 
-def _testGeneratedFile(param):
-    inputFile = param[0]
-    assembler = param[1]
-    lli = param[2]
 
-    failed = []
-    wrong = []
-    passed = []
-
-    if inputFile.endswith('.ll'):
-        if assembler.run(inputFile) == 0:
-            exit_code_ref = lli.run(inputFile[:-3] + ".bc")
-            try:
-                exit_code_out = mx_sulong.runLLVM([inputFile[:-3] + ".bc"])
-            except:
-                # why is there sometimes a exceptions.SystemExit thrown? Arithmetic overflows?
-                exit_code_out = -1
-
-            if exit_code_ref == 0 and exit_code_out == 0:
-                sys.stdout.write('.')
-                passed.append(inputFile)
-                sys.stdout.flush()
-            elif exit_code_ref != 0:
-                sys.stdout.write('W')  # reference code returned with a non-null
-                wrong.append(inputFile[:-3] + ".bc")
-            else:
-                sys.stdout.write('E')
-                failed.append(inputFile)
-            sys.stdout.flush()
-        else:
-            sys.stdout.write('E')
-            failed.append(inputFile)
-            sys.stdout.flush()
-
-    return passed, failed, wrong
-
-def _runIRGeneratorBuilderSuite(assembler, lli, sulongSuiteCacheDir):
+def runIRGeneratorBuilderSuite(assembler, lli, sulongSuiteCacheDir):
     mx.log('Testing Reassembly')
     mx.log(sulongSuiteCacheDir)
 
     passed = []
     failed = []
-    wrong = []
-
-    results = []
+    failed_references = []
 
     for root, _, files in os.walk(sulongSuiteCacheDir):
         for fileName in files:
             inputFile = os.path.join(sulongSuiteCacheDir, root, fileName)
-            results += [_testGeneratedFile([inputFile, assembler, lli])]
+            if inputFile.endswith('.ll'):
+                ret = testFiles(assembler, lli, [inputFile], [], [inputFile], 0)
 
-    for result in results:
-        passed += result[0]
-        failed += result[1]
-        wrong += result[2]
+                if ret is CompareFileResult.PASSED:
+                    sys.stdout.write('.')
+                    sys.stdout.flush()
+                    passed.append(inputFile)
+                elif ret is CompareFileResult.FAILED:
+                    sys.stdout.write('E')
+                    sys.stdout.flush()
+                    failed.append(inputFile)
+                elif ret is CompareFileResult.FAILED_REFERENCE:
+                    sys.stdout.write('W')
+                    sys.stdout.flush()
+                    failed_references.append(inputFile)
 
     total = len(failed) + len(passed)
     mx.log()
 
-    if len(wrong):
-        mx.log_error(str(len(wrong)) + ' compiled Tests returned not 0 in lli!')
-        for x in range(0, len(wrong)):
-            mx.log_error(str(x) + ') ' + wrong[x])
+    if len(failed_references):
+        mx.log_error(str(len(failed_references)) + ' compiled reference Tests failed!')
+        for x in range(0, len(failed_references)):
+            mx.log_error(str(x) + ') ' + failed_references[x])
         mx.log()
 
     if len(failed) != 0:
@@ -314,6 +307,7 @@ def _runIRGeneratorBuilderSuite(assembler, lli, sulongSuiteCacheDir):
     else:
         mx.log('Passed all ' + str(total) + ' Tests!')
         return 0
+
 
 mx.update_commands(_suite, {
     'irbuilder-out' : [runIRBuilderOut, ''],
