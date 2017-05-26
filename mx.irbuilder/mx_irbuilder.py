@@ -110,8 +110,12 @@ def runIRBuilderTest32(vmArgs):
                 mx_sulong.mx_testsuites.run32(vmArgs, suite[1], [])
             except:
                 pass
-            if runIRGeneratorSuite(LlvmAS_32, LlvmLLI_32, suite[2]) != 0:
+
+            testSuite = IRGeneratorSuite(LlvmAS_32, LlvmLLI_32)
+            testSuite.run(suite[2])
+            if not testSuite.wasSuccessfull():
                 returnCode = 1
+
         return returnCode
 
 def runIRBuilderTest38(vmArgs):
@@ -133,8 +137,12 @@ def runIRBuilderTest38(vmArgs):
                 mx_sulong.mx_testsuites.run38(vmArgs, suite[1], [])
             except:
                 pass
-            if runIRGeneratorSuite(LlvmAS_38, LlvmLLI_38, suite[2]) != 0:
+
+            testSuite = IRGeneratorSuite(LlvmAS_38,LlvmLLI_38 )
+            testSuite.run(suite[2])
+            if not testSuite.wasSuccessfull():
                 returnCode = 1
+
         return returnCode
 
 def runIRBuilderTestGen38(vmArgs):
@@ -152,8 +160,12 @@ def runIRBuilderTestGen38(vmArgs):
                 mx_sulong.mx_testsuites.run38(vmArgs, suite[0], [])
             except:
                 pass
-            if runIRGeneratorBuilderSuite(LlvmAS_38, LlvmLLI_38, suite[1]) != 0:
+
+            testSuite = IRGeneratorBuilderSuite(LlvmAS_38, LlvmLLI_38)
+            testSuite.run(suite[1])
+            if not testSuite.wasSuccessfull():
                 returnCode = 1
+
         return returnCode
 
 
@@ -209,104 +221,102 @@ def testFiles(assembler, lli, lliReference, lliFiles, sulongFiles, expectedExitV
     return CompareFileResult.PASSED
 
 
-def runIRGeneratorSuite(assembler, lli, cacheDir):
-    mx.log('Testing Generated LLVM IR Files')
-    mx.log(cacheDir)
+class IRTestSuite(object):
+    def __init__(self, assembler, lli):
+        self.assembler = assembler
+        self.lli = lli
 
-    passed = []
-    failed = []
-    failed_references = []
+        self.passed = []
+        self.failed = []
+        self.failed_references = []
 
-    for root, _, files in os.walk(cacheDir):
-        for fileName in files:
-            inputFile = os.path.join(cacheDir, root, fileName)
-            if inputFile.endswith('.out.ll'):
-                ref_file = inputFile[:-7] + ".bc"
+    def run(self, cacheDir):
+        mx.log('Testing Reassembly')
+        mx.log(cacheDir)
 
-                ret = testFiles(assembler, lli, [ref_file], [inputFile], [])
+        for root, _, files in os.walk(cacheDir):
+            for fileName in files:
+                inputFile = os.path.join(cacheDir, root, fileName)
+                if self.isTestFile(inputFile):
+                    ret = self.invoke(inputFile)
+                    self.handleInvokeResult(inputFile, ret)
 
-                if ret is CompareFileResult.PASSED:
-                    sys.stdout.write('.')
-                    sys.stdout.flush()
-                    passed.append(inputFile)
-                elif ret is CompareFileResult.FAILED:
-                    sys.stdout.write('E')
-                    sys.stdout.flush()
-                    failed.append(inputFile)
-                elif ret is CompareFileResult.FAILED_REFERENCE:
-                    sys.stdout.write('W')
-                    sys.stdout.flush()
-                    failed_references.append(inputFile)
+        self.printStats()
 
-    total = len(failed) + len(passed)
-    mx.log()
+    def isTestFile(self, inputFile):
+        raise NotImplementedError("this method requires to be overloaded by the child class")
 
-    if len(failed_references):
-        mx.log_error(str(len(failed_references)) + ' compiled reference Tests failed!')
-        for x in range(0, len(failed_references)):
-            mx.log_error(str(x) + ') ' + failed_references[x])
+    def invoke(self, inputFile):
+        raise NotImplementedError("his method requires to be overloaded by the child class")
+
+    def handleInvokeResult(self, inputFile, ret):
+        if ret is CompareFileResult.PASSED:
+            sys.stdout.write('.')
+            sys.stdout.flush()
+            self.passed.append(inputFile)
+        elif ret is CompareFileResult.FAILED:
+            sys.stdout.write('E')
+            sys.stdout.flush()
+            self.failed.append(inputFile)
+        elif ret is CompareFileResult.FAILED_REFERENCE:
+            sys.stdout.write('W')
+            sys.stdout.flush()
+            self.failed_references.append(inputFile)
+
+    def printStats(self):
+        passed_len = len(self.passed)
+        failed_len = len(self.failed)
+        failed_references_len = len(self.failed_references)
+        total_len = failed_len + passed_len
+
         mx.log()
 
-    if len(failed) != 0:
-        mx.log_error('Failed ' + str(len(failed)) + ' of ' + str(total) + ' Tests!')
-        for x in range(0, len(failed)):
-            mx.log_error(str(x) + ') ' + failed[x])
-        return 1
-    elif total == 0:
-        mx.log_error('There is something odd with the testsuite, ' + str(total) + ' Tests executed!')
-        return 1
-    else:
-        mx.log('Passed all ' + str(total) + ' Tests!')
-        return 0
+        if len(self.failed_references):
+            mx.log_error('{0} compiled reference Tests failed!'.format(failed_references_len))
+            for x in range(0, failed_references_len):
+                mx.log_error(str(x) + ') ' + self.failed_references[x])
+            mx.log()
+
+        if failed_len != 0:
+            mx.log_error('Failed {0} of {1} Tests!'.format(failed_len, total_len))
+            for x in range(0, len(self.failed)):
+                mx.log_error('{0}) {1}'.format(x, self.failed[x]))
+        elif total_len == 0:
+            mx.log_error('There is something odd with the testsuite, {0} Tests executed!'.format(total_len))
+        else:
+            mx.log('Passed all {0} Tests!'.format(total_len))
+
+    def wasSuccessfull(self):
+        if len(self.failed) != 0:
+            return False
+        elif len(self.passed) == 0:
+            return False
+        else:
+            return True
 
 
-def runIRGeneratorBuilderSuite(assembler, lli, sulongSuiteCacheDir):
-    mx.log('Testing Reassembly')
-    mx.log(sulongSuiteCacheDir)
+class IRGeneratorSuite(IRTestSuite):
+    def __init__(self, assembler, lli):
+        IRTestSuite.__init__(self, assembler, lli)
 
-    passed = []
-    failed = []
-    failed_references = []
+    def isTestFile(self, inputFile):
+        return inputFile.endswith('.out.ll')
 
-    for root, _, files in os.walk(sulongSuiteCacheDir):
-        for fileName in files:
-            inputFile = os.path.join(sulongSuiteCacheDir, root, fileName)
-            if inputFile.endswith('.ll'):
-                ret = testFiles(assembler, lli, [inputFile], [], [inputFile], 0)
+    def invoke(self, inputFile):
+        ref_file = inputFile[:-7] + ".bc"
 
-                if ret is CompareFileResult.PASSED:
-                    sys.stdout.write('.')
-                    sys.stdout.flush()
-                    passed.append(inputFile)
-                elif ret is CompareFileResult.FAILED:
-                    sys.stdout.write('E')
-                    sys.stdout.flush()
-                    failed.append(inputFile)
-                elif ret is CompareFileResult.FAILED_REFERENCE:
-                    sys.stdout.write('W')
-                    sys.stdout.flush()
-                    failed_references.append(inputFile)
+        return testFiles(self.assembler, self.lli, [ref_file], [inputFile], [])
 
-    total = len(failed) + len(passed)
-    mx.log()
 
-    if len(failed_references):
-        mx.log_error(str(len(failed_references)) + ' compiled reference Tests failed!')
-        for x in range(0, len(failed_references)):
-            mx.log_error(str(x) + ') ' + failed_references[x])
-        mx.log()
+class IRGeneratorBuilderSuite(IRTestSuite):
+    def __init__(self, assembler, lli):
+        IRTestSuite.__init__(self, assembler, lli)
 
-    if len(failed) != 0:
-        mx.log_error('Failed ' + str(len(failed)) + ' of ' + str(total) + ' Tests!')
-        for x in range(0, len(failed)):
-            mx.log_error(str(x) + ') ' + failed[x])
-        return 1
-    elif total == 0:
-        mx.log_error('There is something odd with the testsuite, ' + str(total) + ' Tests executed!')
-        return 1
-    else:
-        mx.log('Passed all ' + str(total) + ' Tests!')
-        return 0
+    def isTestFile(self, inputFile):
+        return inputFile.endswith('.ll')
+
+    def invoke(self, inputFile):
+        return testFiles(self.assembler, self.lli, [inputFile], [], [inputFile], 0)
 
 
 mx.update_commands(_suite, {
