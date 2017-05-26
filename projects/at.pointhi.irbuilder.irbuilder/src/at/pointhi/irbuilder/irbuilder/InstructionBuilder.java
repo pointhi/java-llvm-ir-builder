@@ -63,6 +63,7 @@ public class InstructionBuilder {
     private InstructionBlock curBlock;
 
     private int counter = 1;
+    private int blockCounter = 1;
     private int argCounter = 1;
 
     public InstructionBuilder(FunctionDefinition function) {
@@ -79,7 +80,7 @@ public class InstructionBuilder {
 
     public void nextBlock() {
         curBlock = function.generateBlock();
-        curBlock.setName(Integer.toString(counter++)); // TODO: required?
+        curBlock.setName("label_" + Integer.toString(blockCounter++));
     }
 
     public void exitFunction() {

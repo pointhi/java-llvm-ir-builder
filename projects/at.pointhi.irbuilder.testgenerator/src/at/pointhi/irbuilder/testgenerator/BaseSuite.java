@@ -53,7 +53,7 @@ public abstract class BaseSuite {
     }
 
     @Test(timeout = 1000)
-    public final void test() throws Exception {
+    public void test() throws Exception {
         final ModelModule model = constructModelModule();
         final Path resultPath = getOutputPath();
 
