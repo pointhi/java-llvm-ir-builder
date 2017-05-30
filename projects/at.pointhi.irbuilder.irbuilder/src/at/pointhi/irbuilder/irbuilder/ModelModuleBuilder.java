@@ -67,7 +67,7 @@ public class ModelModuleBuilder {
                     FunctionType type) {
         model.createFunction(type, false, AttributesCodeEntry.EMPTY);
 
-        ModelExtractor<FunctionDefinition> extractor = new ModelExtractor.FunctionDefinitionExtractor(type) {
+        ModelExtractor<FunctionDefinition> extractor = new ModelExtractor.FunctionDefinitionExtractor(f -> f.getName().equals(LLVMIdentifier.UNKNOWN) && f.getType().equals(type)) {
             @Override
             public void onMatch(FunctionDefinition function) {
                 function.setName(name);
@@ -83,7 +83,7 @@ public class ModelModuleBuilder {
     public FunctionDeclaration createFunctionDeclaration(String name, FunctionType type) {
         model.createFunction(type, true, AttributesCodeEntry.EMPTY);
 
-        ModelExtractor<FunctionDeclaration> extractor = new ModelExtractor.FunctionDeclarationExtractor(type) {
+        ModelExtractor<FunctionDeclaration> extractor = new ModelExtractor.FunctionDeclarationExtractor(f -> f.getName().equals(LLVMIdentifier.UNKNOWN) && f.getType().equals(type)) {
             @Override
             public void onMatch(FunctionDeclaration function) {
                 function.setName(name);
@@ -98,7 +98,7 @@ public class ModelModuleBuilder {
     public ValueSymbol createGlobalConstant(String name, Type type, int valueIdx) {
         model.createGlobal(type, true, valueIdx, 0, Linkage.INTERNAL.ordinal(), Visibility.DEFAULT.ordinal());
 
-        ModelExtractor<GlobalConstant> extractor = new ModelExtractor.GlobalConstantExtractor(LLVMIdentifier.UNKNOWN) {
+        ModelExtractor<GlobalConstant> extractor = new ModelExtractor.GlobalConstantExtractor(c -> c.getName().equals(LLVMIdentifier.UNKNOWN)) {
             @Override
             public void onMatch(GlobalConstant constant) {
                 constant.setName(name);
@@ -118,5 +118,9 @@ public class ModelModuleBuilder {
         model.creatFromString(strType, value, false);
 
         return createGlobalConstant(name, strType, model.getSymbolCount());
+    }
+
+    public void createType(Type type) {
+        model.createType(type);
     }
 }

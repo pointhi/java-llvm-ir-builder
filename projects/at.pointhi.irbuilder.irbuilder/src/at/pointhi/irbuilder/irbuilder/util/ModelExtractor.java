@@ -32,86 +32,76 @@
 package at.pointhi.irbuilder.irbuilder.util;
 
 import java.util.Optional;
+import java.util.function.Predicate;
 
 import com.oracle.truffle.llvm.parser.model.functions.FunctionDeclaration;
 import com.oracle.truffle.llvm.parser.model.functions.FunctionDefinition;
 import com.oracle.truffle.llvm.parser.model.globals.GlobalConstant;
 import com.oracle.truffle.llvm.parser.model.visitors.ModelVisitor;
-import com.oracle.truffle.llvm.runtime.types.FunctionType;
 
-public abstract class ModelExtractor<T> implements ModelVisitor {
+public abstract class ModelExtractor<T extends Object> implements ModelVisitor {
     private Optional<T> match = Optional.empty();
+    protected final Predicate<? super T> predicate;
 
-    private ModelExtractor() {
+    private ModelExtractor(Predicate<? super T> predicate) {
+        this.predicate = predicate;
     }
 
-    @SuppressWarnings("unused")
-    public void onMatch(T obj) {
+    public void onMatch(@SuppressWarnings("unused") T obj) {
     }
 
     public Optional<T> getMatch() {
         return match;
     }
 
-    protected void setMatch(T obj) {
-        if (match.isPresent()) {
-            throw new AssertionError("the extractor visitor should only match for one object!");
-        }
+    protected void onVisit(T obj) {
+        if (predicate.test(obj)) {
+            if (match.isPresent()) {
+                throw new AssertionError("the extractor visitor should only match for one object!");
+            }
+            match = Optional.of(obj);
 
-        match = Optional.of(obj);
+            onMatch(obj);
+        }
     }
 
+    @Override
     public void ifVisitNotOverwritten(Object obj) {
     }
 
     public static class FunctionDeclarationExtractor extends ModelExtractor<FunctionDeclaration> {
-        private final FunctionType type;
 
-        public FunctionDeclarationExtractor(FunctionType type) {
-            super();
-            this.type = type;
+        public FunctionDeclarationExtractor(Predicate<? super FunctionDeclaration> predicate) {
+            super(predicate);
         }
 
         @Override
         public void visit(FunctionDeclaration function) {
-            if (function.getType().equals(type)) {
-                setMatch(function);
-                onMatch(function);
-            }
+            onVisit(function);
         }
     }
 
     public static class FunctionDefinitionExtractor extends ModelExtractor<FunctionDefinition> {
-        private final FunctionType type;
 
-        public FunctionDefinitionExtractor(FunctionType type) {
-            super();
-            this.type = type;
+        public FunctionDefinitionExtractor(Predicate<? super FunctionDefinition> predicate) {
+            super(predicate);
         }
 
         @Override
         public void visit(FunctionDefinition function) {
-            if (function.getType().equals(type)) {
-                setMatch(function);
-                onMatch(function);
-            }
+            onVisit(function);
         }
     }
 
     public static class GlobalConstantExtractor extends ModelExtractor<GlobalConstant> {
-        private final String name;
 
-        public GlobalConstantExtractor(String name) {
-            super();
-            this.name = name;
+        public GlobalConstantExtractor(Predicate<? super GlobalConstant> predicate) {
+            super(predicate);
         }
 
         @Override
         public void visit(GlobalConstant constant) {
-            if (constant.getName().equals(name)) {
-                setMatch(constant);
-                onMatch(constant);
-            }
+            onVisit(constant);
         }
     }
 
