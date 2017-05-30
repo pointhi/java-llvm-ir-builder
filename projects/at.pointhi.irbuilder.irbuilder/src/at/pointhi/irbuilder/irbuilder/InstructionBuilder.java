@@ -45,13 +45,21 @@ import com.oracle.truffle.llvm.parser.model.symbols.instructions.Instruction;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.LoadInstruction;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.ValueInstruction;
 import com.oracle.truffle.llvm.runtime.types.AggregateType;
+import com.oracle.truffle.llvm.runtime.types.ArrayType;
 import com.oracle.truffle.llvm.runtime.types.DataSpecConverter;
 import com.oracle.truffle.llvm.runtime.types.FunctionType;
+import com.oracle.truffle.llvm.runtime.types.MetaType;
+import com.oracle.truffle.llvm.runtime.types.OpaqueType;
 import com.oracle.truffle.llvm.runtime.types.PointerType;
 import com.oracle.truffle.llvm.runtime.types.PrimitiveType;
+import com.oracle.truffle.llvm.runtime.types.StructureType;
 import com.oracle.truffle.llvm.runtime.types.Type;
+import com.oracle.truffle.llvm.runtime.types.VariableBitWidthType;
+import com.oracle.truffle.llvm.runtime.types.VectorType;
+import com.oracle.truffle.llvm.runtime.types.VoidType;
 import com.oracle.truffle.llvm.runtime.types.symbols.LLVMIdentifier;
 import com.oracle.truffle.llvm.runtime.types.symbols.Symbol;
+import com.oracle.truffle.llvm.runtime.types.visitors.TypeVisitor;
 
 // TODO: https://github.com/pointhi/sulong/blob/1cc13ee850034242fd3406e29cd003b06f065c15/projects/com.oracle.truffle.llvm.writer/src/com/oracle/truffle/llvm/writer/facades/InstructionGeneratorFacade.java
 public class InstructionBuilder {
@@ -226,14 +234,69 @@ public class InstructionBuilder {
         return getLastInstruction();
     }
 
-    public Instruction createGetElementPointer(Type type, Symbol base, Symbol[] indices, boolean isInbounds) {
+    public Instruction createGetElementPointer(Symbol base, Symbol[] indices, boolean isInbounds) {
         int pointerIdx = addSymbol(base);
         int[] indicesIdx = new int[indices.length];
+        Type instrType = base.getType();
         for (int i = 0; i < indices.length; i++) {
             indicesIdx[i] = addSymbol(indices[i]);
+
+            GetElementPointerTypeVisitor localTypeVisitor = new GetElementPointerTypeVisitor(instrType, indices[i]);
+            instrType.accept(localTypeVisitor);
+            instrType = localTypeVisitor.getNewType();
         }
-        curBlock.createGetElementPointer(type, pointerIdx, indicesIdx, isInbounds);
+        curBlock.createGetElementPointer(new PointerType(instrType), pointerIdx, indicesIdx, isInbounds);
         return getLastInstruction();
+    }
+
+    private static final class GetElementPointerTypeVisitor implements TypeVisitor {
+
+        private final Symbol idx;
+        private Type newType;
+
+        GetElementPointerTypeVisitor(Type curType, Symbol idx) {
+            this.newType = curType;
+            this.idx = idx;
+        }
+
+        public Type getNewType() {
+            return newType;
+        }
+
+        public void visit(OpaqueType opaqueType) {
+        }
+
+        public void visit(VoidType vectorType) {
+        }
+
+        public void visit(VariableBitWidthType vectorType) {
+        }
+
+        public void visit(VectorType vectorType) {
+            newType = vectorType.getElementType();
+        }
+
+        public void visit(StructureType structureType) {
+            IntegerConstant idxConst = (IntegerConstant) idx;
+            newType = structureType.getElementType((int) idxConst.getValue());
+        }
+
+        public void visit(ArrayType arrayType) {
+            newType = arrayType.getElementType();
+        }
+
+        public void visit(PointerType pointerType) {
+            newType = pointerType.getPointeeType();
+        }
+
+        public void visit(MetaType metaType) {
+        }
+
+        public void visit(PrimitiveType primitiveType) {
+        }
+
+        public void visit(FunctionType functionType) {
+        }
     }
 
     public Instruction createIndirectBranch(Symbol address, int[] successors) {
