@@ -34,7 +34,9 @@ package at.pointhi.irbuilder.irbuilder;
 import java.math.BigInteger;
 
 import com.oracle.truffle.llvm.parser.model.enums.BinaryOperator;
+import com.oracle.truffle.llvm.parser.model.enums.CastOperator;
 import com.oracle.truffle.llvm.parser.model.enums.CompareOperator;
+import com.oracle.truffle.llvm.parser.model.functions.FunctionDeclaration;
 import com.oracle.truffle.llvm.parser.model.functions.FunctionDefinition;
 import com.oracle.truffle.llvm.parser.model.functions.FunctionParameter;
 import com.oracle.truffle.llvm.parser.model.symbols.constants.Constant;
@@ -43,6 +45,7 @@ import com.oracle.truffle.llvm.parser.model.symbols.constants.integer.BigInteger
 import com.oracle.truffle.llvm.parser.model.symbols.constants.integer.IntegerConstant;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.Instruction;
 import com.oracle.truffle.llvm.runtime.types.AggregateType;
+import com.oracle.truffle.llvm.runtime.types.PointerType;
 import com.oracle.truffle.llvm.runtime.types.PrimitiveType;
 import com.oracle.truffle.llvm.runtime.types.Type;
 import com.oracle.truffle.llvm.runtime.types.VariableBitWidthType;
@@ -311,6 +314,26 @@ public class SimpleInstrunctionBuilder {
 
     public void returnx() {
         builder.createReturn();
+    }
+
+    // va_arg
+    public void vaStart(FunctionDeclaration vaStartDecl, Symbol vaListTag) {
+        Instruction vaArrayPtr = builder.createGetElementPointer(vaListTag, new Symbol[]{new IntegerConstant(PrimitiveType.I32, 0), new IntegerConstant(PrimitiveType.I32, 0)}, true);
+        Instruction vaBytePtr = builder.createCast(new PointerType(PrimitiveType.I8), CastOperator.BITCAST, vaArrayPtr);
+        call(vaStartDecl, vaBytePtr);
+    }
+
+    public void vaEnd(FunctionDeclaration vaEndDecl, Symbol vaListTag) {
+        Instruction vaArrayPtr = builder.createGetElementPointer(vaListTag, new Symbol[]{new IntegerConstant(PrimitiveType.I32, 0), new IntegerConstant(PrimitiveType.I32, 0)}, true);
+        Instruction vaBytePtr = builder.createCast(new PointerType(PrimitiveType.I8), CastOperator.BITCAST, vaArrayPtr);
+        call(vaEndDecl, vaBytePtr);
+    }
+
+    public Instruction vaArgWorkaround(Symbol vaListTag, @SuppressWarnings("unused") Type type) {
+        Instruction vaListPtr = builder.createGetElementPointer(vaListTag, new Symbol[]{new IntegerConstant(PrimitiveType.I32, 0), new IntegerConstant(PrimitiveType.I32, 0)}, true);
+        Instruction intPtr = builder.createGetElementPointer(vaListPtr, new Symbol[]{new IntegerConstant(PrimitiveType.I32, 0), new IntegerConstant(PrimitiveType.I32, 0)}, true);
+        Instruction loadRes = this.load(intPtr);
+        return loadRes;
     }
 
 }
