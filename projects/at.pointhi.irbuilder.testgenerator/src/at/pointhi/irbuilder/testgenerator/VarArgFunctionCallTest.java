@@ -106,6 +106,7 @@ public class VarArgFunctionCallTest extends BaseSuite {
         InstructionBuilder fooFacade = new InstructionBuilder(foo);
         SimpleInstrunctionBuilder instr = new SimpleInstrunctionBuilder(fooFacade);
 
+        @SuppressWarnings("unused")
         FunctionParameter length = instr.nextParameter();
 
         StructureType vaListTag = LLVMIntrinsics.registerVaListTagType(builder);
