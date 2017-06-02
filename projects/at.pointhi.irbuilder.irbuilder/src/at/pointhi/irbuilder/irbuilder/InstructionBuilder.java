@@ -86,9 +86,10 @@ public class InstructionBuilder {
         return newParam;
     }
 
-    public void nextBlock() {
+    public InstructionBlock nextBlock() {
         curBlock = function.generateBlock();
         curBlock.setName("label_" + Integer.toString(blockCounter++));
+        return curBlock;
     }
 
     public void exitFunction() {
@@ -332,16 +333,16 @@ public class InstructionBuilder {
         return getLastInstruction();
     }
 
-    public Instruction createPhi(Type type, int[] values, InstructionBlock[] blocks) {
+    public Instruction createPhi(Type type, Symbol[] values, InstructionBlock[] blocks) {
         assert values.length == blocks.length;
 
         int[] valuesIdx = new int[values.length];
         int[] blocksIdx = new int[blocks.length];
         for (int i = 0; i < blocks.length; i++) {
-            valuesIdx[i] = addSymbol(createI32Constant(values[i]));
-            blocksIdx[i] = addSymbol(blocks[i]);
+            valuesIdx[i] = addSymbol(values[i]);
+            blocksIdx[i] = blocks[i].getBlockIndex();
         }
-        curBlock.createPhi(type, values, blocksIdx);
+        curBlock.createPhi(type, valuesIdx, blocksIdx);
         return getLastInstruction();
     }
 
