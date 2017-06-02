@@ -33,6 +33,7 @@ package at.pointhi.irbuilder.irbuilder;
 
 import java.math.BigInteger;
 
+import com.oracle.truffle.llvm.parser.model.blocks.InstructionBlock;
 import com.oracle.truffle.llvm.parser.model.enums.BinaryOperator;
 import com.oracle.truffle.llvm.parser.model.enums.CastOperator;
 import com.oracle.truffle.llvm.parser.model.enums.CompareOperator;
@@ -316,24 +317,48 @@ public class SimpleInstrunctionBuilder {
         builder.createReturn();
     }
 
-    // va_arg
-    public void vaStart(FunctionDeclaration vaStartDecl, Symbol vaListTag) {
+    // va_arg for x86_64-unknown-linux-gnu
+    public void vaStartAMD64(FunctionDeclaration vaStartDecl, Symbol vaListTag) {
         Instruction vaArrayPtr = builder.createGetElementPointer(vaListTag, new Symbol[]{new IntegerConstant(PrimitiveType.I32, 0), new IntegerConstant(PrimitiveType.I32, 0)}, true);
         Instruction vaBytePtr = builder.createCast(new PointerType(PrimitiveType.I8), CastOperator.BITCAST, vaArrayPtr);
         call(vaStartDecl, vaBytePtr);
     }
 
-    public void vaEnd(FunctionDeclaration vaEndDecl, Symbol vaListTag) {
+    public void vaEndAMD64(FunctionDeclaration vaEndDecl, Symbol vaListTag) {
         Instruction vaArrayPtr = builder.createGetElementPointer(vaListTag, new Symbol[]{new IntegerConstant(PrimitiveType.I32, 0), new IntegerConstant(PrimitiveType.I32, 0)}, true);
         Instruction vaBytePtr = builder.createCast(new PointerType(PrimitiveType.I8), CastOperator.BITCAST, vaArrayPtr);
         call(vaEndDecl, vaBytePtr);
     }
 
-    public Instruction vaArgWorkaround(Symbol vaListTag, @SuppressWarnings("unused") Type type) {
-        Instruction vaListPtr = builder.createGetElementPointer(vaListTag, new Symbol[]{new IntegerConstant(PrimitiveType.I32, 0), new IntegerConstant(PrimitiveType.I32, 0)}, true);
-        Instruction intPtr = builder.createGetElementPointer(vaListPtr, new Symbol[]{new IntegerConstant(PrimitiveType.I32, 0), new IntegerConstant(PrimitiveType.I32, 0)}, true);
-        Instruction loadRes = this.load(intPtr);
-        return loadRes;
+    public Instruction vaArgAMD64(Symbol vaListTag, @SuppressWarnings("unused") Type type) {
+        Instruction i7 = builder.createGetElementPointer(vaListTag, new Symbol[]{new IntegerConstant(PrimitiveType.I32, 0), new IntegerConstant(PrimitiveType.I32, 0)}, true);
+        Instruction i8 = builder.createGetElementPointer(i7, new Symbol[]{new IntegerConstant(PrimitiveType.I32, 0), new IntegerConstant(PrimitiveType.I32, 0)}, true);
+        Instruction i9 = this.load(i8);
+        Instruction i10 = compare(CompareOperator.INT_UNSIGNED_LESS_OR_EQUAL, i9, 40);
+        builder.createBranch(i10, 1, 2);
+
+        InstructionBlock i11 = builder.nextBlock(); // 11
+        Instruction i12 = builder.createGetElementPointer(i7, new Symbol[]{new IntegerConstant(PrimitiveType.I32, 0), new IntegerConstant(PrimitiveType.I32, 3)}, true);
+        Instruction i13 = load(i12);
+        Instruction i14 = builder.createGetElementPointer(i13, new Symbol[]{i9}, false);
+        Instruction i15 = builder.createCast(new PointerType(PrimitiveType.I32), CastOperator.BITCAST, i14);
+        Instruction i16 = binaryOperator(BinaryOperator.INT_ADD, i9, 8);
+        builder.createStore(i8, i16, 16);
+        builder.createBranch(3);
+
+        InstructionBlock i17 = builder.nextBlock(); // 17
+        Instruction i18 = builder.createGetElementPointer(i7, new Symbol[]{new IntegerConstant(PrimitiveType.I32, 0), new IntegerConstant(PrimitiveType.I32, 2)}, true);
+        Instruction i19 = load(i18);
+        Instruction i20 = builder.createCast(new PointerType(PrimitiveType.I32), CastOperator.BITCAST, i19);
+        Instruction i21 = builder.createGetElementPointer(i19, new Symbol[]{new IntegerConstant(PrimitiveType.I32, 8)}, false);
+        builder.createStore(i18, i21, 8);
+        builder.createBranch(3);
+
+        builder.nextBlock(); // 22
+        Instruction i23 = builder.createPhi(new PointerType(PrimitiveType.I32), new Symbol[]{i15, i20}, new InstructionBlock[]{i11, i17});
+        Instruction i24 = load(i23);
+
+        return i24;
     }
 
 }

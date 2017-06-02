@@ -102,7 +102,7 @@ public class VarArgFunctionCallTest extends BaseSuite {
          * It seems llvm now has a specific keyword for that
          */
 
-        FunctionDefinition foo = builder.createFunctionDefinition("foo", 1, new FunctionType(PrimitiveType.I32, new Type[]{PrimitiveType.I32}, true));
+        FunctionDefinition foo = builder.createFunctionDefinition("foo", 4, new FunctionType(PrimitiveType.I32, new Type[]{PrimitiveType.I32}, true));
         InstructionBuilder fooFacade = new InstructionBuilder(foo);
         SimpleInstrunctionBuilder instr = new SimpleInstrunctionBuilder(fooFacade);
 
@@ -115,13 +115,12 @@ public class VarArgFunctionCallTest extends BaseSuite {
         FunctionDeclaration vaStartDecl = LLVMIntrinsics.registerLlvmVaStart(builder);
         FunctionDeclaration vaEndDecl = LLVMIntrinsics.registerLlvmVaEnd(builder);
 
-        instr.vaStart(vaStartDecl, vaArray);
+        instr.vaStartAMD64(vaStartDecl, vaArray);
 
-        Instruction loadRes = instr.vaArgWorkaround(vaArray, PrimitiveType.I32);
+        Instruction loadRes = instr.vaArgAMD64(vaArray, PrimitiveType.I32);
 
-        instr.vaEnd(vaEndDecl, vaArray);
+        instr.vaEndAMD64(vaEndDecl, vaArray);
 
-        instr.returnx(length); // TODO
         instr.returnx(loadRes);
 
         fooFacade.exitFunction();
