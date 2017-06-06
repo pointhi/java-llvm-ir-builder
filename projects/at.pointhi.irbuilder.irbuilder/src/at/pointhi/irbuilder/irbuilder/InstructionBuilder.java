@@ -108,7 +108,7 @@ public class InstructionBuilder {
         return function.getBlock(idx);
     }
 
-    protected void ensureBlockExists(int idx) {
+    private void ensureBlockExists(int idx) {
         if (idx < function.getBlockCount()) {
             return; // block already exists, nothing to do
         }
@@ -214,20 +214,15 @@ public class InstructionBuilder {
         return getLastInstruction();
     }
 
-    public Instruction createBranch(int block) {
-        ensureBlockExists(block);
-
-        curBlock.createBranch(block);
+    public Instruction createBranch(InstructionBlock block) {
+        curBlock.createBranch(block.getBlockIndex());
         return getLastInstruction();
     }
 
-    public Instruction createBranch(Symbol condition, int ifBlock, int elseBlock) {
-        ensureBlockExists(ifBlock);
-        ensureBlockExists(elseBlock);
-
+    public Instruction createBranch(Symbol condition, InstructionBlock ifBlock, InstructionBlock elseBlock) {
         int conditionIdx = addSymbol(condition);
 
-        curBlock.createBranch(conditionIdx, ifBlock, elseBlock);
+        curBlock.createBranch(conditionIdx, ifBlock.getBlockIndex(), elseBlock.getBlockIndex());
         return getLastInstruction();
     }
 
@@ -352,13 +347,11 @@ public class InstructionBuilder {
         }
     }
 
-    public Instruction createIndirectBranch(Symbol address, int[] successors) {
-        for (int block : successors) {
-            ensureBlockExists(block);
-        }
+    public Instruction createIndirectBranch(Symbol address, InstructionBlock[] successors) {
+        int[] successorsIdx = Arrays.stream(successors).mapToInt(f -> f.getBlockIndex()).toArray();
 
         int addressIdx = addSymbol(address);
-        curBlock.createIndirectBranch(addressIdx, successors);
+        curBlock.createIndirectBranch(addressIdx, successorsIdx);
         return getLastInstruction();
     }
 
