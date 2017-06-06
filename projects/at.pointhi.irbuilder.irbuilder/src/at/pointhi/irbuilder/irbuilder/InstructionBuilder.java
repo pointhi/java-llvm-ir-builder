@@ -139,6 +139,49 @@ public class InstructionBuilder {
         }
     }
 
+    /**
+     * Append a specific amount of blocks after the current one, and change all InstructionBlock
+     * indexes accordingly.
+     *
+     * @param count number of Blocks inserted
+     */
+    public void insertBlocks(int count) {
+        try {
+            // get private blocks field and make it public
+            final Field dataField = function.getClass().getDeclaredField("blocks");
+            dataField.setAccessible(true);
+
+            // get InstructionBlock[] and reallocate to new size
+            final InstructionBlock[] oldBlocks = (InstructionBlock[]) dataField.get(function);
+            final InstructionBlock[] newBlocks = Arrays.copyOf(oldBlocks, oldBlocks.length + count);
+
+            final int insertIdx = curBlock.getBlockIndex() + 1;
+            final int rearIdx = insertIdx + count;
+
+            // copy the rear part of the array to the new position
+            System.arraycopy(newBlocks, insertIdx, newBlocks, rearIdx, oldBlocks.length - insertIdx);
+
+            // we need to initialize our new InstructionBlock elements
+            for (int i = insertIdx; i < rearIdx; i++) {
+                newBlocks[i] = new InstructionBlock(function, i);
+            }
+
+            // get private blockIndex field and make it public
+            final Field blockIndexField = InstructionBlock.class.getDeclaredField("blockIndex");
+            blockIndexField.setAccessible(true);
+
+            // we need to update the index of the remaining instructions
+            for (int i = rearIdx; i < newBlocks.length; i++) {
+                blockIndexField.set(newBlocks[i], i);
+            }
+
+            // write new InstructionBlock[] back into the object
+            dataField.set(function, newBlocks);
+        } catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public void exitFunction() {
         function.exitFunction();
     }

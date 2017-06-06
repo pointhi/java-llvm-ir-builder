@@ -330,31 +330,52 @@ public class SimpleInstrunctionBuilder {
         call(vaEndDecl, vaBytePtr);
     }
 
-    public Instruction vaArgAMD64(Symbol vaListTag, @SuppressWarnings("unused") Type type) {
+    /**
+     * Get the next VarArg of a AMD64 compiled function declared by the %struct.__va_list_tag
+     * variable.
+     *
+     * Please note because of the complexity of this function, that this function is adding
+     * additional InstructionBlocks into the function. This needs to be considered when a branch is
+     * jumping over this function.
+     *
+     * @param vaListTag our %struct.__va_list_tag
+     * @param type type of the variable we want to get
+     * @return the next vararg
+     */
+    public Instruction vaArgAMD64(Symbol vaListTag, Type type) {
+        final int curBlockIdx = builder.getCurrentBlock().getBlockIndex();
+        builder.insertBlocks(3);
+        InstructionBlock i11 = builder.getBlock(curBlockIdx + 1);
+        InstructionBlock i17 = builder.getBlock(curBlockIdx + 2);
+        InstructionBlock i22 = builder.getBlock(curBlockIdx + 3);
+
         Instruction i7 = builder.createGetElementPointer(vaListTag, new Symbol[]{new IntegerConstant(PrimitiveType.I32, 0), new IntegerConstant(PrimitiveType.I32, 0)}, true);
         Instruction i8 = builder.createGetElementPointer(i7, new Symbol[]{new IntegerConstant(PrimitiveType.I32, 0), new IntegerConstant(PrimitiveType.I32, 0)}, true);
         Instruction i9 = this.load(i8);
         Instruction i10 = compare(CompareOperator.INT_UNSIGNED_LESS_OR_EQUAL, i9, 40);
-        builder.createBranch(i10, builder.getBlock(1), builder.getBlock(2));
+        builder.createBranch(i10, i11, i17);
 
-        InstructionBlock i11 = builder.nextBlock(); // 11
+        builder.nextBlock(); // 11
+        assert builder.getCurrentBlock() == i11;
         Instruction i12 = builder.createGetElementPointer(i7, new Symbol[]{new IntegerConstant(PrimitiveType.I32, 0), new IntegerConstant(PrimitiveType.I32, 3)}, true);
         Instruction i13 = load(i12);
         Instruction i14 = builder.createGetElementPointer(i13, new Symbol[]{i9}, false);
         Instruction i15 = builder.createCast(new PointerType(PrimitiveType.I32), CastOperator.BITCAST, i14);
         Instruction i16 = binaryOperator(BinaryOperator.INT_ADD, i9, 8);
         builder.createStore(i8, i16, 16);
-        builder.createBranch(builder.getBlock(3));
+        builder.createBranch(i22);
 
-        InstructionBlock i17 = builder.nextBlock(); // 17
+        builder.nextBlock(); // 17
+        assert builder.getCurrentBlock() == i17;
         Instruction i18 = builder.createGetElementPointer(i7, new Symbol[]{new IntegerConstant(PrimitiveType.I32, 0), new IntegerConstant(PrimitiveType.I32, 2)}, true);
         Instruction i19 = load(i18);
         Instruction i20 = builder.createCast(new PointerType(PrimitiveType.I32), CastOperator.BITCAST, i19);
         Instruction i21 = builder.createGetElementPointer(i19, new Symbol[]{new IntegerConstant(PrimitiveType.I32, 8)}, false);
         builder.createStore(i18, i21, 8);
-        builder.createBranch(builder.getBlock(3));
+        builder.createBranch(i22);
 
         builder.nextBlock(); // 22
+        assert builder.getCurrentBlock() == i22;
         Instruction i23 = builder.createPhi(new PointerType(PrimitiveType.I32), new Symbol[]{i15, i20}, new InstructionBlock[]{i11, i17});
         Instruction i24 = load(i23);
 
