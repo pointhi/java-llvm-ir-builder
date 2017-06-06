@@ -31,6 +31,9 @@
  */
 package at.pointhi.irbuilder.irbuilder;
 
+import java.lang.reflect.Field;
+import java.util.Arrays;
+
 import com.oracle.truffle.llvm.parser.datalayout.DataLayoutConverter;
 import com.oracle.truffle.llvm.parser.model.blocks.InstructionBlock;
 import com.oracle.truffle.llvm.parser.model.enums.BinaryOperator;
@@ -71,7 +74,7 @@ public class InstructionBuilder {
     private InstructionBlock curBlock;
 
     private int counter = 1;
-    private int blockCounter = 1;
+    private int curBlockIdx = 1;
     private int argCounter = 1;
 
     public InstructionBuilder(FunctionDefinition function) {
@@ -87,9 +90,59 @@ public class InstructionBuilder {
     }
 
     public InstructionBlock nextBlock() {
+        curBlockIdx++;
+
+        // TODO: blockCounter could get out of sync when generateBlock is called externally
+        ensureBlockExists(curBlockIdx);
+
         curBlock = function.generateBlock();
-        curBlock.setName("label_" + Integer.toString(blockCounter++));
+        curBlock.setName("label_" + Integer.toString(curBlockIdx));
         return curBlock;
+    }
+
+    public InstructionBlock getCurrentBlock() {
+        return curBlock;
+    }
+
+    public int getCurrentBlockIdx() {
+        return curBlockIdx;
+    }
+
+    public InstructionBlock getBlock(int idx) {
+        ensureBlockExists(idx);
+
+        return function.getBlock(idx);
+    }
+
+    protected void ensureBlockExists(int idx) {
+        if (idx < function.getBlockCount()) {
+            return; // block already exists, nothing to do
+        }
+
+        /*
+         * it seems we need to manually allocate new blocks
+         *
+         * Because the required field is private, we rely on reflection for now.
+         */
+        try {
+            // get private blocks field and make it public
+            final Field dataField = function.getClass().getDeclaredField("blocks");
+            dataField.setAccessible(true);
+
+            // get InstructionBlock[] and reallocate to new size
+            final InstructionBlock[] oldBlocks = (InstructionBlock[]) dataField.get(function);
+            final InstructionBlock[] newBlocks = Arrays.copyOf(oldBlocks, idx + 1);
+
+            // we need to initialize our new InstructionBlock elements
+            for (int i = oldBlocks.length; i < newBlocks.length; i++) {
+                newBlocks[i] = new InstructionBlock(function, i);
+            }
+
+            // write new InstructionBlock[] back into the object
+            dataField.set(function, newBlocks);
+        } catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void exitFunction() {
@@ -168,11 +221,16 @@ public class InstructionBuilder {
     }
 
     public Instruction createBranch(int block) {
+        ensureBlockExists(block);
+
         curBlock.createBranch(block);
         return getLastInstruction();
     }
 
     public Instruction createBranch(Symbol condition, int ifBlock, int elseBlock) {
+        ensureBlockExists(ifBlock);
+        ensureBlockExists(elseBlock);
+
         int conditionIdx = addSymbol(condition);
 
         curBlock.createBranch(conditionIdx, ifBlock, elseBlock);
@@ -301,6 +359,10 @@ public class InstructionBuilder {
     }
 
     public Instruction createIndirectBranch(Symbol address, int[] successors) {
+        for (int block : successors) {
+            ensureBlockExists(block);
+        }
+
         int addressIdx = addSymbol(address);
         curBlock.createIndirectBranch(addressIdx, successors);
         return getLastInstruction();
