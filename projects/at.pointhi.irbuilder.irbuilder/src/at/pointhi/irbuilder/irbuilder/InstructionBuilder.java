@@ -74,7 +74,6 @@ public class InstructionBuilder {
     private InstructionBlock curBlock;
 
     private int counter = 1;
-    private int curBlockIdx = 1;
     private int argCounter = 1;
 
     public InstructionBuilder(FunctionDefinition function) {
@@ -90,22 +89,17 @@ public class InstructionBuilder {
     }
 
     public InstructionBlock nextBlock() {
-        curBlockIdx++;
+        final int nextBlockIdx = curBlock.getBlockIndex() + 1;
 
-        // TODO: blockCounter could get out of sync when generateBlock is called externally
-        ensureBlockExists(curBlockIdx);
+        ensureBlockExists(nextBlockIdx);
 
         curBlock = function.generateBlock();
-        curBlock.setName("label_" + Integer.toString(curBlockIdx));
+        curBlock.setName("label_" + Integer.toString(nextBlockIdx));
         return curBlock;
     }
 
     public InstructionBlock getCurrentBlock() {
         return curBlock;
-    }
-
-    public int getCurrentBlockIdx() {
-        return curBlockIdx;
     }
 
     public InstructionBlock getBlock(int idx) {
