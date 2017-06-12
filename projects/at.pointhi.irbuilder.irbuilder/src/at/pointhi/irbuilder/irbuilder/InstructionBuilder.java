@@ -32,7 +32,9 @@
 package at.pointhi.irbuilder.irbuilder;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import com.oracle.truffle.llvm.parser.datalayout.DataLayoutConverter;
 import com.oracle.truffle.llvm.parser.model.blocks.InstructionBlock;
@@ -327,10 +329,10 @@ public class InstructionBuilder {
 
     public Instruction createGetElementPointer(Symbol base, Symbol[] indices, boolean isInbounds) {
         int pointerIdx = addSymbol(base);
-        int[] indicesIdx = new int[indices.length];
+        List<Integer> indicesIdx = new ArrayList<>(indices.length);
         Type instrType = base.getType();
         for (int i = 0; i < indices.length; i++) {
-            indicesIdx[i] = addSymbol(indices[i]);
+            indicesIdx.add(addSymbol(indices[i]));
 
             GetElementPointerTypeVisitor localTypeVisitor = new GetElementPointerTypeVisitor(instrType, indices[i]);
             instrType.accept(localTypeVisitor);
