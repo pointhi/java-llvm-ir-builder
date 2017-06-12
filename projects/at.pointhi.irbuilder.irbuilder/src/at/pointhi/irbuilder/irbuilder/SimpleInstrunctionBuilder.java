@@ -338,6 +338,8 @@ public class SimpleInstrunctionBuilder {
      * additional InstructionBlocks into the function. This needs to be considered when a branch is
      * jumping over this function.
      *
+     * @see "https://software.intel.com/sites/default/files/article/402129/mpx-linux64-abi.pdf"
+     *
      * @param vaListTag our %struct.__va_list_tag
      * @param type type of the variable we want to get
      * @return the next vararg
@@ -350,7 +352,9 @@ public class SimpleInstrunctionBuilder {
         InstructionBlock i22 = builder.getBlock(curBlockIdx + 3);
 
         Instruction i7 = builder.createGetElementPointer(vaListTag, new Symbol[]{new IntegerConstant(PrimitiveType.I32, 0), new IntegerConstant(PrimitiveType.I32, 0)}, true);
-        final Instruction i8, i9, i10;
+        final Instruction i8;
+        final Instruction i9;
+        final Instruction i10;
         if (Type.isIntegerType(type)) {
             i8 = builder.createGetElementPointer(i7, new Symbol[]{new IntegerConstant(PrimitiveType.I32, 0), new IntegerConstant(PrimitiveType.I32, 0)}, true);
             i9 = this.load(i8);
