@@ -104,6 +104,10 @@ public class InstructionBuilder {
         return curBlock;
     }
 
+    public InstructionBlock getNextBlock() {
+        return getBlock(curBlock.getBlockIndex() + 1);
+    }
+
     public InstructionBlock getBlock(int idx) {
         ensureBlockExists(idx);
 

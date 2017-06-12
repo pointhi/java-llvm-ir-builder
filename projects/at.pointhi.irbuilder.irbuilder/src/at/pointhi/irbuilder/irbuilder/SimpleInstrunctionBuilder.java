@@ -350,9 +350,18 @@ public class SimpleInstrunctionBuilder {
         InstructionBlock i22 = builder.getBlock(curBlockIdx + 3);
 
         Instruction i7 = builder.createGetElementPointer(vaListTag, new Symbol[]{new IntegerConstant(PrimitiveType.I32, 0), new IntegerConstant(PrimitiveType.I32, 0)}, true);
-        Instruction i8 = builder.createGetElementPointer(i7, new Symbol[]{new IntegerConstant(PrimitiveType.I32, 0), new IntegerConstant(PrimitiveType.I32, 0)}, true);
-        Instruction i9 = this.load(i8);
-        Instruction i10 = compare(CompareOperator.INT_UNSIGNED_LESS_OR_EQUAL, i9, 40);
+        final Instruction i8, i9, i10;
+        if (Type.isIntegerType(type)) {
+            i8 = builder.createGetElementPointer(i7, new Symbol[]{new IntegerConstant(PrimitiveType.I32, 0), new IntegerConstant(PrimitiveType.I32, 0)}, true);
+            i9 = this.load(i8);
+            i10 = compare(CompareOperator.INT_UNSIGNED_LESS_OR_EQUAL, i9, 40);
+        } else if (Type.isFloatingpointType(type)) {
+            i8 = builder.createGetElementPointer(i7, new Symbol[]{new IntegerConstant(PrimitiveType.I32, 0), new IntegerConstant(PrimitiveType.I32, 1)}, true);
+            i9 = this.load(i8);
+            i10 = compare(CompareOperator.INT_UNSIGNED_LESS_OR_EQUAL, i9, 160);
+        } else {
+            throw new AssertionError("type not implemented yet: " + type);
+        }
         builder.createBranch(i10, i11, i17);
 
         builder.nextBlock(); // 11
@@ -360,8 +369,16 @@ public class SimpleInstrunctionBuilder {
         Instruction i12 = builder.createGetElementPointer(i7, new Symbol[]{new IntegerConstant(PrimitiveType.I32, 0), new IntegerConstant(PrimitiveType.I32, 3)}, true);
         Instruction i13 = load(i12);
         Instruction i14 = builder.createGetElementPointer(i13, new Symbol[]{i9}, false);
-        Instruction i15 = builder.createCast(new PointerType(PrimitiveType.I32), CastOperator.BITCAST, i14);
-        Instruction i16 = binaryOperator(BinaryOperator.INT_ADD, i9, 8);
+        Instruction i15 = builder.createCast(new PointerType(type), CastOperator.BITCAST, i14);
+        final int offset;
+        if (Type.isIntegerType(type)) {
+            offset = 8;
+        } else if (Type.isFloatingpointType(type)) {
+            offset = 16;
+        } else {
+            throw new AssertionError("type not implemented yet: " + type);
+        }
+        Instruction i16 = binaryOperator(BinaryOperator.INT_ADD, i9, offset);
         builder.createStore(i8, i16, 16);
         builder.createBranch(i22);
 
@@ -369,14 +386,14 @@ public class SimpleInstrunctionBuilder {
         assert builder.getCurrentBlock() == i17;
         Instruction i18 = builder.createGetElementPointer(i7, new Symbol[]{new IntegerConstant(PrimitiveType.I32, 0), new IntegerConstant(PrimitiveType.I32, 2)}, true);
         Instruction i19 = load(i18);
-        Instruction i20 = builder.createCast(new PointerType(PrimitiveType.I32), CastOperator.BITCAST, i19);
+        Instruction i20 = builder.createCast(new PointerType(type), CastOperator.BITCAST, i19);
         Instruction i21 = builder.createGetElementPointer(i19, new Symbol[]{new IntegerConstant(PrimitiveType.I32, 8)}, false);
         builder.createStore(i18, i21, 8);
         builder.createBranch(i22);
 
         builder.nextBlock(); // 22
         assert builder.getCurrentBlock() == i22;
-        Instruction i23 = builder.createPhi(new PointerType(PrimitiveType.I32), new Symbol[]{i15, i20}, new InstructionBlock[]{i11, i17});
+        Instruction i23 = builder.createPhi(new PointerType(type), new Symbol[]{i15, i20}, new InstructionBlock[]{i11, i17});
         Instruction i24 = load(i23);
 
         return i24;

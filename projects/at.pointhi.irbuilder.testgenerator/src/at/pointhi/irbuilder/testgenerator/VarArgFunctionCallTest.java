@@ -39,9 +39,12 @@ import org.junit.Test;
 import org.junit.runners.Parameterized;
 
 import com.oracle.truffle.llvm.parser.model.ModelModule;
+import com.oracle.truffle.llvm.parser.model.blocks.InstructionBlock;
+import com.oracle.truffle.llvm.parser.model.enums.CompareOperator;
 import com.oracle.truffle.llvm.parser.model.functions.FunctionDeclaration;
 import com.oracle.truffle.llvm.parser.model.functions.FunctionDefinition;
 import com.oracle.truffle.llvm.parser.model.functions.FunctionParameter;
+import com.oracle.truffle.llvm.parser.model.symbols.constants.floatingpoint.FloatingPointConstant;
 import com.oracle.truffle.llvm.parser.model.symbols.constants.integer.IntegerConstant;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.Instruction;
 import com.oracle.truffle.llvm.runtime.options.LLVMOptions;
@@ -101,10 +104,13 @@ public class VarArgFunctionCallTest extends BaseSuite {
          *
          * It seems llvm now has a specific keyword for that
          */
-
+        // TOOD: 4
         FunctionDefinition foo = builder.createFunctionDefinition("foo", 4, new FunctionType(PrimitiveType.I32, new Type[]{PrimitiveType.I32}, true));
         InstructionBuilder fooFacade = new InstructionBuilder(foo);
         SimpleInstrunctionBuilder instr = new SimpleInstrunctionBuilder(fooFacade);
+
+        InstructionBlock returnOkBlock = fooFacade.getBlock(1);
+        InstructionBlock returnFailBlock = fooFacade.getBlock(2);
 
         @SuppressWarnings("unused")
         FunctionParameter length = instr.nextParameter();
@@ -119,10 +125,30 @@ public class VarArgFunctionCallTest extends BaseSuite {
         instr.vaStartAMD64(vaStartDecl, vaArray);
 
         Instruction loadRes = instr.vaArgAMD64(vaArray, PrimitiveType.I32);
+        Instruction cmpRes = instr.compare(CompareOperator.INT_EQUAL, loadRes, 32);
+
+        fooFacade.insertBlocks(1);
+        fooFacade.createBranch(cmpRes, fooFacade.getNextBlock(), returnFailBlock);
+        fooFacade.nextBlock();
+
+        Instruction loadRes2 = instr.vaArgAMD64(vaArray, PrimitiveType.DOUBLE);
+        Instruction cmpRes2 = instr.compare(CompareOperator.FP_ORDERED_EQUAL, loadRes2, 1.2);
+
+        fooFacade.createBranch(cmpRes2, returnOkBlock, returnFailBlock);
+
+        fooFacade.nextBlock();
+        assert fooFacade.getCurrentBlock() == returnOkBlock;
 
         instr.vaEndAMD64(vaEndDecl, vaArray);
 
-        instr.returnx(loadRes);
+        instr.returnx(new IntegerConstant(PrimitiveType.I32, 0));
+
+        fooFacade.nextBlock();
+        assert fooFacade.getCurrentBlock() == returnFailBlock;
+
+        instr.vaEndAMD64(vaEndDecl, vaArray);
+
+        instr.returnx(new IntegerConstant(PrimitiveType.I32, 1));
 
         fooFacade.exitFunction();
 
@@ -134,12 +160,10 @@ public class VarArgFunctionCallTest extends BaseSuite {
         InstructionBuilder mainFacade = new InstructionBuilder(main);
         SimpleInstrunctionBuilder instr = new SimpleInstrunctionBuilder(mainFacade);
 
-        Instruction res = instr.call(foo, new IntegerConstant(PrimitiveType.I32, 22), new IntegerConstant(PrimitiveType.I32, 32));
+        Instruction res = instr.call(foo, new IntegerConstant(PrimitiveType.I32, 1), new IntegerConstant(PrimitiveType.I32, 32),
+                        FloatingPointConstant.create(PrimitiveType.DOUBLE, new long[]{Double.doubleToLongBits(1.2)}));
 
         instr.returnx(res); // 0=OK, 1=ERROR
-
-        // Instruction cmp = instr.compare(CompareOperator.INT_NOT_EQUAL, res, 22);
-        // instr.returnx(cmp); // 0=OK, 1=ERROR
 
         return main;
     }
