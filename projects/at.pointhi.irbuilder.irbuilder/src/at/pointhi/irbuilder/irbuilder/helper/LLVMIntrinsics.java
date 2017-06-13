@@ -31,6 +31,8 @@
  */
 package at.pointhi.irbuilder.irbuilder.helper;
 
+import java.util.Optional;
+
 import com.oracle.truffle.llvm.parser.model.functions.FunctionDeclaration;
 import com.oracle.truffle.llvm.runtime.types.ArrayType;
 import com.oracle.truffle.llvm.runtime.types.FunctionType;
@@ -41,17 +43,44 @@ import com.oracle.truffle.llvm.runtime.types.Type;
 import com.oracle.truffle.llvm.runtime.types.VoidType;
 
 import at.pointhi.irbuilder.irbuilder.ModelModuleBuilder;
+import at.pointhi.irbuilder.irbuilder.util.ModelExtractor;
 
 public final class LLVMIntrinsics {
 
-    public static FunctionDeclaration registerLlvmVaStart(ModelModuleBuilder builder) {
-        FunctionType vaStartType = new FunctionType(VoidType.INSTANCE, new Type[]{new PointerType(PrimitiveType.I8)}, false);
-        return builder.createFunctionDeclaration("llvm.va_start", vaStartType);
+    private static final FunctionType vaStartType = new FunctionType(VoidType.INSTANCE, new Type[]{new PointerType(PrimitiveType.I8)}, false);
+    private static final String vaStartName = "llvm.va_start";
+
+    public static FunctionDeclaration getLlvmVaStart(ModelModuleBuilder builder) {
+        return getFunctionDeclaration(builder, vaStartName, vaStartType);
     }
 
-    public static FunctionDeclaration registerLlvmVaEnd(ModelModuleBuilder builder) {
-        FunctionType vaEndType = new FunctionType(VoidType.INSTANCE, new Type[]{new PointerType(PrimitiveType.I8)}, false);
-        return builder.createFunctionDeclaration("llvm.va_end", vaEndType);
+    private static final FunctionType vaEndType = new FunctionType(VoidType.INSTANCE, new Type[]{new PointerType(PrimitiveType.I8)}, false);
+    private static final String vaEndName = "llvm.va_end";
+
+    public static FunctionDeclaration getLlvmVaEnd(ModelModuleBuilder builder) {
+        return getFunctionDeclaration(builder, vaEndName, vaEndType);
+    }
+
+    private static final FunctionType memcpyP0i8P0i8i64Type = new FunctionType(VoidType.INSTANCE,
+                    new Type[]{new PointerType(PrimitiveType.I8), new PointerType(PrimitiveType.I8), PrimitiveType.I64, PrimitiveType.I32, PrimitiveType.I32, PrimitiveType.I1}, false);
+    private static final String memcpyP0i8P0i8i64Name = "llvm.memcpy.p0i8.p0i8.i64";
+
+    public static FunctionDeclaration getLlvmMemcpyP0i8P0i8i64(ModelModuleBuilder builder) {
+        return getFunctionDeclaration(builder, memcpyP0i8P0i8i64Name, memcpyP0i8P0i8i64Type);
+    }
+
+    private static FunctionDeclaration getFunctionDeclaration(ModelModuleBuilder builder, String name, FunctionType type) {
+        final ModelExtractor<FunctionDeclaration> extractor = new ModelExtractor.FunctionDeclarationExtractor(f -> f.getName().equals(name) && f.getType().equals(type));
+
+        builder.getModelModule().accept(extractor);
+
+        // only create function declaration if it does not exist yet
+        final Optional<FunctionDeclaration> match = extractor.getMatch();
+        if (match.isPresent()) {
+            return match.get();
+        } else {
+            return builder.createFunctionDeclaration(name, type);
+        }
     }
 
     public static StructureType registerVaListTagType(ModelModuleBuilder builder) {

@@ -114,7 +114,7 @@ public class BinaryI1VectorOperations extends BaseSuite {
 
     private void createMain(ModelModuleBuilder builder) {
         FunctionDefinition main = builder.createFunctionDefinition("main", 1, new FunctionType(PrimitiveType.I1, new Type[]{}, false));
-        SimpleInstrunctionBuilder instr = new SimpleInstrunctionBuilder(main);
+        SimpleInstrunctionBuilder instr = new SimpleInstrunctionBuilder(builder, main);
 
         List<Object[]> paramList = new ArrayList<>();
         createResultList(paramList, operator);

@@ -132,7 +132,7 @@ public class BinaryVectorOperatorTest extends BaseSuite {
                         BigInteger.ZERO, BigInteger.valueOf(maxValue));
 
         FunctionDefinition main = builder.createFunctionDefinition("main", 1, new FunctionType(PrimitiveType.I1, new Type[]{}, false));
-        SimpleInstrunctionBuilder instr = new SimpleInstrunctionBuilder(main);
+        SimpleInstrunctionBuilder instr = new SimpleInstrunctionBuilder(builder, main);
 
         // TODO: wrong align?
         Instruction vec1 = instr.allocate(new VectorType(type, 2));

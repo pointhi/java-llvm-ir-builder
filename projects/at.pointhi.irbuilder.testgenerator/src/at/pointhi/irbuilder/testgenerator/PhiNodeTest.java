@@ -90,7 +90,7 @@ public class PhiNodeTest extends BaseSuite {
     private static void createMain(ModelModuleBuilder builder) {
         FunctionDefinition main = builder.createFunctionDefinition("main", 7, new FunctionType(PrimitiveType.I32, new Type[]{}, false));
         InstructionBuilder facade = new InstructionBuilder(main);
-        SimpleInstrunctionBuilder instr = new SimpleInstrunctionBuilder(facade);
+        SimpleInstrunctionBuilder instr = new SimpleInstrunctionBuilder(builder, facade);
 
         facade.createBranch(facade.getBlock(1)); // TODO: change
 

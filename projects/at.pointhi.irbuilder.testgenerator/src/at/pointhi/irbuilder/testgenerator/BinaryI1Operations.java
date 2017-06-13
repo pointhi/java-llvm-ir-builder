@@ -129,7 +129,7 @@ public class BinaryI1Operations extends BaseSuite {
 
     private void createMain(ModelModuleBuilder builder) throws UndefinedArithmeticResult {
         FunctionDefinition main = builder.createFunctionDefinition("main", 1, new FunctionType(PrimitiveType.I1, new Type[]{}, false));
-        SimpleInstrunctionBuilder instr = new SimpleInstrunctionBuilder(main);
+        SimpleInstrunctionBuilder instr = new SimpleInstrunctionBuilder(builder, main);
 
         IntegerConstant op1Sym = new IntegerConstant(PrimitiveType.I1, op1 ? 1 : 0);
         IntegerConstant op2Sym = new IntegerConstant(PrimitiveType.I1, op2 ? 1 : 0);

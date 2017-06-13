@@ -33,6 +33,7 @@ package at.pointhi.irbuilder.irbuilder;
 
 import java.math.BigInteger;
 
+import com.oracle.truffle.llvm.parser.model.ModelModule;
 import com.oracle.truffle.llvm.parser.model.blocks.InstructionBlock;
 import com.oracle.truffle.llvm.parser.model.enums.BinaryOperator;
 import com.oracle.truffle.llvm.parser.model.enums.CastOperator;
@@ -52,14 +53,19 @@ import com.oracle.truffle.llvm.runtime.types.Type;
 import com.oracle.truffle.llvm.runtime.types.VariableBitWidthType;
 import com.oracle.truffle.llvm.runtime.types.symbols.Symbol;
 
-public class SimpleInstrunctionBuilder {
-    final InstructionBuilder builder;
+import at.pointhi.irbuilder.irbuilder.helper.LLVMIntrinsics;
+import at.pointhi.irbuilder.irbuilder.util.ConstantUtil;
 
-    public SimpleInstrunctionBuilder(FunctionDefinition function) {
-        this(new InstructionBuilder(function));
+public class SimpleInstrunctionBuilder {
+    private final ModelModuleBuilder modelBuilder;
+    private final InstructionBuilder builder;
+
+    public SimpleInstrunctionBuilder(ModelModuleBuilder modelBuilder, FunctionDefinition function) {
+        this(modelBuilder, new InstructionBuilder(function));
     }
 
-    public SimpleInstrunctionBuilder(InstructionBuilder builder) {
+    public SimpleInstrunctionBuilder(ModelModuleBuilder modelBuilder, InstructionBuilder builder) {
+        this.modelBuilder = modelBuilder;
         this.builder = builder;
     }
 
@@ -318,16 +324,16 @@ public class SimpleInstrunctionBuilder {
     }
 
     // va_arg for x86_64-unknown-linux-gnu
-    public void vaStartAMD64(FunctionDeclaration vaStartDecl, Symbol vaListTag) {
-        Instruction vaArrayPtr = builder.createGetElementPointer(vaListTag, new Symbol[]{new IntegerConstant(PrimitiveType.I32, 0), new IntegerConstant(PrimitiveType.I32, 0)}, true);
+    public void vaStartAMD64(Symbol vaListTag) {
+        Instruction vaArrayPtr = builder.createGetElementPointer(vaListTag, new Symbol[]{ConstantUtil.getI32Const(0), ConstantUtil.getI32Const(0)}, true);
         Instruction vaBytePtr = builder.createCast(new PointerType(PrimitiveType.I8), CastOperator.BITCAST, vaArrayPtr);
-        call(vaStartDecl, vaBytePtr);
+        call(LLVMIntrinsics.getLlvmVaStart(modelBuilder), vaBytePtr);
     }
 
-    public void vaEndAMD64(FunctionDeclaration vaEndDecl, Symbol vaListTag) {
-        Instruction vaArrayPtr = builder.createGetElementPointer(vaListTag, new Symbol[]{new IntegerConstant(PrimitiveType.I32, 0), new IntegerConstant(PrimitiveType.I32, 0)}, true);
+    public void vaEndAMD64(Symbol vaListTag) {
+        Instruction vaArrayPtr = builder.createGetElementPointer(vaListTag, new Symbol[]{ConstantUtil.getI32Const(0), ConstantUtil.getI32Const(0)}, true);
         Instruction vaBytePtr = builder.createCast(new PointerType(PrimitiveType.I8), CastOperator.BITCAST, vaArrayPtr);
-        call(vaEndDecl, vaBytePtr);
+        call(LLVMIntrinsics.getLlvmVaEnd(modelBuilder), vaBytePtr);
     }
 
     /**
@@ -351,16 +357,17 @@ public class SimpleInstrunctionBuilder {
         InstructionBlock i17 = builder.getBlock(curBlockIdx + 2);
         InstructionBlock i22 = builder.getBlock(curBlockIdx + 3);
 
-        Instruction i7 = builder.createGetElementPointer(vaListTag, new Symbol[]{new IntegerConstant(PrimitiveType.I32, 0), new IntegerConstant(PrimitiveType.I32, 0)}, true);
+        // Is register available?
+        Instruction i7 = builder.createGetElementPointer(vaListTag, new Symbol[]{ConstantUtil.getI32Const(0), ConstantUtil.getI32Const(0)}, true);
         final Instruction i8;
         final Instruction i9;
         final Instruction i10;
         if (Type.isIntegerType(type)) {
-            i8 = builder.createGetElementPointer(i7, new Symbol[]{new IntegerConstant(PrimitiveType.I32, 0), new IntegerConstant(PrimitiveType.I32, 0)}, true);
+            i8 = builder.createGetElementPointer(i7, new Symbol[]{ConstantUtil.getI32Const(0), ConstantUtil.getI32Const(0)}, true);
             i9 = this.load(i8);
             i10 = compare(CompareOperator.INT_UNSIGNED_LESS_OR_EQUAL, i9, 40);
         } else if (Type.isFloatingpointType(type)) {
-            i8 = builder.createGetElementPointer(i7, new Symbol[]{new IntegerConstant(PrimitiveType.I32, 0), new IntegerConstant(PrimitiveType.I32, 1)}, true);
+            i8 = builder.createGetElementPointer(i7, new Symbol[]{ConstantUtil.getI32Const(0), ConstantUtil.getI32Const(1)}, true);
             i9 = this.load(i8);
             i10 = compare(CompareOperator.INT_UNSIGNED_LESS_OR_EQUAL, i9, 160);
         } else {
@@ -370,10 +377,14 @@ public class SimpleInstrunctionBuilder {
 
         builder.nextBlock(); // 11
         assert builder.getCurrentBlock() == i11;
-        Instruction i12 = builder.createGetElementPointer(i7, new Symbol[]{new IntegerConstant(PrimitiveType.I32, 0), new IntegerConstant(PrimitiveType.I32, 3)}, true);
+
+        // Address of saved register
+        Instruction i12 = builder.createGetElementPointer(i7, new Symbol[]{ConstantUtil.getI32Const(0), ConstantUtil.getI32Const(3)}, true);
         Instruction i13 = load(i12);
         Instruction i14 = builder.createGetElementPointer(i13, new Symbol[]{i9}, false);
         Instruction i15 = builder.createCast(new PointerType(type), CastOperator.BITCAST, i14);
+
+        // Update gp_offset
         final int offset;
         if (Type.isIntegerType(type)) {
             offset = 8;
@@ -388,19 +399,48 @@ public class SimpleInstrunctionBuilder {
 
         builder.nextBlock(); // 17
         assert builder.getCurrentBlock() == i17;
-        Instruction i18 = builder.createGetElementPointer(i7, new Symbol[]{new IntegerConstant(PrimitiveType.I32, 0), new IntegerConstant(PrimitiveType.I32, 2)}, true);
+
+        // Address of stack slot
+        Instruction i18 = builder.createGetElementPointer(i7, new Symbol[]{ConstantUtil.getI32Const(0), ConstantUtil.getI32Const(2)}, true);
         Instruction i19 = load(i18);
         Instruction i20 = builder.createCast(new PointerType(type), CastOperator.BITCAST, i19);
-        Instruction i21 = builder.createGetElementPointer(i19, new Symbol[]{new IntegerConstant(PrimitiveType.I32, 8)}, false);
+        Instruction i21 = builder.createGetElementPointer(i19, new Symbol[]{ConstantUtil.getI32Const(8)}, false);
+        // update to next available stack slot
         builder.createStore(i18, i21, 8);
         builder.createBranch(i22);
 
         builder.nextBlock(); // 22
         assert builder.getCurrentBlock() == i22;
         Instruction i23 = builder.createPhi(new PointerType(type), new Symbol[]{i15, i20}, new InstructionBlock[]{i11, i17});
+        // Load argument
         Instruction i24 = load(i23);
 
         return i24;
+    }
+
+    // TODO: private
+    public Instruction vaArgAMD64StackOnly(Symbol vaListTag, Type type) {
+        Instruction i7 = builder.createGetElementPointer(vaListTag, new Symbol[]{ConstantUtil.getI32Const(0), ConstantUtil.getI32Const(0)}, true);
+
+        // Address of stack slot
+        Instruction i8 = builder.createGetElementPointer(i7, new Symbol[]{ConstantUtil.getI32Const(0), ConstantUtil.getI32Const(2)}, true);
+        Instruction i9 = load(i8);
+        Instruction i10 = builder.createCast(new PointerType(type), CastOperator.BITCAST, i9);
+        // TODO: align
+        Instruction i11 = builder.createGetElementPointer(i9, new Symbol[]{ConstantUtil.getI32Const(32)}, false);
+
+        // update to next available stack slot
+        builder.createStore(i8, i11, 8);
+
+        // copy into new object
+        Instruction i4 = allocate(type);
+        Instruction i12 = builder.createCast(new PointerType(PrimitiveType.I8), CastOperator.BITCAST, i4);
+        Instruction i13 = builder.createCast(new PointerType(PrimitiveType.I8), CastOperator.BITCAST, i10);
+
+        // TODO: align
+        call(LLVMIntrinsics.getLlvmMemcpyP0i8P0i8i64(modelBuilder), i12, i13, ConstantUtil.getI64Const(32), ConstantUtil.getI32Const(4), ConstantUtil.getI1Const(false));
+
+        return load(i4);
     }
 
 }

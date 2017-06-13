@@ -39,15 +39,28 @@ import com.oracle.truffle.llvm.parser.model.functions.FunctionDefinition;
 import com.oracle.truffle.llvm.parser.model.globals.GlobalConstant;
 import com.oracle.truffle.llvm.parser.model.visitors.ModelVisitor;
 
+/**
+ * Sometimes we want to find specific objects inside a Model and extract/change it.
+ *
+ * This class should help us in this regard, to give us some standard implementation which can then
+ * be extended by the calle, to do operations on single elements of a model.
+ *
+ * @param <T>
+ */
 public abstract class ModelExtractor<T extends Object> implements ModelVisitor {
     private Optional<T> match = Optional.empty();
-    protected final Predicate<? super T> predicate;
+    private final Predicate<? super T> predicate;
 
     private ModelExtractor(Predicate<? super T> predicate) {
         this.predicate = predicate;
     }
 
-    public void onMatch(@SuppressWarnings("unused") T obj) {
+    /**
+     * Executes an arbitrary action when a match is found.
+     *
+     * @param obj Object which matches our predicate
+     */
+    public void onMatch(T obj) {
     }
 
     public Optional<T> getMatch() {
@@ -57,7 +70,7 @@ public abstract class ModelExtractor<T extends Object> implements ModelVisitor {
     protected void onVisit(T obj) {
         if (predicate.test(obj)) {
             if (match.isPresent()) {
-                throw new AssertionError("the extractor visitor should only match for one object!");
+                throw new AssertionError("the extractor visitor should only match for a single object!");
             }
             match = Optional.of(obj);
 

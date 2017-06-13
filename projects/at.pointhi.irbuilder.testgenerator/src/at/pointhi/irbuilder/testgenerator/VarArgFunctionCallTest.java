@@ -107,7 +107,7 @@ public class VarArgFunctionCallTest extends BaseSuite {
         // TOOD: 4
         FunctionDefinition foo = builder.createFunctionDefinition("foo", 4, new FunctionType(PrimitiveType.I32, new Type[]{PrimitiveType.I32}, true));
         InstructionBuilder fooFacade = new InstructionBuilder(foo);
-        SimpleInstrunctionBuilder instr = new SimpleInstrunctionBuilder(fooFacade);
+        SimpleInstrunctionBuilder instr = new SimpleInstrunctionBuilder(builder, fooFacade);
 
         InstructionBlock returnOkBlock = fooFacade.getBlock(1);
         InstructionBlock returnFailBlock = fooFacade.getBlock(2);
@@ -119,10 +119,7 @@ public class VarArgFunctionCallTest extends BaseSuite {
         // TODO: align should be 16, not 8
         Instruction vaArray = instr.allocate(new ArrayType(vaListTag, 1));
 
-        FunctionDeclaration vaStartDecl = LLVMIntrinsics.registerLlvmVaStart(builder);
-        FunctionDeclaration vaEndDecl = LLVMIntrinsics.registerLlvmVaEnd(builder);
-
-        instr.vaStartAMD64(vaStartDecl, vaArray);
+        instr.vaStartAMD64(vaArray);
 
         Instruction loadRes = instr.vaArgAMD64(vaArray, PrimitiveType.I32);
         Instruction cmpRes = instr.compare(CompareOperator.INT_EQUAL, loadRes, 32);
@@ -139,14 +136,14 @@ public class VarArgFunctionCallTest extends BaseSuite {
         fooFacade.nextBlock();
         assert fooFacade.getCurrentBlock() == returnOkBlock;
 
-        instr.vaEndAMD64(vaEndDecl, vaArray);
+        instr.vaEndAMD64(vaArray);
 
         instr.returnx(new IntegerConstant(PrimitiveType.I32, 0));
 
         fooFacade.nextBlock();
         assert fooFacade.getCurrentBlock() == returnFailBlock;
 
-        instr.vaEndAMD64(vaEndDecl, vaArray);
+        instr.vaEndAMD64(vaArray);
 
         instr.returnx(new IntegerConstant(PrimitiveType.I32, 1));
 
@@ -158,7 +155,7 @@ public class VarArgFunctionCallTest extends BaseSuite {
     private static FunctionDefinition createMain(ModelModuleBuilder builder, FunctionDefinition foo) {
         FunctionDefinition main = builder.createFunctionDefinition("main", 1, new FunctionType(PrimitiveType.I32, new Type[]{}, true));
         InstructionBuilder mainFacade = new InstructionBuilder(main);
-        SimpleInstrunctionBuilder instr = new SimpleInstrunctionBuilder(mainFacade);
+        SimpleInstrunctionBuilder instr = new SimpleInstrunctionBuilder(builder, mainFacade);
 
         Instruction res = instr.call(foo, new IntegerConstant(PrimitiveType.I32, 1), new IntegerConstant(PrimitiveType.I32, 32),
                         FloatingPointConstant.create(PrimitiveType.DOUBLE, new long[]{Double.doubleToLongBits(1.2)}));
