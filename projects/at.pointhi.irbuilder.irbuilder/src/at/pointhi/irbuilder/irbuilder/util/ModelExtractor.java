@@ -63,11 +63,11 @@ public abstract class ModelExtractor<T extends Object> implements ModelVisitor {
     public void onMatch(T obj) {
     }
 
-    public Optional<T> getMatch() {
+    public final Optional<T> getMatch() {
         return match;
     }
 
-    protected void onVisit(T obj) {
+    protected final void onVisit(T obj) {
         if (predicate.test(obj)) {
             if (match.isPresent()) {
                 throw new AssertionError("the extractor visitor should only match for a single object!");
@@ -79,7 +79,7 @@ public abstract class ModelExtractor<T extends Object> implements ModelVisitor {
     }
 
     @Override
-    public void ifVisitNotOverwritten(Object obj) {
+    public final void ifVisitNotOverwritten(Object obj) {
     }
 
     public static class FunctionDeclarationExtractor extends ModelExtractor<FunctionDeclaration> {
@@ -89,7 +89,7 @@ public abstract class ModelExtractor<T extends Object> implements ModelVisitor {
         }
 
         @Override
-        public void visit(FunctionDeclaration function) {
+        public final void visit(FunctionDeclaration function) {
             onVisit(function);
         }
     }
@@ -101,7 +101,7 @@ public abstract class ModelExtractor<T extends Object> implements ModelVisitor {
         }
 
         @Override
-        public void visit(FunctionDefinition function) {
+        public final void visit(FunctionDefinition function) {
             onVisit(function);
         }
     }
@@ -113,7 +113,7 @@ public abstract class ModelExtractor<T extends Object> implements ModelVisitor {
         }
 
         @Override
-        public void visit(GlobalConstant constant) {
+        public final void visit(GlobalConstant constant) {
             onVisit(constant);
         }
     }

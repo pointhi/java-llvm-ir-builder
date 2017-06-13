@@ -41,6 +41,7 @@ import com.oracle.truffle.llvm.runtime.types.PrimitiveType;
 import com.oracle.truffle.llvm.runtime.types.StructureType;
 import com.oracle.truffle.llvm.runtime.types.Type;
 import com.oracle.truffle.llvm.runtime.types.VoidType;
+import com.oracle.truffle.llvm.runtime.types.symbols.LLVMIdentifier;
 
 import at.pointhi.irbuilder.irbuilder.ModelModuleBuilder;
 import at.pointhi.irbuilder.irbuilder.util.ModelExtractor;
@@ -70,7 +71,8 @@ public final class LLVMIntrinsics {
     }
 
     private static FunctionDeclaration getFunctionDeclaration(ModelModuleBuilder builder, String name, FunctionType type) {
-        final ModelExtractor<FunctionDeclaration> extractor = new ModelExtractor.FunctionDeclarationExtractor(f -> f.getName().equals(name) && f.getType().equals(type));
+        final String llvmName = LLVMIdentifier.toGlobalIdentifier(name);
+        final ModelExtractor<FunctionDeclaration> extractor = new ModelExtractor.FunctionDeclarationExtractor(f -> f.getName().equals(llvmName) && f.getType().equals(type));
 
         builder.getModelModule().accept(extractor);
 
