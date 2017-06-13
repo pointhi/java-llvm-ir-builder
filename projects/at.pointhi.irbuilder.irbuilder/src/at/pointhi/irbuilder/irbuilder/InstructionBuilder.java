@@ -66,6 +66,8 @@ import com.oracle.truffle.llvm.runtime.types.symbols.LLVMIdentifier;
 import com.oracle.truffle.llvm.runtime.types.symbols.Symbol;
 import com.oracle.truffle.llvm.runtime.types.visitors.TypeVisitor;
 
+import at.pointhi.irbuilder.irbuilder.util.ConstantUtil;
+
 // TODO: https://github.com/pointhi/sulong/blob/1cc13ee850034242fd3406e29cd003b06f065c15/projects/com.oracle.truffle.llvm.writer/src/com/oracle/truffle/llvm/writer/facades/InstructionGeneratorFacade.java
 public class InstructionBuilder {
     private static final String x86TargetDataLayout = "e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-n8:16:32:64-S128";
@@ -90,6 +92,12 @@ public class InstructionBuilder {
         return newParam;
     }
 
+    /**
+     * Go to next InstructionBlock and give them a unique label. If required it generates a new one
+     * one the fly.
+     *
+     * @return reference to new InstructionBlock
+     */
     public InstructionBlock nextBlock() {
         final int nextBlockIdx = curBlock.getBlockIndex() + 1;
 
@@ -100,14 +108,37 @@ public class InstructionBuilder {
         return curBlock;
     }
 
+    /**
+     * Get the current InstructionBlock.
+     *
+     * @return reference to current InstructionBlock
+     */
     public InstructionBlock getCurrentBlock() {
         return curBlock;
     }
 
+    /**
+     * Get the following InstructionBlock. If there does not exists one, it creates a new one.
+     *
+     * @return reference to next InstructionBlock
+     */
     public InstructionBlock getNextBlock() {
         return getBlock(curBlock.getBlockIndex() + 1);
     }
 
+    /**
+     * Get a InstructionBlock defined by a specific index. If there does not exists one, it creates
+     * enough new blocks to cover the requested index and all new indexes between.
+     *
+     * It should be noted that this instruction is only returning the same instruction block for
+     * sure, when the requested block index is less or equal the current one. It's possible to
+     * inject InstructionBlocks, which can result in changed indexes after those blocks.
+     *
+     * Thus it is recommended to get all block indexes at the beginning of a function, before
+     * calling advanced generator code.
+     *
+     * @return reference to requested InstructionBlock
+     */
     public InstructionBlock getBlock(int idx) {
         ensureBlockExists(idx);
 
@@ -149,7 +180,7 @@ public class InstructionBuilder {
      * Append a specific amount of blocks after the current one, and change all InstructionBlock
      * indexes accordingly.
      *
-     * @param count number of Blocks inserted
+     * @param count number of Blocks which we want to insert
      */
     public void insertBlocks(int count) {
         try {
@@ -188,6 +219,9 @@ public class InstructionBuilder {
         }
     }
 
+    /**
+     * This function has to be called at the end of the definition, to adjust some internals.
+     */
     public void exitFunction() {
         function.exitFunction();
     }
@@ -198,10 +232,6 @@ public class InstructionBuilder {
 
     public int getArgCounter() {
         return argCounter;
-    }
-
-    private static IntegerConstant createI32Constant(int value) {
-        return new IntegerConstant(PrimitiveType.I32, value);
     }
 
     /**
@@ -235,7 +265,7 @@ public class InstructionBuilder {
 
     public Instruction createAllocate(Type type) {
         Type pointerType = new PointerType(type);
-        int count = addSymbol(createI32Constant(1));
+        int count = addSymbol(ConstantUtil.getI32Const(1));
         int align = type.getAlignment(targetDataLayout);
         curBlock.createAllocation(pointerType, count, calculateAlign(align));
         return getLastInstruction();
@@ -318,7 +348,7 @@ public class InstructionBuilder {
     public Instruction createExtractValue(@SuppressWarnings("unused") Instruction struct, Symbol vector, int index) {
         Type type = ((AggregateType) vector.getType()).getElementType(index); // TODO: correct?
         int vectorIdx = addSymbol(vector);
-        int indexIdx = addSymbol(createI32Constant(index));
+        int indexIdx = addSymbol(ConstantUtil.getI32Const(index));
         curBlock.createExtractElement(type, vectorIdx, indexIdx);
         return getLastInstruction();
     }
@@ -326,7 +356,7 @@ public class InstructionBuilder {
     public Instruction createExtractElement(Instruction vector, int index) {
         Type type = ((AggregateType) vector.getType()).getElementType(index);
         int vectorIdx = addSymbol(vector);
-        int indexIdx = addSymbol(createI32Constant(index));
+        int indexIdx = addSymbol(ConstantUtil.getI32Const(index));
         curBlock.createExtractElement(type, vectorIdx, indexIdx);
         return getLastInstruction();
     }
