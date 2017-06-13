@@ -33,12 +33,10 @@ package at.pointhi.irbuilder.irbuilder;
 
 import java.math.BigInteger;
 
-import com.oracle.truffle.llvm.parser.model.ModelModule;
 import com.oracle.truffle.llvm.parser.model.blocks.InstructionBlock;
 import com.oracle.truffle.llvm.parser.model.enums.BinaryOperator;
 import com.oracle.truffle.llvm.parser.model.enums.CastOperator;
 import com.oracle.truffle.llvm.parser.model.enums.CompareOperator;
-import com.oracle.truffle.llvm.parser.model.functions.FunctionDeclaration;
 import com.oracle.truffle.llvm.parser.model.functions.FunctionDefinition;
 import com.oracle.truffle.llvm.parser.model.functions.FunctionParameter;
 import com.oracle.truffle.llvm.parser.model.symbols.constants.Constant;
