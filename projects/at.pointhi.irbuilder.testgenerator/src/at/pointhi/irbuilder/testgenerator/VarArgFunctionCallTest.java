@@ -42,9 +42,6 @@ import com.oracle.truffle.llvm.parser.model.ModelModule;
 import com.oracle.truffle.llvm.parser.model.blocks.InstructionBlock;
 import com.oracle.truffle.llvm.parser.model.enums.CompareOperator;
 import com.oracle.truffle.llvm.parser.model.functions.FunctionDefinition;
-import com.oracle.truffle.llvm.parser.model.functions.FunctionParameter;
-import com.oracle.truffle.llvm.parser.model.symbols.constants.floatingpoint.FloatingPointConstant;
-import com.oracle.truffle.llvm.parser.model.symbols.constants.integer.IntegerConstant;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.Instruction;
 import com.oracle.truffle.llvm.runtime.options.LLVMOptions;
 import com.oracle.truffle.llvm.runtime.types.ArrayType;
@@ -118,8 +115,7 @@ public class VarArgFunctionCallTest extends BaseSuite {
         InstructionBlock returnOkBlock = fooFacade.getBlock(1);
         InstructionBlock returnFailBlock = fooFacade.getBlock(2);
 
-        @SuppressWarnings("unused")
-        FunctionParameter length = instr.nextParameter();
+        // FunctionParameter length = instr.nextParameter();
 
         StructureType vaListTag = LLVMIntrinsics.registerVaListTagType(builder);
         // TODO: align should be 16, not 8
