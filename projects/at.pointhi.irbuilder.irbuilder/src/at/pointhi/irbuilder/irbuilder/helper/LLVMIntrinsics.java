@@ -63,7 +63,7 @@ public final class LLVMIntrinsics {
     }
 
     private static final FunctionType memcpyP0i8P0i8i64Type = new FunctionType(VoidType.INSTANCE,
-                    new Type[]{new PointerType(PrimitiveType.I8), new PointerType(PrimitiveType.I8), PrimitiveType.I64, PrimitiveType.I32, PrimitiveType.I32, PrimitiveType.I1}, false);
+                    new Type[]{new PointerType(PrimitiveType.I8), new PointerType(PrimitiveType.I8), PrimitiveType.I64, PrimitiveType.I32, PrimitiveType.I1}, false);
     private static final String memcpyP0i8P0i8i64Name = "llvm.memcpy.p0i8.p0i8.i64";
 
     public static FunctionDeclaration getLlvmMemcpyP0i8P0i8i64(ModelModuleBuilder builder) {
@@ -85,6 +85,23 @@ public final class LLVMIntrinsics {
         }
     }
 
+    public enum VA_LIST_TAG_TYPE {
+        GP_OFFSET(0),
+        FP_OFFSET(1),
+        OVERFLOW_ARG_AREA(2),
+        REG_SAVE_AREA(3);
+
+        final int idx;
+
+        VA_LIST_TAG_TYPE(int idx) {
+            this.idx = idx;
+        }
+
+        public int getIdx() {
+            return idx;
+        }
+    }
+
     public static StructureType registerVaListTagType(ModelModuleBuilder builder) {
         // This in system specific
         // @see http://llvm.org/docs/LangRef.html#variable-argument-handling-intrinsics
@@ -94,11 +111,10 @@ public final class LLVMIntrinsics {
          */
         Type[] vaListTagTypes = new Type[4];
 
-        int i = 0;
-        vaListTagTypes[i++] = PrimitiveType.I32;
-        vaListTagTypes[i++] = PrimitiveType.I32;
-        vaListTagTypes[i++] = new PointerType(PrimitiveType.I8);
-        vaListTagTypes[i++] = new PointerType(PrimitiveType.I8);
+        vaListTagTypes[VA_LIST_TAG_TYPE.GP_OFFSET.getIdx()] = PrimitiveType.I32;
+        vaListTagTypes[VA_LIST_TAG_TYPE.FP_OFFSET.getIdx()] = PrimitiveType.I32;
+        vaListTagTypes[VA_LIST_TAG_TYPE.OVERFLOW_ARG_AREA.getIdx()] = new PointerType(PrimitiveType.I8);
+        vaListTagTypes[VA_LIST_TAG_TYPE.REG_SAVE_AREA.getIdx()] = new PointerType(PrimitiveType.I8);
 
         StructureType vaListTag = new StructureType(false, vaListTagTypes);
         vaListTag.setName("struct.__va_list_tag");

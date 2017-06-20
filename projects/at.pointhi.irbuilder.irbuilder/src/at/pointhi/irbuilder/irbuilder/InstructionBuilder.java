@@ -37,6 +37,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.oracle.truffle.llvm.parser.datalayout.DataLayoutConverter;
+import com.oracle.truffle.llvm.parser.model.attributes.AttributesCodeEntry;
 import com.oracle.truffle.llvm.parser.model.blocks.InstructionBlock;
 import com.oracle.truffle.llvm.parser.model.enums.BinaryOperator;
 import com.oracle.truffle.llvm.parser.model.enums.CastOperator;
@@ -327,7 +328,7 @@ public class InstructionBuilder {
         for (int i = 0; i < arguments.length; i++) {
             argumentsIdx[i] = addSymbol(arguments[i]);
         }
-        curBlock.createCall(returnType, targetIdx, argumentsIdx);
+        curBlock.createCall(returnType, targetIdx, argumentsIdx, AttributesCodeEntry.EMPTY);
         return getLastInstruction();
     }
 

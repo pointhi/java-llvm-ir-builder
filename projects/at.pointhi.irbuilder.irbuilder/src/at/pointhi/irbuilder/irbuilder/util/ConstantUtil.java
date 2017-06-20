@@ -31,6 +31,7 @@
  */
 package at.pointhi.irbuilder.irbuilder.util;
 
+import com.oracle.truffle.llvm.parser.model.symbols.constants.floatingpoint.FloatingPointConstant;
 import com.oracle.truffle.llvm.parser.model.symbols.constants.integer.IntegerConstant;
 import com.oracle.truffle.llvm.runtime.types.PrimitiveType;
 
@@ -56,5 +57,13 @@ public final class ConstantUtil {
 
     public static IntegerConstant getI64Const(long val) {
         return new IntegerConstant(PrimitiveType.I64, val);
+    }
+
+    public static FloatingPointConstant getFloatConst(float val) {
+        return FloatingPointConstant.create(PrimitiveType.FLOAT, new long[]{Float.floatToRawIntBits(val)});
+    }
+
+    public static FloatingPointConstant getDoubleConst(double val) {
+        return FloatingPointConstant.create(PrimitiveType.DOUBLE, new long[]{Double.doubleToRawLongBits(val)});
     }
 }

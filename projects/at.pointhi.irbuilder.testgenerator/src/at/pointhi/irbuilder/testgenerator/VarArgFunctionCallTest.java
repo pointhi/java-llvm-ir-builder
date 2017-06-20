@@ -52,11 +52,13 @@ import com.oracle.truffle.llvm.runtime.types.FunctionType;
 import com.oracle.truffle.llvm.runtime.types.PrimitiveType;
 import com.oracle.truffle.llvm.runtime.types.StructureType;
 import com.oracle.truffle.llvm.runtime.types.Type;
+import com.oracle.truffle.llvm.runtime.types.symbols.Symbol;
 
 import at.pointhi.irbuilder.irbuilder.InstructionBuilder;
 import at.pointhi.irbuilder.irbuilder.ModelModuleBuilder;
 import at.pointhi.irbuilder.irbuilder.SimpleInstrunctionBuilder;
 import at.pointhi.irbuilder.irbuilder.helper.LLVMIntrinsics;
+import at.pointhi.irbuilder.irbuilder.util.ConstantUtil;
 import at.pointhi.irbuilder.irwriter.IRWriter;
 import at.pointhi.irbuilder.irwriter.IRWriterVersion;
 
@@ -89,15 +91,20 @@ public class VarArgFunctionCallTest extends BaseSuite {
     public ModelModule constructModelModule() {
         ModelModuleBuilder builder = new ModelModuleBuilder();
 
-        FunctionDefinition foo = createFoo(builder);
-        createMain(builder, foo);
+        StructureType struct = new StructureType(false, new Type[]{PrimitiveType.I64, PrimitiveType.I64, PrimitiveType.I64, PrimitiveType.I64, PrimitiveType.I64});
+        struct.setName("struct._asdf");
+
+        builder.createType(struct);
+
+        FunctionDefinition foo = createFoo(builder, struct);
+        createMain(builder, foo, struct);
 
         IRWriter.writeIRToStream(builder.getModelModule(), IRWriterVersion.fromEnviromentVariables(), new PrintWriter(System.out));
 
         return builder.getModelModule();
     }
 
-    private static FunctionDefinition createFoo(ModelModuleBuilder builder) {
+    private static FunctionDefinition createFoo(ModelModuleBuilder builder, StructureType struct) {
         /*
          * TODO: http://llvm.org/docs/LangRef.html#i-va-arg
          *
@@ -130,34 +137,53 @@ public class VarArgFunctionCallTest extends BaseSuite {
         Instruction loadRes2 = instr.vaArgAMD64(vaArray, PrimitiveType.DOUBLE);
         Instruction cmpRes2 = instr.compare(CompareOperator.FP_ORDERED_EQUAL, loadRes2, 1.2);
 
-        fooFacade.createBranch(cmpRes2, returnOkBlock, returnFailBlock);
+        fooFacade.insertBlocks(1);
+        fooFacade.createBranch(cmpRes2, fooFacade.getNextBlock(), returnFailBlock);
+        fooFacade.nextBlock();
+
+        Instruction loadRes3 = instr.vaArgAMD64StackOnly(vaArray, struct);
+        Instruction loadRes3Var = fooFacade.createGetElementPointer(loadRes3, new Symbol[]{ConstantUtil.getI32Const(0), ConstantUtil.getI32Const(1)}, false);
+        Instruction cmpRes3 = instr.compare(CompareOperator.INT_EQUAL, instr.load(loadRes3Var), 42);
+
+        fooFacade.insertBlocks(1);
+        fooFacade.createBranch(cmpRes3, fooFacade.getNextBlock(), returnFailBlock);
+        fooFacade.nextBlock();
+
+        Instruction loadRes4 = instr.vaArgAMD64StackOnly(vaArray, struct);
+        Instruction loadRes4Var = fooFacade.createGetElementPointer(loadRes4, new Symbol[]{ConstantUtil.getI32Const(0), ConstantUtil.getI32Const(1)}, false);
+        Instruction cmpRes4 = instr.compare(CompareOperator.INT_EQUAL, instr.load(loadRes4Var), 42);
+
+        fooFacade.createBranch(cmpRes4, returnOkBlock, returnFailBlock);
 
         fooFacade.nextBlock();
         assert fooFacade.getCurrentBlock() == returnOkBlock;
 
         instr.vaEndAMD64(vaArray);
 
-        instr.returnx(new IntegerConstant(PrimitiveType.I32, 0));
+        instr.returnx(ConstantUtil.getI32Const(0));
 
         fooFacade.nextBlock();
         assert fooFacade.getCurrentBlock() == returnFailBlock;
 
         instr.vaEndAMD64(vaArray);
 
-        instr.returnx(new IntegerConstant(PrimitiveType.I32, 1));
+        instr.returnx(ConstantUtil.getI32Const(1));
 
         fooFacade.exitFunction();
 
         return foo;
     }
 
-    private static FunctionDefinition createMain(ModelModuleBuilder builder, FunctionDefinition foo) {
+    private static FunctionDefinition createMain(ModelModuleBuilder builder, FunctionDefinition foo, StructureType struct) {
         FunctionDefinition main = builder.createFunctionDefinition("main", 1, new FunctionType(PrimitiveType.I32, new Type[]{}, true));
         InstructionBuilder mainFacade = new InstructionBuilder(main);
         SimpleInstrunctionBuilder instr = new SimpleInstrunctionBuilder(builder, mainFacade);
 
-        Instruction res = instr.call(foo, new IntegerConstant(PrimitiveType.I32, 1), new IntegerConstant(PrimitiveType.I32, 32),
-                        FloatingPointConstant.create(PrimitiveType.DOUBLE, new long[]{Double.doubleToLongBits(1.2)}));
+        Instruction structType = instr.allocate(struct);
+        Instruction structFirstElement = mainFacade.createGetElementPointer(structType, new Symbol[]{ConstantUtil.getI32Const(0), ConstantUtil.getI32Const(1)}, false);
+        mainFacade.createStore(structFirstElement, ConstantUtil.getI32Const(42), 0);
+
+        Instruction res = instr.call(foo, ConstantUtil.getI32Const(1), ConstantUtil.getI32Const(32), ConstantUtil.getDoubleConst(1.2), structType, structType);
 
         instr.returnx(res); // 0=OK, 1=ERROR
 
