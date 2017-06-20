@@ -1005,6 +1005,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
             }
 
             writeSymbolType(arg);
+            writeAttributesGroupIfPresent(call.getParameterAttributesGroup(i));
             write(" ");
             writeInnerSymbolValue(arg);
         }
@@ -1021,6 +1022,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
             }
 
             writeSymbolType(arg);
+            writeAttributesGroupIfPresent(call.getParameterAttributesGroup(i));
             write(" ");
             writeInnerSymbolValue(arg);
         }

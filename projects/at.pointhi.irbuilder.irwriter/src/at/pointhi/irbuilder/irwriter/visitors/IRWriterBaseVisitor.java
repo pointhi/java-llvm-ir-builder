@@ -32,6 +32,8 @@
 
 package at.pointhi.irbuilder.irwriter.visitors;
 
+import com.oracle.truffle.llvm.parser.model.attributes.Attribute;
+import com.oracle.truffle.llvm.parser.model.attributes.AttributesGroup;
 import com.oracle.truffle.llvm.parser.model.blocks.InstructionBlock;
 import com.oracle.truffle.llvm.parser.model.functions.FunctionDeclaration;
 import com.oracle.truffle.llvm.parser.model.functions.FunctionDefinition;
@@ -181,6 +183,19 @@ public class IRWriterBaseVisitor {
             write(LLVMIdentifier.extractLabelFromImplicitBlockName(name));
         } else {
             write(name);
+        }
+    }
+
+    protected void writeAttributesGroupIfPresent(AttributesGroup attrGroup) {
+        if (attrGroup != null) {
+            writeAttributesGroup(attrGroup);
+        }
+    }
+
+    protected void writeAttributesGroup(AttributesGroup attr) {
+        for (Attribute a : attr.getAttributes()) {
+            write(" ");
+            write(a.getIrString());
         }
     }
 

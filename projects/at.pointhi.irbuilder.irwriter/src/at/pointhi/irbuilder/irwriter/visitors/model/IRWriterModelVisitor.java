@@ -211,19 +211,6 @@ public class IRWriterModelVisitor extends IRWriterBaseVisitor implements ModelVi
         writeln("}");
     }
 
-    private void writeAttributesGroupIfPresent(AttributesGroup attrGroup) {
-        if (attrGroup != null) {
-            writeAttributesGroup(attrGroup);
-        }
-    }
-
-    private void writeAttributesGroup(AttributesGroup attr) {
-        for (Attribute a : attr.getAttributes()) {
-            write(" ");
-            write(a.getIrString());
-        }
-    }
-
     protected void writeFunctionParameter(FunctionParameter param) {
         writeType(param.getType());
         writeAttributesGroupIfPresent(param.getParameterAttribute());
