@@ -25,6 +25,10 @@ addons:
             - libc++abi-dev
 env:
     global:
+        # LLVM 3.2
+        - LLVM_32_VERSION=3.2
+        - LLVM_32_FILENAME=clang+llvm-$LLVM_32_VERSION-x86_64-linux-ubuntu-12.04.tar.gz
+        - LLVM_32_ARCHIVE_PATH=$HOME/.cache/travis/$LLVM_32_FILENAME
         # LLVM 3.8
         - LLVM_VERSION=3.8.0
         - LLVM_FILENAME=clang+llvm-$LLVM_VERSION-x86_64-linux-gnu-ubuntu-14.04.tar.xz
@@ -47,6 +51,11 @@ before_install:
     - ls -l $HOME/.mx/cache
     # MDL
     - gem install mdl
+    # LLVM 3.2
+    - (cd $HOME/.cache/travis/; wget -nc http://llvm.org/releases/$LLVM_32_VERSION/$LLVM_32_FILENAME)
+    - mkdir $HOME/clang+llvm32
+    - tar xf $LLVM_32_ARCHIVE_PATH -C $HOME/clang+llvm32 --strip-components 1
+    - export PATH=$HOME/clang+llvm32/bin:$PATH
     # LLVM 3.8
     - (cd $HOME/.cache/travis/; wget -nc http://llvm.org/releases/$LLVM_VERSION/$LLVM_FILENAME)
     - mkdir $HOME/clang+llvm
