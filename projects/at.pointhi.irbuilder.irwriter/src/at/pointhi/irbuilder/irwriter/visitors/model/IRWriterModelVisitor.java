@@ -159,6 +159,13 @@ public class IRWriterModelVisitor extends IRWriterBaseVisitor implements ModelVi
     public void visit(FunctionDeclaration function) {
         writeln();
 
+        AttributesGroup paramAttr = function.getFunctionAttributesGroup();
+        if (paramAttr != null) {
+            write("; Function Attrs:");
+            writeKnownAttributesGroup(paramAttr);
+            writeln();
+            // TODO: add attribute which contains the actual function attributes
+        }
         write("declare");
         writeAttributesGroupIfPresent(function.getReturnAttributesGroup());
         write(" ");
@@ -167,7 +174,6 @@ public class IRWriterModelVisitor extends IRWriterBaseVisitor implements ModelVi
         writef(" %s", function.getName());
 
         writeFormalArguments(function.getType());
-        writeAttributesGroupIfPresent(function.getFunctionAttributesGroup());
 
         writeln();
     }
@@ -175,6 +181,14 @@ public class IRWriterModelVisitor extends IRWriterBaseVisitor implements ModelVi
     @Override
     public void visit(FunctionDefinition function) {
         writeln();
+
+        AttributesGroup paramAttr = function.getFunctionAttributesGroup();
+        if (paramAttr != null) {
+            write("; Function Attrs:");
+            writeKnownAttributesGroup(paramAttr);
+            writeln();
+            // TODO: add attribute which contains the actual function attributes
+        }
 
         write("define");
         writeAttributesGroupIfPresent(function.getReturnAttributesGroup());
@@ -204,7 +218,6 @@ public class IRWriterModelVisitor extends IRWriterBaseVisitor implements ModelVi
         }
 
         write(")");
-        writeAttributesGroupIfPresent(function.getFunctionAttributesGroup());
 
         writeln(" {");
         writeFunction(function);
