@@ -99,10 +99,10 @@ matrix:
         - env: BUILD_COMMAND='' TEST_COMMAND='mx su-checks httpcheck checkstyle mdl eclipseformat pylint ecj canonicalizeprojects checkoverlap --verbose'
           jdk: oraclejdk8
         # LLVM 3.2 testcases
-        - env: BUILD_COMMAND='mx build' TEST_COMMAND='mx irbuilder-test32 sulong nwcc llvm'
+        - env: BUILD_COMMAND='mx build' TEST_COMMAND='mx irbuilder-test32 nwcc llvm'
           jdk: oraclejdk8
         # LLVM 3.8 testcases
-        - env: BUILD_COMMAND='mx build' TEST_COMMAND='mx irbuilder-test38 sulong nwcc llvm'
+        - env: BUILD_COMMAND='mx build' TEST_COMMAND='mx irbuilder-test38 nwcc llvm'
           jdk: oraclejdk8
         # LLVM 3.2 - GCC testcases
         - env: BUILD_COMMAND='mx build' TEST_COMMAND='mx irbuilder-test32 gcc'
