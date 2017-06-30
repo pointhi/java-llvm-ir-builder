@@ -47,7 +47,7 @@ import java.util.Collection;
 public final class GCCGeneratorSuite extends BaseGeneratorSuite {
 
     private static final Path GCC_SUITE_DIR = new File(LLVMOptions.ENGINE.projectRoot() + "/../cache/tests/gcc").toPath();
-    private static final Path GCC_SOURCE_DIR = new File(LLVMOptions.ENGINE.projectRoot() + "/../tests/gcc").toPath();
+    private static final Path GCC_SOURCE_DIR = new File(LLVMOptions.ENGINE.projectRoot() + "/../tests/gcc/gcc-5.2.0").toPath();
     private static final Path GCC_CONFIG_DIR = new File(LLVMOptions.ENGINE.projectRoot() + "/../tests/gcc/configs").toPath();
 
     // Sulong exception handling not supported in Sulong v3.2 mode; use Sulong mode v3.8 or higher.

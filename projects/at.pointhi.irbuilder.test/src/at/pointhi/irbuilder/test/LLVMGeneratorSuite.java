@@ -43,7 +43,7 @@ import java.util.Collection;
 public final class LLVMGeneratorSuite extends BaseGeneratorSuite {
 
     private static final Path LLVM_SUITE_DIR = new File(LLVMOptions.ENGINE.projectRoot() + "/../cache/tests/llvm").toPath();
-    private static final Path LLVM_SOURCE_DIR = new File(LLVMOptions.ENGINE.projectRoot() + "/../tests/llvm").toPath();
+    private static final Path LLVM_SOURCE_DIR = new File(LLVMOptions.ENGINE.projectRoot() + "/../tests/llvm/test-suite-3.2.src/").toPath();
     private static final Path LLVM_CONFIG_DIR = new File(LLVMOptions.ENGINE.projectRoot() + "/../tests/llvm/configs").toPath();
 
     @Parameterized.Parameter(value = 0) public Path path;

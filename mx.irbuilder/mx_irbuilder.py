@@ -137,7 +137,7 @@ def runIRBuilderTest32(vmArgs):
                 mx_sulong.ensureDragonEggExists()
                 mx_sulong.mx_testsuites.compileSuite([suite[0]])
             try:
-                mx_sulong.mx_testsuites.run32(vmArgs, suite[1], [])
+                mx_sulong.mx_testsuites.run(vmArgs, suite[1], [])
             except:
                 pass
 
@@ -164,7 +164,7 @@ def runIRBuilderTest38(vmArgs):
                 mx_sulong.ensureDragonEggExists()
                 mx_sulong.mx_testsuites.compileSuite([suite[0]])
             try:
-                mx_sulong.mx_testsuites.run38(vmArgs, suite[1], [])
+                mx_sulong.mx_testsuites.run(vmArgs, suite[1], [])
             except:
                 pass
 
@@ -187,7 +187,7 @@ def runIRBuilderTestGen38(vmArgs):
             suite = irBuilderTestsGen38[testSuiteName]
             """runs the test suite"""
             try:
-                mx_sulong.mx_testsuites.run38(vmArgs, suite[0], [])
+                mx_sulong.mx_testsuites.run(vmArgs, suite[0], [])
             except:
                 pass
 

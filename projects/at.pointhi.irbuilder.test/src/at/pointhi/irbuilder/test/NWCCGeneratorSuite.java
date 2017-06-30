@@ -44,7 +44,7 @@ import java.util.Collection;
 public final class NWCCGeneratorSuite extends BaseGeneratorSuite {
 
     private static final Path NWCC_SUITE_DIR = new File(LLVMOptions.ENGINE.projectRoot() + "/../cache/tests/nwcc").toPath();
-    private static final Path NWCC_SOURCE_DIR = new File(LLVMOptions.ENGINE.projectRoot() + "/../tests/nwcc").toPath();
+    private static final Path NWCC_SOURCE_DIR = new File(LLVMOptions.ENGINE.projectRoot() + "/../tests/nwcc/nwcc_0.8.3").toPath();
     private static final Path NWCC_CONFIG_DIR = new File(LLVMOptions.ENGINE.projectRoot() + "/../tests/nwcc/configs").toPath();
 
     @Parameterized.Parameter(value = 0) public Path path;
