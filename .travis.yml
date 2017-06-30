@@ -5,6 +5,7 @@ cache:
         - $HOME/.cache/pip
         - $HOME/.cache/travis
         - $HOME/.mx/cache
+        - $HOME/.m2
 language: java
 python:
     - "2.7"
