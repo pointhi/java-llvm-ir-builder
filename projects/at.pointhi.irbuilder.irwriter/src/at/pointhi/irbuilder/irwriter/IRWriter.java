@@ -39,6 +39,8 @@ import java.nio.file.Paths;
 
 import com.oracle.truffle.llvm.parser.model.ModelModule;
 
+import at.pointhi.irbuilder.irwriter.visitors.model.IRWriterModelVisitor;
+
 public class IRWriter {
 
     /**
@@ -114,6 +116,10 @@ public class IRWriter {
      */
     private static void writeIR(ModelModule model, IRWriterVersion version, PrintTarget printer) {
         final IRWriterVersion.IRWriterVisitors visitors = version.createIRWriterVisitors(printer);
-        model.accept(visitors.getModelVisitor());
+        final IRWriterModelVisitor modelVisitor = visitors.getModelVisitor();
+
+        modelVisitor.writePrologue();
+        model.accept(modelVisitor);
+        modelVisitor.writeEpilogue();
     }
 }
