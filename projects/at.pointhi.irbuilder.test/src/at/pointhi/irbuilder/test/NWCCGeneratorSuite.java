@@ -56,11 +56,6 @@ public final class NWCCGeneratorSuite extends BaseGeneratorSuite {
     }
 
     @Override
-    protected Path getSuiteDirectory() {
-        return NWCC_SUITE_DIR;
-    }
-
-    @Override
     protected Path getTestDirectory() {
         return path;
     }

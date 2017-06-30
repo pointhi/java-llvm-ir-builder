@@ -63,11 +63,6 @@ public final class SulongCPPGeneratorSuite extends BaseGeneratorSuite {
     }
 
     @Override
-    protected Path getSuiteDirectory() {
-        return SULONG_SUITE_DIR;
-    }
-
-    @Override
     protected String getTestName() {
         return testName;
     }

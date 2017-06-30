@@ -56,11 +56,6 @@ public final class SulongGeneratorSuite extends BaseGeneratorSuite {
     }
 
     @Override
-    protected Path getSuiteDirectory() {
-        return SULONG_SUITE_DIR;
-    }
-
-    @Override
     protected Path getTestDirectory() {
         return path;
     }

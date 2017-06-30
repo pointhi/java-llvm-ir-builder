@@ -68,11 +68,6 @@ public final class InlineAssemblyGeneratorSuite extends BaseGeneratorSuite {
     }
 
     @Override
-    protected Path getSuiteDirectory() {
-        return ASSEMBLY_SUITE_DIR;
-    }
-
-    @Override
     protected String getTestName() {
         return testName;
     }

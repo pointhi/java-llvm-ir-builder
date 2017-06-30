@@ -65,7 +65,7 @@ public class ModelModuleBuilder {
 
     public FunctionDefinition createFunctionDefinition(String name, int blocks,
                     FunctionType type) {
-        model.createFunction(type, false, AttributesCodeEntry.EMPTY);
+        model.createFunction(type, false, Linkage.EXTERNAL, AttributesCodeEntry.EMPTY);
 
         ModelExtractor<FunctionDefinition> extractor = new ModelExtractor.FunctionDefinitionExtractor(f -> f.getName().equals(LLVMIdentifier.UNKNOWN) && f.getType().equals(type)) {
             @Override
@@ -81,7 +81,7 @@ public class ModelModuleBuilder {
     }
 
     public FunctionDeclaration createFunctionDeclaration(String name, FunctionType type) {
-        model.createFunction(type, true, AttributesCodeEntry.EMPTY);
+        model.createFunction(type, true, Linkage.EXTERNAL, AttributesCodeEntry.EMPTY);
 
         ModelExtractor<FunctionDeclaration> extractor = new ModelExtractor.FunctionDeclarationExtractor(f -> f.getName().equals(LLVMIdentifier.UNKNOWN) && f.getType().equals(type)) {
             @Override

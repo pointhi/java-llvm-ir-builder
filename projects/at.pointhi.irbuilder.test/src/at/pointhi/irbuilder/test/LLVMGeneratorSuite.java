@@ -55,11 +55,6 @@ public final class LLVMGeneratorSuite extends BaseGeneratorSuite {
     }
 
     @Override
-    protected Path getSuiteDirectory() {
-        return LLVM_SUITE_DIR;
-    }
-
-    @Override
     protected Path getTestDirectory() {
         return path;
     }

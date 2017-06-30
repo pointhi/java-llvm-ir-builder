@@ -69,11 +69,6 @@ public final class GCCGeneratorSuite extends BaseGeneratorSuite {
     }
 
     @Override
-    protected Path getSuiteDirectory() {
-        return GCC_SUITE_DIR;
-    }
-
-    @Override
     protected Path getTestDirectory() {
         return path;
     }
