@@ -109,7 +109,7 @@ matrix:
         - env: BUILD_COMMAND='mx build' TEST_COMMAND='mx irbuilder-test32 gcc'
           jdk: oraclejdk8
         # LLVM 3.8 - GCC testcases
-        - env: BUILD_COMMAND='mx build' TEST_COMMAND='mx irbuilder-test38 gcc -Dsulong.IgnoreFortran=True'
+        - env: BUILD_COMMAND='mx build' TEST_COMMAND='mx irbuilder-test38 gcc -Dsulongtest.ignoreFortran=True'
           jdk: oraclejdk8
         # LLVM 3.8 - irbuilder testcases
         - env: BUILD_COMMAND='mx build' TEST_COMMAND='mx irbuilder-testgen38'
@@ -117,7 +117,7 @@ matrix:
     allow_failures:
         - env: BUILD_COMMAND='mx build' TEST_COMMAND='mx irbuilder-test32 gcc'
           jdk: oraclejdk8
-        - env: BUILD_COMMAND='mx build' TEST_COMMAND='mx irbuilder-test38 gcc -Dsulong.IgnoreFortran=True'
+        - env: BUILD_COMMAND='mx build' TEST_COMMAND='mx irbuilder-test38 gcc -Dsulongtest.ignoreFortran=True'
           jdk: oraclejdk8
         - env: BUILD_COMMAND='mx build' TEST_COMMAND='mx irbuilder-testgen38'
           jdk: oraclejdk8
