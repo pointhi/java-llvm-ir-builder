@@ -7,7 +7,7 @@ suite = {
         "suites" : [
             {
                 "name" : "sulong",
-                "version" : "37acd4e6f352138aa0101f780f4bda63dc1281bb",
+                "version" : "045058beb8eceb201ba4811907d530a39052b099",
                 "urls" : [
                     {
                         "url" : "https://github.com/pointhi/sulong",
@@ -65,6 +65,7 @@ suite = {
                 "at.pointhi.irbuilder.irbuilder",
                 "at.pointhi.irbuilder.irwriter",
                 "sulong:SULONG",
+                "sulong:SULONG_TEST",
                 "mx:JUNIT",
             ],
             "checkstyle": "at.pointhi.irbuilder.irwriter",

@@ -40,14 +40,14 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameter;
 import org.junit.runners.Parameterized.Parameters;
 
-import com.oracle.truffle.llvm.runtime.options.LLVMOptions;
+import com.oracle.truffle.llvm.test.options.TestOptions;
 
 @RunWith(Parameterized.class)
 public final class SulongCPPGeneratorSuite extends BaseGeneratorSuite {
 
-    private static final Path SULONG_SUITE_DIR = new File(LLVMOptions.ENGINE.projectRoot() + "/../cache/tests/sulongcpp").toPath();
-    private static final Path SULONG_SOURCE_DIR = new File(LLVMOptions.ENGINE.projectRoot() + "/../tests/sulongcpp").toPath();
-    private static final Path SULONG_CONFIG_DIR = new File(LLVMOptions.ENGINE.projectRoot() + "/../tests/sulongcpp/configs").toPath();
+    private static final Path SULONG_SUITE_DIR = new File(TestOptions.PROJECT_ROOT + "/../cache/tests/sulongcpp").toPath();
+    private static final Path SULONG_SOURCE_DIR = new File(TestOptions.PROJECT_ROOT + "/../tests/sulongcpp").toPath();
+    private static final Path SULONG_CONFIG_DIR = new File(TestOptions.PROJECT_ROOT + "/../tests/sulongcpp/configs").toPath();
 
     @Parameter(value = 0) public Path path;
     @Parameter(value = 1) public String testName;

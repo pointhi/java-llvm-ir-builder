@@ -47,11 +47,11 @@ import com.oracle.truffle.llvm.parser.model.enums.BinaryOperator;
 import com.oracle.truffle.llvm.parser.model.enums.CompareOperator;
 import com.oracle.truffle.llvm.parser.model.functions.FunctionDefinition;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.Instruction;
-import com.oracle.truffle.llvm.runtime.options.LLVMOptions;
 import com.oracle.truffle.llvm.runtime.types.FunctionType;
 import com.oracle.truffle.llvm.runtime.types.PrimitiveType;
 import com.oracle.truffle.llvm.runtime.types.Type;
 import com.oracle.truffle.llvm.runtime.types.VectorType;
+import com.oracle.truffle.llvm.test.options.TestOptions;
 
 import at.pointhi.irbuilder.irbuilder.ModelModuleBuilder;
 import at.pointhi.irbuilder.irbuilder.SimpleInstrunctionBuilder;
@@ -61,7 +61,7 @@ import at.pointhi.irbuilder.testgenerator.util.IntegerBinaryOperations.Undefined
 @RunWith(Parameterized.class)
 public class BinaryVectorOperatorTest extends BaseSuite {
 
-    private static final Path VECTOR_SUITE_DIR = Paths.get(LLVMOptions.ENGINE.projectRoot() + "/../cache/tests/irbuilder/vector");
+    private static final Path VECTOR_SUITE_DIR = Paths.get(TestOptions.PROJECT_ROOT + "/../cache/tests/irbuilder/vector");
 
     private final PrimitiveType type;
     private final BinaryOperator operator;

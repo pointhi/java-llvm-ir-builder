@@ -43,11 +43,11 @@ import com.oracle.truffle.llvm.parser.model.enums.BinaryOperator;
 import com.oracle.truffle.llvm.parser.model.functions.FunctionDefinition;
 import com.oracle.truffle.llvm.parser.model.symbols.constants.integer.IntegerConstant;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.Instruction;
-import com.oracle.truffle.llvm.runtime.options.LLVMOptions;
 import com.oracle.truffle.llvm.runtime.types.FunctionType;
 import com.oracle.truffle.llvm.runtime.types.PrimitiveType;
 import com.oracle.truffle.llvm.runtime.types.Type;
 import com.oracle.truffle.llvm.runtime.types.symbols.Symbol;
+import com.oracle.truffle.llvm.test.options.TestOptions;
 
 import at.pointhi.irbuilder.irbuilder.InstructionBuilder;
 import at.pointhi.irbuilder.irbuilder.ModelModuleBuilder;
@@ -55,7 +55,7 @@ import at.pointhi.irbuilder.irbuilder.SimpleInstrunctionBuilder;
 
 public class PhiNodeTest extends BaseSuite {
 
-    private static final Path PHI_SUITE_DIR = Paths.get(LLVMOptions.ENGINE.projectRoot() + "/../cache/tests/irbuilder/phi");
+    private static final Path PHI_SUITE_DIR = Paths.get(TestOptions.PROJECT_ROOT + "/../cache/tests/irbuilder/phi");
 
     @Parameterized.Parameter(value = 0) public Path path;
 

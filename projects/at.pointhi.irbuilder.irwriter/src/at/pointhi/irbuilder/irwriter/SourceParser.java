@@ -44,8 +44,6 @@ import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.vm.PolyglotEngine;
 import com.oracle.truffle.api.vm.PolyglotEngine.Builder;
-import com.oracle.truffle.llvm.Sulong;
-import com.oracle.truffle.llvm.Sulong.LLVMLanguageProvider;
 import com.oracle.truffle.llvm.parser.BitcodeParserResult;
 import com.oracle.truffle.llvm.parser.model.ModelModule;
 import com.oracle.truffle.llvm.runtime.LLVMContext;
@@ -55,10 +53,6 @@ import com.oracle.truffle.llvm.runtime.LLVMLanguage;
                 SourceParser.SULONG_LIBRARY_MIME_TYPE})
 public class SourceParser extends LLVMLanguage {
 
-    public static final LLVMLanguageProvider provider = getProvider();
-
-    private Env environment;
-
     @Override
     public LLVMContext findLLVMContext() {
         return getContextReference().get();
@@ -66,13 +60,9 @@ public class SourceParser extends LLVMLanguage {
 
     @Override
     protected LLVMContext createContext(Env env) {
-        environment = env;
-        return provider.createContext(env);
-    }
-
-    @Override
-    public Env getEnvironment() {
-        return environment;
+        final LLVMContext context = new LLVMContext(env);
+        context.setParseOnly(true);
+        return context;
     }
 
     @Override
@@ -93,62 +83,37 @@ public class SourceParser extends LLVMLanguage {
     @Override
     protected CallTarget parse(com.oracle.truffle.api.TruffleLanguage.ParsingRequest request) throws Exception {
         Source source = request.getSource();
-        return provider.parse(this, findLLVMContext(), source, request.getArgumentNames().toArray(new String[request.getArgumentNames().size()]));
-    }
+        try {
+            switch (source.getMimeType()) {
+                case SourceParser.LLVM_BITCODE_MIME_TYPE:
+                case SourceParser.LLVM_BITCODE_BASE64_MIME_TYPE:
+                    // we are only interested in the parsed model
+                    final ModelModule model = BitcodeParserResult.getFromSource(source).getModel();
 
-    private static Sulong.LLVMLanguageProvider getProvider() {
-        return new Sulong.LLVMLanguageProvider() {
-            @Override
-            public LLVMContext createContext(Env env) {
-                final LLVMContext context = new LLVMContext(env);
-                context.setParseOnly(true);
-                return context;
+                    // TODO: add config options to change the behavior of the output function
+                    PrintWriter writer = null;
+
+                    try {
+                        final String sourceFileName = source.getPath();
+                        final String actualTarget = sourceFileName.substring(0, sourceFileName.length() - ".bc".length()) + ".out.ll";
+                        writer = new PrintWriter(actualTarget);
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                        throw new RuntimeException("Could not open File Stream");
+                    }
+
+                    final IRWriterVersion llvmVersion = IRWriterVersion.fromEnviromentVariables();
+                    IRWriter.writeIRToStream(model, llvmVersion, writer);
+
+                    // because we are only parsing the file, there is nothing to execute
+                    return Truffle.getRuntime().createCallTarget(RootNode.createConstantNode(null));
+
+                default:
+                    throw new IllegalArgumentException("unexpected mime type");
             }
-
-            @Override
-            public void disposeContext(LLVMContext context) {
-            }
-
-            @Override
-            public CallTarget parse(LLVMLanguage language, LLVMContext context, Source code, String... argumentNames) throws IOException {
-                try {
-                    return parse(code);
-                } catch (Throwable t) {
-                    throw new IOException("Error while trying to parse " + code.getPath(), t);
-                }
-            }
-
-            private CallTarget parse(Source code) {
-                switch (code.getMimeType()) {
-                    case SourceParser.LLVM_BITCODE_MIME_TYPE:
-                    case SourceParser.LLVM_BITCODE_BASE64_MIME_TYPE:
-                        // we are only interested in the parsed model
-                        final ModelModule model = BitcodeParserResult.getFromSource(code).getModel();
-
-                        // TODO: add config options to change the behavior of the output function
-                        PrintWriter writer = null;
-
-                        try {
-                            final String sourceFileName = code.getPath();
-                            final String actualTarget = sourceFileName.substring(0, sourceFileName.length() - ".bc".length()) + ".out.ll";
-                            writer = new PrintWriter(actualTarget);
-                        } catch (FileNotFoundException e) {
-                            e.printStackTrace();
-                            throw new RuntimeException("Could not open File Stream");
-                        }
-
-                        final IRWriterVersion llvmVersion = IRWriterVersion.fromEnviromentVariables();
-                        IRWriter.writeIRToStream(model, llvmVersion, writer);
-
-                        // because we are only parsing the file, there is nothing to execute
-                        return Truffle.getRuntime().createCallTarget(RootNode.createConstantNode(null));
-
-                    default:
-                        throw new IllegalArgumentException("unexpected mime type");
-                }
-            }
-
-        };
+        } catch (Throwable t) {
+            throw new IOException("Error while trying to parse " + source.getPath(), t);
+        }
     }
 
     public static void main(String[] args) throws Exception {
@@ -178,7 +143,6 @@ public class SourceParser extends LLVMLanguage {
 
     private static void evaluateFromSource(Source fileSource) {
         Builder engineBuilder = PolyglotEngine.newBuilder();
-        engineBuilder.config(SourceParser.LLVM_BITCODE_MIME_TYPE, Sulong.LLVM_SOURCE_FILE_KEY, fileSource);
         PolyglotEngine vm = engineBuilder.build();
         try {
             vm.eval(fileSource);

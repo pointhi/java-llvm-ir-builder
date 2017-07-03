@@ -43,13 +43,13 @@ import com.oracle.truffle.llvm.parser.model.blocks.InstructionBlock;
 import com.oracle.truffle.llvm.parser.model.enums.CompareOperator;
 import com.oracle.truffle.llvm.parser.model.functions.FunctionDefinition;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.Instruction;
-import com.oracle.truffle.llvm.runtime.options.LLVMOptions;
 import com.oracle.truffle.llvm.runtime.types.ArrayType;
 import com.oracle.truffle.llvm.runtime.types.FunctionType;
 import com.oracle.truffle.llvm.runtime.types.PrimitiveType;
 import com.oracle.truffle.llvm.runtime.types.StructureType;
 import com.oracle.truffle.llvm.runtime.types.Type;
 import com.oracle.truffle.llvm.runtime.types.symbols.Symbol;
+import com.oracle.truffle.llvm.test.options.TestOptions;
 
 import at.pointhi.irbuilder.irbuilder.InstructionBuilder;
 import at.pointhi.irbuilder.irbuilder.ModelModuleBuilder;
@@ -61,7 +61,7 @@ import at.pointhi.irbuilder.irwriter.IRWriterVersion;
 
 public class VarArgFunctionCallTest extends BaseSuite {
 
-    private static final Path VAR_ARG_SUITE_DIR = Paths.get(LLVMOptions.ENGINE.projectRoot() + "/../cache/tests/irbuilder/vararg");
+    private static final Path VAR_ARG_SUITE_DIR = Paths.get(TestOptions.PROJECT_ROOT + "/../cache/tests/irbuilder/vararg");
 
     @Parameterized.Parameter(value = 0) public Path path;
 

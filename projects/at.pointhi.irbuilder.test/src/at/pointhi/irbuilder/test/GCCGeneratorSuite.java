@@ -31,12 +31,12 @@
  */
 package at.pointhi.irbuilder.test;
 
-import com.oracle.truffle.llvm.runtime.options.LLVMOptions;
-
 import at.pointhi.irbuilder.irwriter.IRWriterVersion;
 
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+
+import com.oracle.truffle.llvm.test.options.TestOptions;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -46,9 +46,9 @@ import java.util.Collection;
 @RunWith(Parameterized.class)
 public final class GCCGeneratorSuite extends BaseGeneratorSuite {
 
-    private static final Path GCC_SUITE_DIR = new File(LLVMOptions.ENGINE.projectRoot() + "/../cache/tests/gcc").toPath();
-    private static final Path GCC_SOURCE_DIR = new File(LLVMOptions.ENGINE.projectRoot() + "/../tests/gcc/gcc-5.2.0").toPath();
-    private static final Path GCC_CONFIG_DIR = new File(LLVMOptions.ENGINE.projectRoot() + "/../tests/gcc/configs").toPath();
+    private static final Path GCC_SUITE_DIR = new File(TestOptions.PROJECT_ROOT + "/../cache/tests/gcc").toPath();
+    private static final Path GCC_SOURCE_DIR = new File(TestOptions.PROJECT_ROOT + "/../tests/gcc/gcc-5.2.0").toPath();
+    private static final Path GCC_CONFIG_DIR = new File(TestOptions.PROJECT_ROOT + "/../tests/gcc/configs").toPath();
 
     // Sulong exception handling not supported in Sulong v3.2 mode; use Sulong mode v3.8 or higher.
     private static final File[] GCC_EXCLUDED_FILES_32 = new File[]{

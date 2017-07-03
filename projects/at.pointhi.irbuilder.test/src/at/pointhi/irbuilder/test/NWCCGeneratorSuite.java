@@ -31,10 +31,10 @@
  */
 package at.pointhi.irbuilder.test;
 
-import com.oracle.truffle.llvm.runtime.options.LLVMOptions;
-
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+
+import com.oracle.truffle.llvm.test.options.TestOptions;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -43,9 +43,9 @@ import java.util.Collection;
 @RunWith(Parameterized.class)
 public final class NWCCGeneratorSuite extends BaseGeneratorSuite {
 
-    private static final Path NWCC_SUITE_DIR = new File(LLVMOptions.ENGINE.projectRoot() + "/../cache/tests/nwcc").toPath();
-    private static final Path NWCC_SOURCE_DIR = new File(LLVMOptions.ENGINE.projectRoot() + "/../tests/nwcc/nwcc_0.8.3").toPath();
-    private static final Path NWCC_CONFIG_DIR = new File(LLVMOptions.ENGINE.projectRoot() + "/../tests/nwcc/configs").toPath();
+    private static final Path NWCC_SUITE_DIR = new File(TestOptions.PROJECT_ROOT + "/../cache/tests/nwcc").toPath();
+    private static final Path NWCC_SOURCE_DIR = new File(TestOptions.PROJECT_ROOT + "/../tests/nwcc/nwcc_0.8.3").toPath();
+    private static final Path NWCC_CONFIG_DIR = new File(TestOptions.PROJECT_ROOT + "/../tests/nwcc/configs").toPath();
 
     @Parameterized.Parameter(value = 0) public Path path;
     @Parameterized.Parameter(value = 1) public String testName;
