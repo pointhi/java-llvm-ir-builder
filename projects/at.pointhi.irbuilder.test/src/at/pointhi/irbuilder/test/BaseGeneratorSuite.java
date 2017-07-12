@@ -62,7 +62,7 @@ public abstract class BaseGeneratorSuite extends BaseTestHarness {
                 continue;
             }
 
-            SourceParser.parseAndOutputFile(candidate.toFile());
+            SourceParser.parseAndOutputFile(candidate.toFile(), new String[]{});
         }
     }
 

@@ -36,22 +36,39 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.ServiceLoader;
+
+import org.graalvm.options.OptionDescriptor;
+import org.graalvm.options.OptionDescriptors;
+import org.graalvm.polyglot.Engine;
+import org.graalvm.polyglot.PolyglotContext;
 
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.source.Source;
-import com.oracle.truffle.api.vm.PolyglotEngine;
-import com.oracle.truffle.api.vm.PolyglotEngine.Builder;
+import com.oracle.truffle.llvm.BasicConfiguration;
+import com.oracle.truffle.llvm.Configuration;
 import com.oracle.truffle.llvm.parser.BitcodeParserResult;
 import com.oracle.truffle.llvm.parser.model.ModelModule;
 import com.oracle.truffle.llvm.runtime.LLVMContext;
 import com.oracle.truffle.llvm.runtime.LLVMLanguage;
 
-@TruffleLanguage.Registration(name = "SourceParser", version = "0.01", mimeType = {SourceParser.LLVM_BITCODE_MIME_TYPE, SourceParser.LLVM_BITCODE_BASE64_MIME_TYPE,
+@TruffleLanguage.Registration(id = "llvm", name = "llvm", version = "0.01", mimeType = {SourceParser.LLVM_BITCODE_MIME_TYPE, SourceParser.LLVM_BITCODE_BASE64_MIME_TYPE,
                 SourceParser.SULONG_LIBRARY_MIME_TYPE})
 public class SourceParser extends LLVMLanguage {
+
+    private static final List<Configuration> configurations = new ArrayList<>();
+
+    static {
+        configurations.add(new BasicConfiguration());
+        for (Configuration f : ServiceLoader.load(Configuration.class)) {
+            configurations.add(f);
+        }
+    }
 
     @Override
     public LLVMContext findLLVMContext() {
@@ -61,7 +78,6 @@ public class SourceParser extends LLVMLanguage {
     @Override
     protected LLVMContext createContext(Env env) {
         final LLVMContext context = new LLVMContext(env);
-        context.setParseOnly(true);
         return context;
     }
 
@@ -87,6 +103,7 @@ public class SourceParser extends LLVMLanguage {
             switch (source.getMimeType()) {
                 case SourceParser.LLVM_BITCODE_MIME_TYPE:
                 case SourceParser.LLVM_BITCODE_BASE64_MIME_TYPE:
+                case "x-unknown":
                     // we are only interested in the parsed model
                     final ModelModule model = BitcodeParserResult.getFromSource(source).getModel();
 
@@ -106,10 +123,10 @@ public class SourceParser extends LLVMLanguage {
                     IRWriter.writeIRToStream(model, llvmVersion, writer);
 
                     // because we are only parsing the file, there is nothing to execute
-                    return Truffle.getRuntime().createCallTarget(RootNode.createConstantNode(null));
+                    return Truffle.getRuntime().createCallTarget(RootNode.createConstantNode(0));
 
                 default:
-                    throw new IllegalArgumentException("unexpected mime type");
+                    throw new IllegalArgumentException("unexpected mime type: " + source.getMimeType());
             }
         } catch (Throwable t) {
             throw new IOException("Error while trying to parse " + source.getPath(), t);
@@ -121,8 +138,10 @@ public class SourceParser extends LLVMLanguage {
             throw new IllegalArgumentException("Please provide a file which you want to parse");
         }
         final File file = new File(args[0]);
+        final String[] otherArgs = new String[args.length - 1];
+        System.arraycopy(args, 1, otherArgs, 0, otherArgs.length);
 
-        parseAndOutputFile(file);
+        parseAndOutputFile(file, otherArgs);
 
         System.exit(0);
     }
@@ -132,22 +151,25 @@ public class SourceParser extends LLVMLanguage {
      *
      * @param file File to parse
      */
-    public static void parseAndOutputFile(File file) {
+    public static void parseAndOutputFile(File file, String[] args) {
+        final org.graalvm.polyglot.Source source = org.graalvm.polyglot.Source.create(file);
+        final Engine engine = Engine.newBuilder().build();
+        final PolyglotContext polyglotContext = engine.newPolyglotContextBuilder().setArguments(LLVMLanguage.NAME, args).build();
+
         try {
-            final Source fileSource = Source.newBuilder(file).build();
-            evaluateFromSource(fileSource);
-        } catch (IOException e) {
-            throw new AssertionError(e);
+            polyglotContext.eval(LLVMLanguage.NAME, source);
+        } finally {
+            polyglotContext.close();
+            engine.close();
         }
     }
 
-    private static void evaluateFromSource(Source fileSource) {
-        Builder engineBuilder = PolyglotEngine.newBuilder();
-        PolyglotEngine vm = engineBuilder.build();
-        try {
-            vm.eval(fileSource);
-        } finally {
-            vm.dispose();
+    @Override
+    protected OptionDescriptors getOptionDescriptors() {
+        List<OptionDescriptor> optionDescriptors = new ArrayList<>();
+        for (Configuration c : configurations) {
+            optionDescriptors.addAll(c.getOptionDescriptors());
         }
+        return OptionDescriptors.create(optionDescriptors);
     }
 }

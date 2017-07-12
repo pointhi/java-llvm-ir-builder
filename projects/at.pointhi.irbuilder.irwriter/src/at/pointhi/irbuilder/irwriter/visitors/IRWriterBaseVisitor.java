@@ -34,7 +34,6 @@ package at.pointhi.irbuilder.irwriter.visitors;
 
 import com.oracle.truffle.llvm.parser.model.attributes.Attribute;
 import com.oracle.truffle.llvm.parser.model.attributes.AttributesGroup;
-import com.oracle.truffle.llvm.parser.model.attributes.KnownAttribute;
 import com.oracle.truffle.llvm.parser.model.blocks.InstructionBlock;
 import com.oracle.truffle.llvm.parser.model.functions.FunctionDeclaration;
 import com.oracle.truffle.llvm.parser.model.functions.FunctionDefinition;
@@ -202,7 +201,7 @@ public class IRWriterBaseVisitor {
 
     protected void writeKnownAttributesGroup(AttributesGroup attr) {
         for (Attribute a : attr.getAttributes()) {
-            if (a instanceof KnownAttribute) {
+            if (a instanceof Attribute.KnownAttribute) {
                 write(" ");
                 write(a.getIrString());
             }

@@ -96,7 +96,8 @@ def getIRWriterClasspathOptions():
     return mx.get_runtime_jvm_args('IRWRITER')
 
 def runIRBuilderOut(args=None, out=None):
-    return mx.run_java(getIRWriterClasspathOptions() + ["at.pointhi.irbuilder.irwriter.SourceParser"] + args)
+    vmArgs, irbuilderArgs = mx_sulong.truffle_extract_VM_args(args)
+    return mx.run_java(mx_sulong.getCommonOptions(False) + vmArgs + getIRWriterClasspathOptions() + ["at.pointhi.irbuilder.irwriter.SourceParser"] + irbuilderArgs)
 
 irBuilderTests32 = {
     'sulong' : ['sulong', "at.pointhi.irbuilder.test.SulongGeneratorSuite", os.path.join(mx_testsuites._cacheDir, 'sulong')],

@@ -32,8 +32,15 @@
 
 package at.pointhi.irbuilder.irwriter.visitors.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import com.oracle.truffle.llvm.parser.model.attributes.AttributesGroup;
 import com.oracle.truffle.llvm.parser.model.enums.Linkage;
 import com.oracle.truffle.llvm.parser.model.enums.Visibility;
+import com.oracle.truffle.llvm.parser.model.functions.FunctionDeclaration;
+import com.oracle.truffle.llvm.parser.model.functions.FunctionDefinition;
+import com.oracle.truffle.llvm.parser.model.functions.FunctionParameter;
 import com.oracle.truffle.llvm.parser.model.globals.GlobalAlias;
 import com.oracle.truffle.llvm.runtime.types.PointerType;
 import com.oracle.truffle.llvm.runtime.types.symbols.Symbol;
@@ -45,6 +52,42 @@ public class IRWriterModelVisitorV38 extends IRWriterModelVisitor {
 
     public IRWriterModelVisitorV38(IRWriterVersion.IRWriterVisitors visitors, IRWriter.PrintTarget target) {
         super(visitors, target);
+    }
+
+    private final List<AttributesGroup> attributes = new ArrayList<>();
+
+    @Override
+    public void writePrologue() {
+
+    }
+
+    @Override
+    public void writeEpilogue() {
+        if (!attributes.isEmpty()) {
+            writeAttributes();
+        }
+    }
+
+    private int addAttribute(AttributesGroup a) {
+        for (int i = 0; i < attributes.size(); i++) {
+            final AttributesGroup paramAttr = attributes.get(i);
+            if (paramAttr.equals(a)) {
+                return i;
+            }
+        }
+        attributes.add(a);
+        return attributes.size() - 1;
+    }
+
+    private void writeAttributes() {
+        writeln();
+
+        for (int i = 0; i < attributes.size(); i++) {
+            final AttributesGroup paramAttr = attributes.get(i);
+            write("attributes #" + i + " = {");
+            writeAttributesGroup(paramAttr);
+            writeln(" }");
+        }
     }
 
     private static final String UNRESOLVED_FORWARD_REFERENCE = "<unresolved>";
@@ -84,6 +127,82 @@ public class IRWriterModelVisitorV38 extends IRWriterModelVisitor {
         write(" ");
         writeInnerSymbolValue(val);
         writeln();
+    }
+
+    @Override
+    public void visit(FunctionDeclaration function) {
+        writeln();
+
+        AttributesGroup paramAttr = function.getFunctionAttributesGroup();
+        if (paramAttr != null) {
+            write("; Function Attrs:");
+            writeKnownAttributesGroup(paramAttr);
+            writeln();
+        }
+
+        write("declare");
+        writeAttributesGroupIfPresent(function.getReturnAttributesGroup());
+        write(" ");
+        writeType(function.getType().getReturnType());
+
+        writef(" %s", function.getName());
+
+        writeFormalArguments(function.getType());
+
+        if (paramAttr != null) {
+            write(" #" + addAttribute(paramAttr));
+        }
+
+        writeln();
+    }
+
+    @Override
+    public void visit(FunctionDefinition function) {
+        writeln();
+
+        AttributesGroup paramAttr = function.getFunctionAttributesGroup();
+        if (paramAttr != null) {
+            write("; Function Attrs:");
+            writeKnownAttributesGroup(paramAttr);
+            writeln();
+        }
+
+        write("define");
+        writeAttributesGroupIfPresent(function.getReturnAttributesGroup());
+        write(" ");
+        writeType(function.getType().getReturnType());
+
+        writef(" %s", function.getName());
+
+        write("(");
+
+        boolean firstIteration = true;
+        for (FunctionParameter param : function.getParameters()) {
+            if (!firstIteration) {
+                write(", ");
+            } else {
+                firstIteration = false;
+            }
+            writeFunctionParameter(param);
+        }
+
+        if (function.getType().isVarargs()) {
+            if (!firstIteration) {
+                write(", ");
+            }
+
+            write("...");
+        }
+
+        write(")");
+
+        if (paramAttr != null) {
+            write(" #" + addAttribute(paramAttr));
+        }
+
+        writeln(" {");
+        writeFunction(function);
+        writeln("}");
     }
 
 }

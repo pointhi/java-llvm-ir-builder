@@ -32,9 +32,6 @@
 
 package at.pointhi.irbuilder.irwriter.visitors.model;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.oracle.truffle.llvm.parser.model.attributes.AttributesGroup;
 import com.oracle.truffle.llvm.parser.model.enums.Linkage;
 import com.oracle.truffle.llvm.parser.model.enums.Visibility;
@@ -72,38 +69,10 @@ public class IRWriterModelVisitor extends IRWriterBaseVisitor implements ModelVi
         super(visitors, target);
     }
 
-    private final List<AttributesGroup> attributes = new ArrayList<>();
-
     public void writePrologue() {
-
     }
 
     public void writeEpilogue() {
-        if (!attributes.isEmpty()) {
-            writeAttributes();
-        }
-    }
-
-    private int addAttribute(AttributesGroup a) {
-        for (int i = 0; i < attributes.size(); i++) {
-            final AttributesGroup paramAttr = attributes.get(i);
-            if (paramAttr.equals(a)) {
-                return i;
-            }
-        }
-        attributes.add(a);
-        return attributes.size() - 1;
-    }
-
-    private void writeAttributes() {
-        writeln();
-
-        for (int i = 0; i < attributes.size(); i++) {
-            final AttributesGroup paramAttr = attributes.get(i);
-            write("attributes #" + i + " = {");
-            writeAttributesGroup(paramAttr);
-            writeln(" }");
-        }
     }
 
     private void writeGlobal(String keyword, GlobalValueSymbol global) {
@@ -211,10 +180,6 @@ public class IRWriterModelVisitor extends IRWriterBaseVisitor implements ModelVi
 
         writeFormalArguments(function.getType());
 
-        if (paramAttr != null) {
-            write(" #" + addAttribute(paramAttr));
-        }
-
         writeln();
     }
 
@@ -257,10 +222,6 @@ public class IRWriterModelVisitor extends IRWriterBaseVisitor implements ModelVi
         }
 
         write(")");
-
-        if (paramAttr != null) {
-            write(" #" + addAttribute(paramAttr));
-        }
 
         writeln(" {");
         writeFunction(function);
