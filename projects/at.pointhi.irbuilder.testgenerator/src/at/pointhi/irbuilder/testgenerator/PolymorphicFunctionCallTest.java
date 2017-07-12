@@ -44,6 +44,8 @@ import org.junit.runners.Parameterized.Parameters;
 import com.oracle.truffle.llvm.parser.model.ModelModule;
 import com.oracle.truffle.llvm.parser.model.enums.BinaryOperator;
 import com.oracle.truffle.llvm.parser.model.functions.FunctionDefinition;
+import com.oracle.truffle.llvm.parser.model.functions.FunctionParameter;
+import com.oracle.truffle.llvm.parser.model.symbols.instructions.Instruction;
 import com.oracle.truffle.llvm.runtime.types.FunctionType;
 import com.oracle.truffle.llvm.runtime.types.PrimitiveType;
 import com.oracle.truffle.llvm.runtime.types.Type;
@@ -51,6 +53,7 @@ import com.oracle.truffle.llvm.test.options.TestOptions;
 import at.pointhi.irbuilder.irbuilder.ModelModuleBuilder;
 import at.pointhi.irbuilder.irbuilder.SimpleInstrunctionBuilder;
 import at.pointhi.irbuilder.irbuilder.util.ConstantUtil;
+import at.pointhi.irbuilder.testgenerator.util.IntegerBinaryOperations;
 import at.pointhi.irbuilder.testgenerator.util.IntegerBinaryOperations.UndefinedArithmeticResult;
 
 @RunWith(Parameterized.class)
@@ -61,9 +64,12 @@ public class PolymorphicFunctionCallTest extends BaseSuite {
     private final PrimitiveType type;
     private final int numberOfCallsites;
 
+    @SuppressWarnings("unused") private final IntegerBinaryOperations binOp;
+
     public PolymorphicFunctionCallTest(PrimitiveType type, int numberOfCallsites) {
         this.type = type;
         this.numberOfCallsites = numberOfCallsites;
+        this.binOp = new IntegerBinaryOperations(type);
     }
 
     @Override
@@ -80,13 +86,9 @@ public class PolymorphicFunctionCallTest extends BaseSuite {
     public static Collection<Object[]> data() {
         List<Object[]> parameters = new LinkedList<>();
 
-        addParameter(parameters, PrimitiveType.I32, 1);
-        addParameter(parameters, PrimitiveType.I32, 2);
-        addParameter(parameters, PrimitiveType.I32, 3);
-        addParameter(parameters, PrimitiveType.I32, 4);
-        addParameter(parameters, PrimitiveType.I32, 5);
-        addParameter(parameters, PrimitiveType.I32, 6);
-        addParameter(parameters, PrimitiveType.I32, 7);
+        for (int i = 1; i < 14; i++) {
+            addParameter(parameters, PrimitiveType.I32, i);
+        }
 
         return parameters;
     }
@@ -98,14 +100,20 @@ public class PolymorphicFunctionCallTest extends BaseSuite {
     @Override
     public ModelModule constructModelModule() throws UndefinedArithmeticResult {
         ModelModuleBuilder builder = new ModelModuleBuilder();
-        createMain(builder);
+
+        final FunctionDefinition[] callSites = new FunctionDefinition[numberOfCallsites];
+        for (int i = 0; i < numberOfCallsites; i++) {
+            callSites[i] = createCallSite(builder, i);
+        }
+
+        createMain(builder, callSites);
 
         return builder.getModelModule();
     }
 
     @SuppressWarnings("static-method")
-    private void createMain(ModelModuleBuilder builder) {
-        FunctionDefinition main = builder.createFunctionDefinition("main", 1, new FunctionType(PrimitiveType.I1, new Type[]{}, false));
+    private void createMain(ModelModuleBuilder builder, @SuppressWarnings("unused") FunctionDefinition[] callSites) {
+        FunctionDefinition main = builder.createFunctionDefinition("main", 1, new FunctionType(PrimitiveType.I32, new Type[]{}, false));
         SimpleInstrunctionBuilder instr = new SimpleInstrunctionBuilder(builder, main);
 
         instr.returnx(ConstantUtil.getI32Const(1)); // 0=OK, 1=ERROR
@@ -113,9 +121,27 @@ public class PolymorphicFunctionCallTest extends BaseSuite {
         instr.getInstructionBuilder().exitFunction();
     }
 
-    @SuppressWarnings("unused")
-    private static BinaryOperator getOperator() {
-        return BinaryOperator.INT_ADD;
+    private FunctionDefinition createCallSite(ModelModuleBuilder builder, int idx) {
+        final String name = "foo_" + idx;
+        final FunctionDefinition foo = builder.createFunctionDefinition(name, 1, new FunctionType(type, new Type[]{type, type}, false));
+        final SimpleInstrunctionBuilder instr = new SimpleInstrunctionBuilder(builder, foo);
+
+        final FunctionParameter lhs = instr.nextParameter();
+        final FunctionParameter rhs = instr.nextParameter();
+
+        final BinaryOperator op = getOperator(idx);
+        final Instruction res = instr.binaryOperator(op, lhs, rhs);
+
+        instr.returnx(res);
+
+        instr.getInstructionBuilder().exitFunction();
+
+        return foo;
+    }
+
+    private static BinaryOperator getOperator(int idx) {
+        final int opIdx = idx % (BinaryOperator.INT_XOR.ordinal() + 1);
+        return BinaryOperator.values()[opIdx];
     }
 
 }
