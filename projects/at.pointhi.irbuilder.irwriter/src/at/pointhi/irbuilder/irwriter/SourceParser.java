@@ -42,8 +42,7 @@ import java.util.ServiceLoader;
 
 import org.graalvm.options.OptionDescriptor;
 import org.graalvm.options.OptionDescriptors;
-import org.graalvm.polyglot.Engine;
-import org.graalvm.polyglot.PolyglotContext;
+import org.graalvm.polyglot.Context;
 
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.Truffle;
@@ -150,17 +149,16 @@ public class SourceParser extends LLVMLanguage {
      * Parse a file and output the parser result as LLVM IR.
      *
      * @param file File to parse
+     * @throws IOException
      */
-    public static void parseAndOutputFile(File file, String[] args) {
-        final org.graalvm.polyglot.Source source = org.graalvm.polyglot.Source.create(file);
-        final Engine engine = Engine.newBuilder().build();
-        final PolyglotContext polyglotContext = engine.newPolyglotContextBuilder().setArguments(LLVMLanguage.NAME, args).build();
+    public static void parseAndOutputFile(File file, String[] args) throws IOException {
+        org.graalvm.polyglot.Source source = org.graalvm.polyglot.Source.newBuilder(LLVMLanguage.NAME, file).build();
+        Context context = Context.newBuilder().arguments(LLVMLanguage.NAME, args).build();
 
         try {
-            polyglotContext.eval(LLVMLanguage.NAME, source);
+            context.eval(source);
         } finally {
-            polyglotContext.close();
-            engine.close();
+            context.close();
         }
     }
 
