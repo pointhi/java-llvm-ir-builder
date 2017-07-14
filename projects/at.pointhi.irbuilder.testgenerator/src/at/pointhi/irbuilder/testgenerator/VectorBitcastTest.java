@@ -69,6 +69,14 @@ public class VectorBitcastTest extends BaseSuite {
         this.dst = dst;
     }
 
+    private static final VectorType[] vec128 = new VectorType[]{
+                    new VectorType(PrimitiveType.I64, 2),
+                    new VectorType(PrimitiveType.I32, 4),
+                    new VectorType(PrimitiveType.I16, 8),
+                    new VectorType(PrimitiveType.I8, 16),
+                    new VectorType(PrimitiveType.I1, 128)
+    };
+
     @Parameters(name = "{index}: VectorBitcastTest[src={0}, dst={1}]")
     public static Collection<Object[]> data() {
         List<Object[]> parameters = new LinkedList<>();
@@ -93,35 +101,11 @@ public class VectorBitcastTest extends BaseSuite {
 
         parameters.add(new Object[]{new VectorType(PrimitiveType.I1, 1), PrimitiveType.I1});
 
-        parameters.add(new Object[]{new VectorType(PrimitiveType.I64, 1), new VectorType(PrimitiveType.I64, 1)});
-        parameters.add(new Object[]{new VectorType(PrimitiveType.I64, 1), new VectorType(PrimitiveType.I32, 2)});
-        parameters.add(new Object[]{new VectorType(PrimitiveType.I64, 1), new VectorType(PrimitiveType.I16, 4)});
-        parameters.add(new Object[]{new VectorType(PrimitiveType.I64, 1), new VectorType(PrimitiveType.I8, 8)});
-        parameters.add(new Object[]{new VectorType(PrimitiveType.I64, 1), new VectorType(PrimitiveType.I1, 64)});
-
-        parameters.add(new Object[]{new VectorType(PrimitiveType.I32, 2), new VectorType(PrimitiveType.I64, 1)});
-        parameters.add(new Object[]{new VectorType(PrimitiveType.I32, 2), new VectorType(PrimitiveType.I32, 2)});
-        parameters.add(new Object[]{new VectorType(PrimitiveType.I32, 2), new VectorType(PrimitiveType.I16, 4)});
-        parameters.add(new Object[]{new VectorType(PrimitiveType.I32, 2), new VectorType(PrimitiveType.I8, 8)});
-        parameters.add(new Object[]{new VectorType(PrimitiveType.I32, 2), new VectorType(PrimitiveType.I1, 64)});
-
-        parameters.add(new Object[]{new VectorType(PrimitiveType.I16, 4), new VectorType(PrimitiveType.I64, 1)});
-        parameters.add(new Object[]{new VectorType(PrimitiveType.I16, 4), new VectorType(PrimitiveType.I32, 2)});
-        parameters.add(new Object[]{new VectorType(PrimitiveType.I16, 4), new VectorType(PrimitiveType.I16, 4)});
-        parameters.add(new Object[]{new VectorType(PrimitiveType.I16, 4), new VectorType(PrimitiveType.I8, 8)});
-        parameters.add(new Object[]{new VectorType(PrimitiveType.I16, 4), new VectorType(PrimitiveType.I1, 64)});
-
-        parameters.add(new Object[]{new VectorType(PrimitiveType.I8, 8), new VectorType(PrimitiveType.I64, 1)});
-        parameters.add(new Object[]{new VectorType(PrimitiveType.I8, 8), new VectorType(PrimitiveType.I32, 2)});
-        parameters.add(new Object[]{new VectorType(PrimitiveType.I8, 8), new VectorType(PrimitiveType.I16, 4)});
-        parameters.add(new Object[]{new VectorType(PrimitiveType.I8, 8), new VectorType(PrimitiveType.I8, 8)});
-        parameters.add(new Object[]{new VectorType(PrimitiveType.I8, 8), new VectorType(PrimitiveType.I1, 64)});
-
-        parameters.add(new Object[]{new VectorType(PrimitiveType.I1, 64), new VectorType(PrimitiveType.I64, 1)});
-        parameters.add(new Object[]{new VectorType(PrimitiveType.I1, 64), new VectorType(PrimitiveType.I32, 2)});
-        parameters.add(new Object[]{new VectorType(PrimitiveType.I1, 64), new VectorType(PrimitiveType.I16, 4)});
-        parameters.add(new Object[]{new VectorType(PrimitiveType.I1, 64), new VectorType(PrimitiveType.I8, 8)});
-        parameters.add(new Object[]{new VectorType(PrimitiveType.I1, 64), new VectorType(PrimitiveType.I1, 64)});
+        for (int i = 0; i < vec128.length; i++) {
+            for (int j = 0; j < vec128.length; j++) {
+                parameters.add(new Object[]{vec128[i], vec128[j]});
+            }
+        }
 
         return parameters;
     }
@@ -166,8 +150,6 @@ public class VectorBitcastTest extends BaseSuite {
         }
 
         Instruction filled = instr.fillVector(srcVecPtr, srcValues);
-
-        // Instruction srcVec = instr.load(filled);
 
         Instruction dst1 = instr.getInstructionBuilder().createCast(dst, CastOperator.BITCAST, filled);
         Instruction dst2 = instr.getInstructionBuilder().createCast(src, CastOperator.BITCAST, dst1);
