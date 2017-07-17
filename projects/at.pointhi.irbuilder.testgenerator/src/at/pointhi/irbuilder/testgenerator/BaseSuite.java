@@ -31,6 +31,7 @@
  */
 package at.pointhi.irbuilder.testgenerator;
 
+import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -44,6 +45,8 @@ import at.pointhi.irbuilder.irwriter.IRWriterVersion;
 
 public abstract class BaseSuite {
 
+    private boolean outputIr = false;
+
     public BaseSuite() {
     }
 
@@ -55,9 +58,13 @@ public abstract class BaseSuite {
     @Test(timeout = 1000)
     public void test() throws Exception {
         final ModelModule model = constructModelModule();
-        final Path resultPath = getOutputPath();
 
-        IRWriter.writeIRToFile(model, IRWriterVersion.fromEnviromentVariables(), resultPath);
+        final IRWriterVersion version = IRWriterVersion.fromEnviromentVariables();
+        if (outputIr) {
+            IRWriter.writeIRToStream(model, version, new PrintWriter(System.out));
+        } else {
+            IRWriter.writeIRToFile(model, version, getOutputPath());
+        }
     }
 
     public abstract ModelModule constructModelModule() throws Exception;
