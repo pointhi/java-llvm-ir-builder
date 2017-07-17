@@ -140,8 +140,10 @@ def runIRBuilderTest32(vmArgs):
                 mx_sulong.mx_testsuites.compileSuite([suite[0]])
             try:
                 mx_sulong.mx_testsuites.run(vmArgs, suite[1], [])
+            except KeyboardInterrupt:
+                sys.exit(-1)
             except:
-                pass
+                mx.log_error("unexpected exception thrown, continue...")
 
             testSuite = IRGeneratorSuite(LlvmAS_32, LlvmLLI_32)
             testSuite.run(suite[2])
@@ -167,8 +169,10 @@ def runIRBuilderTest38(vmArgs):
                 mx_sulong.mx_testsuites.compileSuite([suite[0]])
             try:
                 mx_sulong.mx_testsuites.run(vmArgs, suite[1], [])
+            except KeyboardInterrupt:
+                sys.exit(-1)
             except:
-                pass
+                mx.log_error("unexpected exception thrown, continue...")
 
             testSuite = IRGeneratorSuite(LlvmAS_38, LlvmLLI_38)
             testSuite.run(suite[2])
@@ -190,8 +194,10 @@ def runIRBuilderTestGen38(vmArgs):
             """runs the test suite"""
             try:
                 mx_sulong.mx_testsuites.run(vmArgs, suite[0], [])
+            except KeyboardInterrupt:
+                sys.exit(-1)
             except:
-                pass
+                mx.log_error("unexpected exception thrown, continue...")
 
             testSuite = IRGeneratorBuilderSuite(LlvmAS_38, LlvmLLI_38)
             testSuite.run(suite[1])
@@ -270,8 +276,14 @@ class IRTestSuite(object):
             for fileName in files:
                 inputFile = os.path.join(cacheDir, root, fileName)
                 if self.isTestFile(inputFile):
-                    ret = self.invoke(inputFile)
-                    self.handleInvokeResult(inputFile, ret)
+                    try:
+                        ret = self.invoke(inputFile)
+                    except SystemExit:
+                        sys.stdout.write('E')
+                        sys.stdout.flush()
+                        self.failed.append(inputFile)
+                    else:
+                        self.handleInvokeResult(inputFile, ret)
 
         self.printStats()
 
