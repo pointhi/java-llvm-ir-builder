@@ -280,8 +280,8 @@ public class VectorBitcastTest extends BaseSuite {
 
         Instruction filled = instr.fillVector(srcVecPtr, srcValues);
 
-        Instruction dst1 = instr.getInstructionBuilder().createCast(dst, CastOperator.BITCAST, filled);
-        Instruction dst2 = instr.getInstructionBuilder().createCast(src, CastOperator.BITCAST, dst1);
+        Instruction dst1 = instr.cast(CastOperator.BITCAST, dst, filled);
+        Instruction dst2 = instr.cast(CastOperator.BITCAST, src, dst1);
 
         Instruction ret = instr.compareVector(CompareOperator.INT_NOT_EQUAL, filled, dst2);
         instr.returnx(ret); // 0=OK, 1=ERROR

@@ -109,8 +109,7 @@ public class VarArgFunctionCallTest extends BaseSuite {
          */
         // TOOD: 4
         FunctionDefinition foo = builder.createFunctionDefinition("foo", 4, new FunctionType(PrimitiveType.I32, new Type[]{PrimitiveType.I32}, true));
-        InstructionBuilder fooFacade = new InstructionBuilder(foo);
-        SimpleInstrunctionBuilder instr = new SimpleInstrunctionBuilder(builder, fooFacade);
+        SimpleInstrunctionBuilder instr = new SimpleInstrunctionBuilder(builder, foo);
 
         InstructionBlock returnOkBlock = instr.getBlock(1);
         InstructionBlock returnFailBlock = instr.getBlock(2);
@@ -138,7 +137,7 @@ public class VarArgFunctionCallTest extends BaseSuite {
         instr.nextBlock();
 
         Instruction loadRes3 = instr.vaArgAMD64StackOnly(vaArray, struct);
-        Instruction loadRes3Var = fooFacade.createGetElementPointer(loadRes3, new Symbol[]{ConstantUtil.getI32Const(0), ConstantUtil.getI32Const(1)}, false);
+        Instruction loadRes3Var = instr.getElementPointer(loadRes3, 0, 1);
         Instruction cmpRes3 = instr.compare(CompareOperator.INT_EQUAL, instr.load(loadRes3Var), 42);
 
         instr.insertBlocks(1);
@@ -146,7 +145,7 @@ public class VarArgFunctionCallTest extends BaseSuite {
         instr.nextBlock();
 
         Instruction loadRes4 = instr.vaArgAMD64StackOnly(vaArray, struct);
-        Instruction loadRes4Var = fooFacade.createGetElementPointer(loadRes4, new Symbol[]{ConstantUtil.getI32Const(0), ConstantUtil.getI32Const(1)}, false);
+        Instruction loadRes4Var = instr.getElementPointer(loadRes4, 0, 1);
         Instruction cmpRes4 = instr.compare(CompareOperator.INT_EQUAL, instr.load(loadRes4Var), 42);
 
         instr.branch(cmpRes4, returnOkBlock, returnFailBlock);
