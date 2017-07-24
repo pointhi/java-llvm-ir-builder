@@ -159,6 +159,20 @@ public class SimpleInstrunctionBuilder {
         return binaryOperator(op, lhs, ConstantUtil.getConst(lhs.getType(), rhs));
     }
 
+    // Branch
+    public Instruction jump(InstructionBlock block) {
+        return builder.createBranch(block);
+    }
+
+    public Instruction branch(Symbol condition, InstructionBlock ifBlock, InstructionBlock elseBlock) {
+        return builder.createBranch(condition, ifBlock, elseBlock);
+    }
+
+    // Cast
+    public Instruction cast(CastOperator op, Type type, Symbol value) {
+        return builder.createCast(type, op, value);
+    }
+
     // Compare
     public Instruction compare(CompareOperator op, Symbol lhs, Symbol rhs) {
         if (!lhs.getType().equals(rhs.getType())) {

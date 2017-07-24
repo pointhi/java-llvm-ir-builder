@@ -83,15 +83,14 @@ public class FibonacciFunctionCallTest extends BaseSuite {
         ModelModuleBuilder builder = new ModelModuleBuilder();
 
         FunctionDefinition fibonacci = builder.createFunctionDefinition("fibonacci", 3, new FunctionType(PrimitiveType.I32, new Type[]{PrimitiveType.I32}, false));
-        InstructionBuilder fibFacade = new InstructionBuilder(fibonacci);
-        SimpleInstrunctionBuilder fibInstr = new SimpleInstrunctionBuilder(builder, fibFacade);
+        SimpleInstrunctionBuilder fibInstr = new SimpleInstrunctionBuilder(builder, fibonacci);
 
         createMain(builder, fibonacci);
 
         FunctionParameter param1 = fibInstr.nextParameter();
 
         Instruction cmp1 = fibInstr.compare(CompareOperator.INT_SIGNED_LESS_OR_EQUAL, param1, 1);
-        fibFacade.createBranch(cmp1, fibInstr.getBlock(1), fibInstr.getBlock(2));
+        fibInstr.branch(cmp1, fibInstr.getBlock(1), fibInstr.getBlock(2));
 
         fibInstr.nextBlock();
         fibInstr.returnx(param1);

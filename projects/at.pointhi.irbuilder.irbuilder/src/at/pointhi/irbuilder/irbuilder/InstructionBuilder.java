@@ -247,7 +247,7 @@ public class InstructionBuilder {
     /**
      * Get the last instruction added to the function.
      */
-    private Instruction getLastInstruction() {
+    protected Instruction getLastInstruction() {
         Instruction lastInstr = curBlock.getInstruction(curBlock.getInstructionCount() - 1);
         if (lastInstr instanceof ValueInstruction) {
             ValueInstruction lastValueInstr = (ValueInstruction) lastInstr;

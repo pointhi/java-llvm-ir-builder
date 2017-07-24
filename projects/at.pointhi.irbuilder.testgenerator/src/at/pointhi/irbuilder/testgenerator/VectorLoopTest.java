@@ -104,7 +104,7 @@ public class VectorLoopTest extends BaseSuite {
         final Instruction increment = instr.fillVector(incReg, 1, 2, 3, 4);
 
         final InstructionBlock loopBlock = instr.getNextBlock();
-        facade.createBranch(loopBlock);
+        instr.jump(loopBlock);
         instr.nextBlock();
 
         final Instruction calcLoad = instr.load(calcReg);
@@ -120,7 +120,7 @@ public class VectorLoopTest extends BaseSuite {
         final Instruction cmpRes = instr.compare(CompareOperator.INT_UNSIGNED_LESS_THAN, indexAdd, 10000000);
 
         final InstructionBlock returnBlock = instr.getNextBlock();
-        facade.createBranch(cmpRes, loopBlock, returnBlock);
+        instr.branch(cmpRes, loopBlock, returnBlock);
         instr.nextBlock();
 
         final Instruction res = instr.extractElement(instr.load(calcReg), 0);

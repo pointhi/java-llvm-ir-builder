@@ -127,14 +127,14 @@ public class VarArgFunctionCallTest extends BaseSuite {
         Instruction cmpRes = instr.compare(CompareOperator.INT_EQUAL, loadRes, 32);
 
         instr.insertBlocks(1);
-        fooFacade.createBranch(cmpRes, instr.getNextBlock(), returnFailBlock);
+        instr.branch(cmpRes, instr.getNextBlock(), returnFailBlock);
         instr.nextBlock();
 
         Instruction loadRes2 = instr.vaArgAMD64(vaArray, PrimitiveType.DOUBLE);
         Instruction cmpRes2 = instr.compare(CompareOperator.FP_ORDERED_EQUAL, loadRes2, 1.2);
 
         instr.insertBlocks(1);
-        fooFacade.createBranch(cmpRes2, instr.getNextBlock(), returnFailBlock);
+        instr.branch(cmpRes2, instr.getNextBlock(), returnFailBlock);
         instr.nextBlock();
 
         Instruction loadRes3 = instr.vaArgAMD64StackOnly(vaArray, struct);
@@ -142,14 +142,14 @@ public class VarArgFunctionCallTest extends BaseSuite {
         Instruction cmpRes3 = instr.compare(CompareOperator.INT_EQUAL, instr.load(loadRes3Var), 42);
 
         instr.insertBlocks(1);
-        fooFacade.createBranch(cmpRes3, instr.getNextBlock(), returnFailBlock);
+        instr.branch(cmpRes3, instr.getNextBlock(), returnFailBlock);
         instr.nextBlock();
 
         Instruction loadRes4 = instr.vaArgAMD64StackOnly(vaArray, struct);
         Instruction loadRes4Var = fooFacade.createGetElementPointer(loadRes4, new Symbol[]{ConstantUtil.getI32Const(0), ConstantUtil.getI32Const(1)}, false);
         Instruction cmpRes4 = instr.compare(CompareOperator.INT_EQUAL, instr.load(loadRes4Var), 42);
 
-        fooFacade.createBranch(cmpRes4, returnOkBlock, returnFailBlock);
+        instr.branch(cmpRes4, returnOkBlock, returnFailBlock);
 
         instr.nextBlock();
         assert instr.getCurrentBlock() == returnOkBlock;
