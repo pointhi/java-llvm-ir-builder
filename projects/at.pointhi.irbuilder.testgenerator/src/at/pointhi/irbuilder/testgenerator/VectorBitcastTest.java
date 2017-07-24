@@ -51,6 +51,7 @@ import com.oracle.truffle.llvm.runtime.types.FunctionType;
 import com.oracle.truffle.llvm.runtime.types.PrimitiveType;
 import com.oracle.truffle.llvm.runtime.types.Type;
 import com.oracle.truffle.llvm.runtime.types.VectorType;
+import com.oracle.truffle.llvm.runtime.types.PrimitiveType.PrimitiveKind;
 import com.oracle.truffle.llvm.test.options.TestOptions;
 
 import at.pointhi.irbuilder.irbuilder.ModelModuleBuilder;
@@ -75,32 +76,47 @@ public class VectorBitcastTest extends BaseSuite {
                     new VectorType(PrimitiveType.I32, 4),
                     new VectorType(PrimitiveType.I16, 8),
                     new VectorType(PrimitiveType.I8, 16),
-                    // new VectorType(PrimitiveType.I1, 128)
+                    new VectorType(PrimitiveType.I1, 128)
     };
 
     @Parameters(name = "{index}: VectorBitcastTest[src={0}, dst={1}]")
     public static Collection<Object[]> data() {
         List<Object[]> parameters = new LinkedList<>();
 
+        parameters.add(new Object[]{new VectorType(PrimitiveType.I16, 5), PrimitiveType.X86_FP80});
+        parameters.add(new Object[]{new VectorType(PrimitiveType.I8, 10), PrimitiveType.X86_FP80});
+        parameters.add(new Object[]{new VectorType(PrimitiveType.I1, 80), PrimitiveType.X86_FP80});
+
         parameters.add(new Object[]{new VectorType(PrimitiveType.I64, 1), PrimitiveType.I64});
         parameters.add(new Object[]{new VectorType(PrimitiveType.I32, 2), PrimitiveType.I64});
         parameters.add(new Object[]{new VectorType(PrimitiveType.I16, 4), PrimitiveType.I64});
         parameters.add(new Object[]{new VectorType(PrimitiveType.I8, 8), PrimitiveType.I64});
-        // parameters.add(new Object[]{new VectorType(PrimitiveType.I1, 64), PrimitiveType.I64});
+        parameters.add(new Object[]{new VectorType(PrimitiveType.I1, 64), PrimitiveType.I64});
+
+        parameters.add(new Object[]{new VectorType(PrimitiveType.I64, 1), PrimitiveType.DOUBLE});
+        parameters.add(new Object[]{new VectorType(PrimitiveType.I32, 2), PrimitiveType.DOUBLE});
+        parameters.add(new Object[]{new VectorType(PrimitiveType.I16, 4), PrimitiveType.DOUBLE});
+        parameters.add(new Object[]{new VectorType(PrimitiveType.I8, 8), PrimitiveType.DOUBLE});
+        parameters.add(new Object[]{new VectorType(PrimitiveType.I1, 64), PrimitiveType.DOUBLE});
 
         parameters.add(new Object[]{new VectorType(PrimitiveType.I32, 1), PrimitiveType.I32});
         parameters.add(new Object[]{new VectorType(PrimitiveType.I16, 2), PrimitiveType.I32});
         parameters.add(new Object[]{new VectorType(PrimitiveType.I8, 4), PrimitiveType.I32});
-        // parameters.add(new Object[]{new VectorType(PrimitiveType.I1, 32), PrimitiveType.I32});
+        parameters.add(new Object[]{new VectorType(PrimitiveType.I1, 32), PrimitiveType.I32});
+
+        parameters.add(new Object[]{new VectorType(PrimitiveType.I32, 1), PrimitiveType.FLOAT});
+        parameters.add(new Object[]{new VectorType(PrimitiveType.I16, 2), PrimitiveType.FLOAT});
+        parameters.add(new Object[]{new VectorType(PrimitiveType.I8, 4), PrimitiveType.FLOAT});
+        parameters.add(new Object[]{new VectorType(PrimitiveType.I1, 32), PrimitiveType.FLOAT});
 
         parameters.add(new Object[]{new VectorType(PrimitiveType.I16, 1), PrimitiveType.I16});
         parameters.add(new Object[]{new VectorType(PrimitiveType.I8, 2), PrimitiveType.I16});
-        // parameters.add(new Object[]{new VectorType(PrimitiveType.I1, 16), PrimitiveType.I16});
+        parameters.add(new Object[]{new VectorType(PrimitiveType.I1, 16), PrimitiveType.I16});
 
         parameters.add(new Object[]{new VectorType(PrimitiveType.I8, 1), PrimitiveType.I8});
-        // parameters.add(new Object[]{new VectorType(PrimitiveType.I1, 8), PrimitiveType.I8});
+        parameters.add(new Object[]{new VectorType(PrimitiveType.I1, 8), PrimitiveType.I8});
 
-        // parameters.add(new Object[]{new VectorType(PrimitiveType.I1, 1), PrimitiveType.I1});
+        parameters.add(new Object[]{new VectorType(PrimitiveType.I1, 1), PrimitiveType.I1});
 
         for (int i = 0; i < vec128.length; i++) {
             for (int j = 0; j < vec128.length; j++) {
@@ -122,7 +138,10 @@ public class VectorBitcastTest extends BaseSuite {
         FunctionDefinition mid = createTestMid(builder);
         FunctionDefinition min = createTestMin(builder);
 
-        FunctionDefinition endian = createTestEndian(builder);
+        FunctionDefinition endian = null;
+        if (src instanceof PrimitiveType && ((PrimitiveType) src).getPrimitiveKind() != PrimitiveKind.X86_FP80) {
+            endian = createTestEndian(builder);
+        }
         createMain(builder, max, mid, min, endian);
 
         return builder.getModelModule();
@@ -145,14 +164,17 @@ public class VectorBitcastTest extends BaseSuite {
         Instruction retMax = instr.call(max);
         Instruction retMid = instr.call(mid);
         Instruction retMin = instr.call(min);
-        Instruction retEndian = instr.call(endian);
 
         Instruction retMaxMid = instr.binaryOperator(BinaryOperator.INT_OR, retMax, retMid);
         Instruction retMaxMidMin = instr.binaryOperator(BinaryOperator.INT_OR, retMaxMid, retMin);
 
-        Instruction ret = instr.binaryOperator(BinaryOperator.INT_OR, retMaxMidMin, retEndian);
-
-        instr.returnx(ret); // 0=OK, 1=ERROR
+        if (endian != null) {
+            Instruction retEndian = instr.call(endian);
+            Instruction ret = instr.binaryOperator(BinaryOperator.INT_OR, retMaxMidMin, retEndian);
+            instr.returnx(ret); // 0=OK, 1=ERROR
+        } else {
+            instr.returnx(retMaxMidMin); // 0=OK, 1=ERROR
+        }
 
         instr.getInstructionBuilder().exitFunction();
     }
@@ -196,6 +218,11 @@ public class VectorBitcastTest extends BaseSuite {
         } else {
             endianDstValue = endianSrcValue;
         }
+
+        if (Type.isFloatingpointType(dst)) {
+            endianDstValue = endianSrcValue;
+        }
+
         // endianDstValue = 0x01L;
 
         FunctionDefinition def = builder.createFunctionDefinition("endian", 1, new FunctionType(PrimitiveType.I1, new Type[]{}, false));
@@ -215,12 +242,21 @@ public class VectorBitcastTest extends BaseSuite {
         Instruction dst1 = instr.getInstructionBuilder().createCast(dst, CastOperator.BITCAST, filled);
         Instruction dst2 = instr.getInstructionBuilder().createCast(src, CastOperator.BITCAST, dst1);
 
+        final CompareOperator op = Type.isFloatingpointType(dst) ? CompareOperator.FP_ORDERED_NOT_EQUAL : CompareOperator.INT_NOT_EQUAL;
         final Instruction resDst;
         if (dst instanceof VectorType) {
             Instruction elem = instr.extractElement(dst1, 0);
-            resDst = instr.compare(CompareOperator.INT_NOT_EQUAL, elem, endianDstValue);
+            if (Type.isFloatingpointType(dst)) {
+                resDst = instr.compare(op, elem, Double.longBitsToDouble(endianDstValue));
+            } else {
+                resDst = instr.compare(op, elem, endianDstValue);
+            }
         } else {
-            resDst = instr.compare(CompareOperator.INT_NOT_EQUAL, dst1, endianDstValue);
+            if (Type.isFloatingpointType(dst)) {
+                resDst = instr.compare(op, dst1, Double.longBitsToDouble(endianDstValue));
+            } else {
+                resDst = instr.compare(op, dst1, endianDstValue);
+            }
         }
 
         Instruction resDst2 = instr.compareVector(CompareOperator.INT_NOT_EQUAL, filled, dst2);
