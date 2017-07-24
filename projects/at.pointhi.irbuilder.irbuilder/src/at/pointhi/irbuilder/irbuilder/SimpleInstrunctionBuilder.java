@@ -225,6 +225,7 @@ public class SimpleInstrunctionBuilder {
         for (int i = 0; i < values.length; i++) {
             vector = insertElement(vector, values[i], i);
         }
+        builder.createStore(source, vector, 0);
         return vector;
     }
 
@@ -233,6 +234,7 @@ public class SimpleInstrunctionBuilder {
         for (int i = 0; i < values.length; i++) {
             vector = insertElement(vector, values[i], i);
         }
+        builder.createStore(source, vector, 0);
         return vector;
     }
 
@@ -250,6 +252,7 @@ public class SimpleInstrunctionBuilder {
         for (int i = 0; i < values.length; i++) {
             vector = insertElement(vector, values[i], i);
         }
+        builder.createStore(source, vector, 0);
         return vector;
     }
 
@@ -258,6 +261,7 @@ public class SimpleInstrunctionBuilder {
         for (int i = 0; i < values.length; i++) {
             vector = insertElement(vector, values[i], i);
         }
+        builder.createStore(source, vector, 0);
         return vector;
     }
 
