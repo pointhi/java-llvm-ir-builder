@@ -89,8 +89,7 @@ public class PhiNodeTest extends BaseSuite {
 
     private static void createMain(ModelModuleBuilder builder) {
         FunctionDefinition main = builder.createFunctionDefinition("main", 7, new FunctionType(PrimitiveType.I32, new Type[]{}, false));
-        InstructionBuilder facade = new InstructionBuilder(main);
-        SimpleInstrunctionBuilder instr = new SimpleInstrunctionBuilder(builder, facade);
+        SimpleInstrunctionBuilder instr = new SimpleInstrunctionBuilder(builder, main);
 
         instr.jump(instr.getBlock(1)); // TODO: change
 
@@ -117,7 +116,7 @@ public class PhiNodeTest extends BaseSuite {
         instr.nextBlock(); // Block 6
         final Symbol[] values = new Symbol[]{res1, res2, res3, res4, res5};
         final InstructionBlock[] blocks = new InstructionBlock[]{block1, block2, block3, block4, block5};
-        Instruction phiResult = facade.createPhi(PrimitiveType.I32, values, blocks);
+        Instruction phiResult = instr.phi(PrimitiveType.I32, values, blocks);
 
         instr.returnx(phiResult); // 0=OK, 1=ERROR
     }

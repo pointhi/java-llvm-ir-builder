@@ -92,13 +92,12 @@ public class VectorLoopTest extends BaseSuite {
 
     private void createMain(ModelModuleBuilder builder) {
         FunctionDefinition main = builder.createFunctionDefinition("main", 1, new FunctionType(PrimitiveType.I32, new Type[]{}, false));
-        InstructionBuilder facade = new InstructionBuilder(main);
-        SimpleInstrunctionBuilder instr = new SimpleInstrunctionBuilder(builder, facade);
+        SimpleInstrunctionBuilder instr = new SimpleInstrunctionBuilder(builder, main);
 
         final Instruction calcReg = instr.allocate(type);
         final Instruction incReg = instr.allocate(type);
         final Instruction counterReg = instr.allocate(PrimitiveType.I64);
-        facade.createStore(counterReg, ConstantUtil.getI32Const(0), 4);
+        instr.store(counterReg, ConstantUtil.getI32Const(0), 4);
 
         instr.fillVector(calcReg, 0, 0, 0, 0);
         final Instruction increment = instr.fillVector(incReg, 1, 2, 3, 4);
@@ -112,11 +111,11 @@ public class VectorLoopTest extends BaseSuite {
         // for (int i = 0; i < 100; i++) {
         // addRes = instr.binaryOperator(BinaryOperator.INT_ADD, addRes, increment);
         // }
-        facade.createStore(calcReg, addRes, 4);
+        instr.store(calcReg, addRes, 4);
 
         final Instruction index = instr.load(counterReg);
         final Instruction indexAdd = instr.binaryOperator(BinaryOperator.INT_ADD, index, 1);
-        facade.createStore(counterReg, indexAdd, 4);
+        instr.store(counterReg, indexAdd, 4);
         final Instruction cmpRes = instr.compare(CompareOperator.INT_UNSIGNED_LESS_THAN, indexAdd, 10000000);
 
         final InstructionBlock returnBlock = instr.getNextBlock();

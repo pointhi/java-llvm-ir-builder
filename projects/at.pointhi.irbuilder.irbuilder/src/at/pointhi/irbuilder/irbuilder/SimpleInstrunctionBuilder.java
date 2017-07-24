@@ -328,6 +328,11 @@ public class SimpleInstrunctionBuilder {
         return builder.createGetElementPointer(base, symIndices, true);
     }
 
+    // Indirect Branch
+    public Instruction indirectBranch(Symbol address, InstructionBlock... successors) {
+        return builder.createIndirectBranch(address, successors);
+    }
+
     // Insert Element
     public Instruction insertElement(Instruction vector, Constant value, int index) {
         AggregateType type = (AggregateType) vector.getType();
@@ -360,9 +365,40 @@ public class SimpleInstrunctionBuilder {
         return insertElement(vector, ConstantUtil.getConst(type.getElementType(index), value), index);
     }
 
+    // Insert Value
+    public Instruction insertValue(Instruction struct, Symbol value, int index) {
+        Symbol aggregate = struct; // TODO: works?
+        return builder.createInsertValue(struct, aggregate, index, value);
+    }
+
+    public Instruction insertValue(Instruction struct, boolean value, int index) {
+        AggregateType type = (AggregateType) struct.getType();
+        return insertValue(struct, ConstantUtil.getConst(type.getElementType(index), value), index);
+    }
+
+    public Instruction insertValue(Instruction struct, long value, int index) {
+        AggregateType type = (AggregateType) struct.getType();
+        return insertValue(struct, ConstantUtil.getConst(type.getElementType(index), value), index);
+    }
+
+    public Instruction insertValue(Instruction struct, BigInteger value, int index) {
+        AggregateType type = (AggregateType) struct.getType();
+        return insertValue(struct, ConstantUtil.getConst(type.getElementType(index), value), index);
+    }
+
+    public Instruction insertValue(Instruction struct, double value, int index) {
+        AggregateType type = (AggregateType) struct.getType();
+        return insertValue(struct, ConstantUtil.getConst(type.getElementType(index), value), index);
+    }
+
     // Load
     public Instruction load(Instruction source) {
         return builder.createLoad(source);
+    }
+
+    // Phi
+    public Instruction phi(Type type, Symbol[] values, InstructionBlock[] blocks) {
+        return builder.createPhi(type, values, blocks);
     }
 
     // Return
@@ -382,6 +418,35 @@ public class SimpleInstrunctionBuilder {
         }
         builder.createReturn();
         builder.exitFunction();
+    }
+
+    // Select
+    public Instruction select(Type type, Symbol condition, Symbol trueValue, Symbol falseValue) {
+        return builder.createSelect(type, condition, trueValue, falseValue);
+    }
+
+    // Shuffle Vector
+    public Instruction shuffleVector(Type type, Symbol vector1, Symbol vector2, Symbol mask) {
+        return builder.createShuffleVector(type, vector1, vector2, mask);
+    }
+
+    // Store
+    public Instruction store(Symbol destination, Symbol source, int align) {
+        return builder.createStore(destination, source, align);
+    }
+
+    public Instruction store(Symbol destination, Symbol source) {
+        return store(destination, source, 0);
+    }
+
+    // Switch
+    public Instruction switchx(Symbol condition, InstructionBlock defaultBlock, Symbol[] caseValues, InstructionBlock[] caseBlocks) {
+        return builder.createSwitch(condition, defaultBlock, caseValues, caseBlocks);
+    }
+
+    // Unreachable
+    public Instruction unreachable() {
+        return builder.createUnreachable();
     }
 
     // va_arg for x86_64-unknown-linux-gnu
@@ -455,7 +520,7 @@ public class SimpleInstrunctionBuilder {
             throw new AssertionError("type not implemented yet: " + type);
         }
         Instruction i16 = binaryOperator(BinaryOperator.INT_ADD, i9, offset);
-        builder.createStore(i8, i16, 16);
+        store(i8, i16, 16);
         jump(i22);
 
         nextBlock(); // 17
@@ -467,12 +532,12 @@ public class SimpleInstrunctionBuilder {
         Instruction i20 = cast(CastOperator.BITCAST, new PointerType(type), i19);
         Instruction i21 = getElementPointer(i19, 8);
         // update to next available stack slot
-        builder.createStore(i18, i21, 8);
+        store(i18, i21, 8);
         jump(i22);
 
         nextBlock(); // 22
         assert getCurrentBlock() == i22;
-        Instruction i23 = builder.createPhi(new PointerType(type), new Symbol[]{i15, i20}, new InstructionBlock[]{i11, i17});
+        Instruction i23 = phi(new PointerType(type), new Symbol[]{i15, i20}, new InstructionBlock[]{i11, i17});
         // Load argument
         Instruction i24 = load(i23);
 
@@ -491,7 +556,7 @@ public class SimpleInstrunctionBuilder {
         Instruction i11 = getElementPointer(i9, ConstantUtil.getI32Const(type.getSize(InstructionBuilder.targetDataLayout)));
 
         // update to next available stack slot
-        builder.createStore(i8, i11, 8);
+        store(i8, i11, 8);
 
         // copy into new object
         Instruction i4 = allocate(type);

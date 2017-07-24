@@ -169,12 +169,11 @@ public class VarArgFunctionCallTest extends BaseSuite {
 
     private static FunctionDefinition createMain(ModelModuleBuilder builder, FunctionDefinition foo, StructureType struct) {
         FunctionDefinition main = builder.createFunctionDefinition("main", 1, new FunctionType(PrimitiveType.I32, new Type[]{}, true));
-        InstructionBuilder mainFacade = new InstructionBuilder(main);
-        SimpleInstrunctionBuilder instr = new SimpleInstrunctionBuilder(builder, mainFacade);
+        SimpleInstrunctionBuilder instr = new SimpleInstrunctionBuilder(builder, main);
 
         Instruction structType = instr.allocate(struct);
-        Instruction structFirstElement = mainFacade.createGetElementPointer(structType, new Symbol[]{ConstantUtil.getI32Const(0), ConstantUtil.getI32Const(1)}, false);
-        mainFacade.createStore(structFirstElement, ConstantUtil.getI32Const(42), 0);
+        Instruction structFirstElement = instr.getElementPointer(structType, 0, 1);
+        instr.store(structFirstElement, ConstantUtil.getI32Const(42));
 
         Instruction res = instr.call(foo, ConstantUtil.getI32Const(1), ConstantUtil.getI32Const(32), ConstantUtil.getDoubleConst(1.2), structType, structType);
 
