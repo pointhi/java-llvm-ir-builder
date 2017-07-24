@@ -131,8 +131,6 @@ public class BinaryI1VectorOperations extends BaseSuite {
 
         Instruction ret = instr.compareVector(CompareOperator.INT_NOT_EQUAL, retVec, resVec);
         instr.returnx(ret); // 0=OK, 1=ERROR
-
-        instr.getInstructionBuilder().exitFunction();
     }
 
     private static IntegerConstant[] getConstantArray(List<Object[]> paramList, int idx) {

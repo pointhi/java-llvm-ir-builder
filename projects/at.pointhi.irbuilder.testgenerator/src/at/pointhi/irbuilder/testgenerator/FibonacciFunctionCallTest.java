@@ -91,12 +91,12 @@ public class FibonacciFunctionCallTest extends BaseSuite {
         FunctionParameter param1 = fibInstr.nextParameter();
 
         Instruction cmp1 = fibInstr.compare(CompareOperator.INT_SIGNED_LESS_OR_EQUAL, param1, 1);
-        fibFacade.createBranch(cmp1, fibFacade.getBlock(1), fibFacade.getBlock(2));
+        fibFacade.createBranch(cmp1, fibInstr.getBlock(1), fibInstr.getBlock(2));
 
-        fibFacade.nextBlock();
+        fibInstr.nextBlock();
         fibInstr.returnx(param1);
 
-        fibFacade.nextBlock();
+        fibInstr.nextBlock();
         Instruction fib1Pos = fibInstr.binaryOperator(BinaryOperator.INT_SUBTRACT, param1, 1);
         Instruction fib1 = fibInstr.call(fibonacci, fib1Pos);
 
@@ -106,7 +106,6 @@ public class FibonacciFunctionCallTest extends BaseSuite {
         Instruction res = fibInstr.binaryOperator(BinaryOperator.INT_ADD, fib1, fib2);
 
         fibInstr.returnx(res);
-        fibFacade.exitFunction();
 
         return builder.getModelModule();
     }
@@ -119,7 +118,5 @@ public class FibonacciFunctionCallTest extends BaseSuite {
         Instruction fibRes = mainInstr.call(fibonacci, new IntegerConstant(PrimitiveType.I32, 10));
         Instruction ret = mainInstr.compare(CompareOperator.INT_NOT_EQUAL, fibRes, 55);
         mainInstr.returnx(ret); // 0=OK, 1=ERROR
-
-        mainFacade.exitFunction();
     }
 }

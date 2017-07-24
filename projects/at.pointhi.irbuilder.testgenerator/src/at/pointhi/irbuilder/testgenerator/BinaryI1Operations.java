@@ -139,8 +139,6 @@ public class BinaryI1Operations extends BaseSuite {
         boolean opResult = IntegerBinaryOperations.I1.calculateResult(operator, op1, op2);
         Instruction ret = instr.compare(CompareOperator.INT_NOT_EQUAL, opRet, opResult);
         instr.returnx(ret); // 0=OK, 1=ERROR
-
-        instr.getInstructionBuilder().exitFunction();
     }
 
 }

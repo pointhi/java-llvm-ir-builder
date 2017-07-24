@@ -92,35 +92,33 @@ public class PhiNodeTest extends BaseSuite {
         InstructionBuilder facade = new InstructionBuilder(main);
         SimpleInstrunctionBuilder instr = new SimpleInstrunctionBuilder(builder, facade);
 
-        facade.createBranch(facade.getBlock(1)); // TODO: change
+        facade.createBranch(instr.getBlock(1)); // TODO: change
 
-        InstructionBlock block1 = facade.nextBlock(); // Block 1
+        InstructionBlock block1 = instr.nextBlock(); // Block 1
         Instruction res1 = instr.binaryOperator(BinaryOperator.INT_ADD, 0, new IntegerConstant(PrimitiveType.I32, 1));
-        facade.createBranch(facade.getBlock(6));
+        facade.createBranch(instr.getBlock(6));
 
-        InstructionBlock block2 = facade.nextBlock(); // Block 2
+        InstructionBlock block2 = instr.nextBlock(); // Block 2
         Instruction res2 = instr.binaryOperator(BinaryOperator.INT_ADD, 0, new IntegerConstant(PrimitiveType.I32, 2));
-        facade.createBranch(facade.getBlock(6));
+        facade.createBranch(instr.getBlock(6));
 
-        InstructionBlock block3 = facade.nextBlock(); // Block 3
+        InstructionBlock block3 = instr.nextBlock(); // Block 3
         Instruction res3 = instr.binaryOperator(BinaryOperator.INT_ADD, 0, new IntegerConstant(PrimitiveType.I32, 3));
-        facade.createBranch(facade.getBlock(6));
+        facade.createBranch(instr.getBlock(6));
 
-        InstructionBlock block4 = facade.nextBlock(); // Block 4
+        InstructionBlock block4 = instr.nextBlock(); // Block 4
         Instruction res4 = instr.binaryOperator(BinaryOperator.INT_ADD, 0, new IntegerConstant(PrimitiveType.I32, 4));
-        facade.createBranch(facade.getBlock(6));
+        facade.createBranch(instr.getBlock(6));
 
-        InstructionBlock block5 = facade.nextBlock(); // Block 5
+        InstructionBlock block5 = instr.nextBlock(); // Block 5
         Instruction res5 = instr.binaryOperator(BinaryOperator.INT_ADD, 0, new IntegerConstant(PrimitiveType.I32, 5));
-        facade.createBranch(facade.getBlock(6));
+        facade.createBranch(instr.getBlock(6));
 
-        facade.nextBlock(); // Block 6
+        instr.nextBlock(); // Block 6
         final Symbol[] values = new Symbol[]{res1, res2, res3, res4, res5};
         final InstructionBlock[] blocks = new InstructionBlock[]{block1, block2, block3, block4, block5};
         Instruction phiResult = facade.createPhi(PrimitiveType.I32, values, blocks);
 
         instr.returnx(phiResult); // 0=OK, 1=ERROR
-
-        facade.exitFunction();
     }
 }

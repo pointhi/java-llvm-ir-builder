@@ -147,8 +147,6 @@ public class BinaryVectorOperatorTest extends BaseSuite {
 
         Instruction ret = instr.compareVector(CompareOperator.INT_NOT_EQUAL, retVec, resVec);
         instr.returnx(ret); // 0=OK, 1=ERROR
-
-        instr.getInstructionBuilder().exitFunction();
     }
 
     private static final class OperatorResult {

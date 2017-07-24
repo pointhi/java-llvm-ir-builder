@@ -175,8 +175,6 @@ public class VectorBitcastTest extends BaseSuite {
         } else {
             instr.returnx(retMaxMidMin); // 0=OK, 1=ERROR
         }
-
-        instr.getInstructionBuilder().exitFunction();
     }
 
     private FunctionDefinition createTestMax(ModelModuleBuilder builder) {
@@ -265,8 +263,6 @@ public class VectorBitcastTest extends BaseSuite {
 
         instr.returnx(ret); // 0=OK, 1=ERROR
 
-        instr.getInstructionBuilder().exitFunction();
-
         return def;
     }
 
@@ -289,8 +285,6 @@ public class VectorBitcastTest extends BaseSuite {
 
         Instruction ret = instr.compareVector(CompareOperator.INT_NOT_EQUAL, filled, dst2);
         instr.returnx(ret); // 0=OK, 1=ERROR
-
-        instr.getInstructionBuilder().exitFunction();
 
         return def;
     }

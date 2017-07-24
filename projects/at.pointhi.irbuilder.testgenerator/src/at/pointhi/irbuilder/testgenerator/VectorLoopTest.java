@@ -103,9 +103,9 @@ public class VectorLoopTest extends BaseSuite {
         instr.fillVector(calcReg, 0, 0, 0, 0);
         final Instruction increment = instr.fillVector(incReg, 1, 2, 3, 4);
 
-        final InstructionBlock loopBlock = facade.getNextBlock();
+        final InstructionBlock loopBlock = instr.getNextBlock();
         facade.createBranch(loopBlock);
-        facade.nextBlock();
+        instr.nextBlock();
 
         final Instruction calcLoad = instr.load(calcReg);
         Instruction addRes = instr.binaryOperator(BinaryOperator.INT_ADD, calcLoad, increment);
@@ -119,14 +119,12 @@ public class VectorLoopTest extends BaseSuite {
         facade.createStore(counterReg, indexAdd, 4);
         final Instruction cmpRes = instr.compare(CompareOperator.INT_UNSIGNED_LESS_THAN, indexAdd, 10000000);
 
-        final InstructionBlock returnBlock = facade.getNextBlock();
+        final InstructionBlock returnBlock = instr.getNextBlock();
         facade.createBranch(cmpRes, loopBlock, returnBlock);
-        facade.nextBlock();
+        instr.nextBlock();
 
         final Instruction res = instr.extractElement(instr.load(calcReg), 0);
 
         instr.returnx(res);
-
-        facade.exitFunction();
     }
 }

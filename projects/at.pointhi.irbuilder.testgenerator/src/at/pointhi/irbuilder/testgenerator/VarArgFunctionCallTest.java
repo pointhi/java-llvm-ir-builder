@@ -112,8 +112,8 @@ public class VarArgFunctionCallTest extends BaseSuite {
         InstructionBuilder fooFacade = new InstructionBuilder(foo);
         SimpleInstrunctionBuilder instr = new SimpleInstrunctionBuilder(builder, fooFacade);
 
-        InstructionBlock returnOkBlock = fooFacade.getBlock(1);
-        InstructionBlock returnFailBlock = fooFacade.getBlock(2);
+        InstructionBlock returnOkBlock = instr.getBlock(1);
+        InstructionBlock returnFailBlock = instr.getBlock(2);
 
         // FunctionParameter length = instr.nextParameter();
 
@@ -126,24 +126,24 @@ public class VarArgFunctionCallTest extends BaseSuite {
         Instruction loadRes = instr.vaArgAMD64(vaArray, PrimitiveType.I32);
         Instruction cmpRes = instr.compare(CompareOperator.INT_EQUAL, loadRes, 32);
 
-        fooFacade.insertBlocks(1);
-        fooFacade.createBranch(cmpRes, fooFacade.getNextBlock(), returnFailBlock);
-        fooFacade.nextBlock();
+        instr.insertBlocks(1);
+        fooFacade.createBranch(cmpRes, instr.getNextBlock(), returnFailBlock);
+        instr.nextBlock();
 
         Instruction loadRes2 = instr.vaArgAMD64(vaArray, PrimitiveType.DOUBLE);
         Instruction cmpRes2 = instr.compare(CompareOperator.FP_ORDERED_EQUAL, loadRes2, 1.2);
 
-        fooFacade.insertBlocks(1);
-        fooFacade.createBranch(cmpRes2, fooFacade.getNextBlock(), returnFailBlock);
-        fooFacade.nextBlock();
+        instr.insertBlocks(1);
+        fooFacade.createBranch(cmpRes2, instr.getNextBlock(), returnFailBlock);
+        instr.nextBlock();
 
         Instruction loadRes3 = instr.vaArgAMD64StackOnly(vaArray, struct);
         Instruction loadRes3Var = fooFacade.createGetElementPointer(loadRes3, new Symbol[]{ConstantUtil.getI32Const(0), ConstantUtil.getI32Const(1)}, false);
         Instruction cmpRes3 = instr.compare(CompareOperator.INT_EQUAL, instr.load(loadRes3Var), 42);
 
-        fooFacade.insertBlocks(1);
-        fooFacade.createBranch(cmpRes3, fooFacade.getNextBlock(), returnFailBlock);
-        fooFacade.nextBlock();
+        instr.insertBlocks(1);
+        fooFacade.createBranch(cmpRes3, instr.getNextBlock(), returnFailBlock);
+        instr.nextBlock();
 
         Instruction loadRes4 = instr.vaArgAMD64StackOnly(vaArray, struct);
         Instruction loadRes4Var = fooFacade.createGetElementPointer(loadRes4, new Symbol[]{ConstantUtil.getI32Const(0), ConstantUtil.getI32Const(1)}, false);
@@ -151,21 +151,19 @@ public class VarArgFunctionCallTest extends BaseSuite {
 
         fooFacade.createBranch(cmpRes4, returnOkBlock, returnFailBlock);
 
-        fooFacade.nextBlock();
-        assert fooFacade.getCurrentBlock() == returnOkBlock;
+        instr.nextBlock();
+        assert instr.getCurrentBlock() == returnOkBlock;
 
         instr.vaEndAMD64(vaArray);
 
         instr.returnx(ConstantUtil.getI32Const(0));
 
-        fooFacade.nextBlock();
-        assert fooFacade.getCurrentBlock() == returnFailBlock;
+        instr.nextBlock();
+        assert instr.getCurrentBlock() == returnFailBlock;
 
         instr.vaEndAMD64(vaArray);
 
         instr.returnx(ConstantUtil.getI32Const(1));
-
-        fooFacade.exitFunction();
 
         return foo;
     }

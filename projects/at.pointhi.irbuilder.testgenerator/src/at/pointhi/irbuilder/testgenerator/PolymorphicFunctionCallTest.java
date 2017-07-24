@@ -117,8 +117,6 @@ public class PolymorphicFunctionCallTest extends BaseSuite {
         SimpleInstrunctionBuilder instr = new SimpleInstrunctionBuilder(builder, main);
 
         instr.returnx(ConstantUtil.getI32Const(1)); // 0=OK, 1=ERROR
-
-        instr.getInstructionBuilder().exitFunction();
     }
 
     private FunctionDefinition createCallSite(ModelModuleBuilder builder, int idx) {
@@ -133,8 +131,6 @@ public class PolymorphicFunctionCallTest extends BaseSuite {
         final Instruction res = instr.binaryOperator(op, lhs, rhs);
 
         instr.returnx(res);
-
-        instr.getInstructionBuilder().exitFunction();
 
         return foo;
     }

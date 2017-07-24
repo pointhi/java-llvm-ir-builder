@@ -41,6 +41,7 @@ import com.oracle.truffle.llvm.parser.model.functions.FunctionDefinition;
 import com.oracle.truffle.llvm.parser.model.functions.FunctionParameter;
 import com.oracle.truffle.llvm.parser.model.symbols.constants.Constant;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.Instruction;
+import com.oracle.truffle.llvm.parser.model.symbols.instructions.TerminatingInstruction;
 import com.oracle.truffle.llvm.runtime.types.AggregateType;
 import com.oracle.truffle.llvm.runtime.types.PointerType;
 import com.oracle.truffle.llvm.runtime.types.PrimitiveType;
@@ -68,6 +69,29 @@ public class SimpleInstrunctionBuilder {
 
     public InstructionBuilder getInstructionBuilder() {
         return builder;
+    }
+
+    public InstructionBlock nextBlock() {
+        if (!(builder.getLastInstruction() instanceof TerminatingInstruction)) {
+            throw new AssertionError("The last instruction of a block has to be a terminating instruction!");
+        }
+        return builder.nextBlock();
+    }
+
+    public InstructionBlock getCurrentBlock() {
+        return builder.getCurrentBlock();
+    }
+
+    public InstructionBlock getNextBlock() {
+        return builder.getNextBlock();
+    }
+
+    public InstructionBlock getBlock(int idx) {
+        return builder.getBlock(idx);
+    }
+
+    public void insertBlocks(int count) {
+        builder.insertBlocks(count);
     }
 
     public FunctionParameter nextParameter() {
@@ -309,6 +333,7 @@ public class SimpleInstrunctionBuilder {
             throw new AssertionError("Return type does not match function definition (" + value.getType() + " != " + functionReturnType + ")");
         }
         builder.createReturn(value);
+        builder.exitFunction();
     }
 
     public void returnx() {
@@ -317,6 +342,7 @@ public class SimpleInstrunctionBuilder {
             throw new AssertionError("Function definition requires a non void return type: " + functionReturnType);
         }
         builder.createReturn();
+        builder.exitFunction();
     }
 
     // va_arg for x86_64-unknown-linux-gnu
@@ -347,11 +373,11 @@ public class SimpleInstrunctionBuilder {
      * @return the next vararg
      */
     public Instruction vaArgAMD64(Symbol vaListTag, Type type) {
-        final int curBlockIdx = builder.getCurrentBlock().getBlockIndex();
-        builder.insertBlocks(3);
-        InstructionBlock i11 = builder.getBlock(curBlockIdx + 1);
-        InstructionBlock i17 = builder.getBlock(curBlockIdx + 2);
-        InstructionBlock i22 = builder.getBlock(curBlockIdx + 3);
+        final int curBlockIdx = getCurrentBlock().getBlockIndex();
+        insertBlocks(3);
+        InstructionBlock i11 = getBlock(curBlockIdx + 1);
+        InstructionBlock i17 = getBlock(curBlockIdx + 2);
+        InstructionBlock i22 = getBlock(curBlockIdx + 3);
 
         // Is register available?
         Instruction i7 = builder.createGetElementPointer(vaListTag, new Symbol[]{ConstantUtil.getI32Const(0), ConstantUtil.getI32Const(0)}, true);
@@ -371,8 +397,8 @@ public class SimpleInstrunctionBuilder {
         }
         builder.createBranch(i10, i11, i17);
 
-        builder.nextBlock(); // 11
-        assert builder.getCurrentBlock() == i11;
+        nextBlock(); // 11
+        assert getCurrentBlock() == i11;
 
         // Address of saved register
         Instruction i12 = builder.createGetElementPointer(i7, new Symbol[]{ConstantUtil.getI32Const(0), ConstantUtil.getI32Const(VA_LIST_TAG_TYPE.REG_SAVE_AREA.getIdx())}, true);
@@ -393,8 +419,8 @@ public class SimpleInstrunctionBuilder {
         builder.createStore(i8, i16, 16);
         builder.createBranch(i22);
 
-        builder.nextBlock(); // 17
-        assert builder.getCurrentBlock() == i17;
+        nextBlock(); // 17
+        assert getCurrentBlock() == i17;
 
         // Address of stack slot
         Instruction i18 = builder.createGetElementPointer(i7, new Symbol[]{ConstantUtil.getI32Const(0), ConstantUtil.getI32Const(VA_LIST_TAG_TYPE.OVERFLOW_ARG_AREA.getIdx())}, true);
@@ -405,8 +431,8 @@ public class SimpleInstrunctionBuilder {
         builder.createStore(i18, i21, 8);
         builder.createBranch(i22);
 
-        builder.nextBlock(); // 22
-        assert builder.getCurrentBlock() == i22;
+        nextBlock(); // 22
+        assert getCurrentBlock() == i22;
         Instruction i23 = builder.createPhi(new PointerType(type), new Symbol[]{i15, i20}, new InstructionBlock[]{i11, i17});
         // Load argument
         Instruction i24 = load(i23);
