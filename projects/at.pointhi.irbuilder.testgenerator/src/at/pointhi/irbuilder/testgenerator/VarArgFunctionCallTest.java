@@ -48,10 +48,8 @@ import com.oracle.truffle.llvm.runtime.types.FunctionType;
 import com.oracle.truffle.llvm.runtime.types.PrimitiveType;
 import com.oracle.truffle.llvm.runtime.types.StructureType;
 import com.oracle.truffle.llvm.runtime.types.Type;
-import com.oracle.truffle.llvm.runtime.types.symbols.Symbol;
 import com.oracle.truffle.llvm.test.options.TestOptions;
 
-import at.pointhi.irbuilder.irbuilder.InstructionBuilder;
 import at.pointhi.irbuilder.irbuilder.ModelModuleBuilder;
 import at.pointhi.irbuilder.irbuilder.SimpleInstrunctionBuilder;
 import at.pointhi.irbuilder.irbuilder.helper.LLVMIntrinsics;
