@@ -31,9 +31,15 @@
  */
 package at.pointhi.irbuilder.irbuilder.util;
 
+import java.math.BigInteger;
+
+import com.oracle.truffle.llvm.parser.model.symbols.constants.Constant;
 import com.oracle.truffle.llvm.parser.model.symbols.constants.floatingpoint.FloatingPointConstant;
+import com.oracle.truffle.llvm.parser.model.symbols.constants.integer.BigIntegerConstant;
 import com.oracle.truffle.llvm.parser.model.symbols.constants.integer.IntegerConstant;
 import com.oracle.truffle.llvm.runtime.types.PrimitiveType;
+import com.oracle.truffle.llvm.runtime.types.Type;
+import com.oracle.truffle.llvm.runtime.types.VariableBitWidthType;
 
 public final class ConstantUtil {
     private ConstantUtil() {
@@ -65,5 +71,46 @@ public final class ConstantUtil {
 
     public static FloatingPointConstant getDoubleConst(double val) {
         return FloatingPointConstant.create(PrimitiveType.DOUBLE, new long[]{Double.doubleToRawLongBits(val)});
+    }
+
+    public static Constant getConst(Type type, double value) {
+        if (!PrimitiveType.isFloatingpointType(type)) {
+            throw new AssertionError("unexpected type: " + type);
+        }
+        return FloatingPointConstant.create(type, new long[]{Double.doubleToRawLongBits(value)});
+    }
+
+    public static Constant getConst(Type type, boolean value) {
+        if (PrimitiveType.isIntegerType(type)) {
+            return new IntegerConstant(type, value ? 1 : 0);
+        } else if (PrimitiveType.isFloatingpointType(type)) {
+            return getConst(type, value ? 1. : 0.);
+        } else {
+            throw new AssertionError("unexpected type: " + type);
+        }
+    }
+
+    public static Constant getConst(Type type, long value) {
+        if (PrimitiveType.isIntegerType(type)) {
+            return new IntegerConstant(type, value);
+        } else if (PrimitiveType.isFloatingpointType(type)) {
+            return getConst(type, (double) value);
+        } else {
+            throw new AssertionError("unexpected type: " + type);
+        }
+    }
+
+    public static Constant getConst(Type type, BigInteger value) {
+        if (PrimitiveType.isIntegerType(type)) {
+            if (type instanceof VariableBitWidthType) {
+                return new BigIntegerConstant(type, value); // TODO
+            } else {
+                return new IntegerConstant(type, value.longValue());
+            }
+        } else if (PrimitiveType.isFloatingpointType(type)) {
+            return getConst(type, (double) value.longValue());
+        } else {
+            throw new AssertionError("unexpected type: " + type);
+        }
     }
 }

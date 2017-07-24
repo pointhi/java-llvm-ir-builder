@@ -40,15 +40,13 @@ import com.oracle.truffle.llvm.parser.model.enums.CompareOperator;
 import com.oracle.truffle.llvm.parser.model.functions.FunctionDefinition;
 import com.oracle.truffle.llvm.parser.model.functions.FunctionParameter;
 import com.oracle.truffle.llvm.parser.model.symbols.constants.Constant;
-import com.oracle.truffle.llvm.parser.model.symbols.constants.floatingpoint.FloatingPointConstant;
-import com.oracle.truffle.llvm.parser.model.symbols.constants.integer.BigIntegerConstant;
-import com.oracle.truffle.llvm.parser.model.symbols.constants.integer.IntegerConstant;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.Instruction;
 import com.oracle.truffle.llvm.runtime.types.AggregateType;
 import com.oracle.truffle.llvm.runtime.types.PointerType;
 import com.oracle.truffle.llvm.runtime.types.PrimitiveType;
 import com.oracle.truffle.llvm.runtime.types.Type;
-import com.oracle.truffle.llvm.runtime.types.VariableBitWidthType;
+import com.oracle.truffle.llvm.runtime.types.VectorType;
+import com.oracle.truffle.llvm.runtime.types.VoidType;
 import com.oracle.truffle.llvm.runtime.types.symbols.Symbol;
 
 import at.pointhi.irbuilder.irbuilder.helper.LLVMIntrinsics;
@@ -66,47 +64,6 @@ public class SimpleInstrunctionBuilder {
     public SimpleInstrunctionBuilder(ModelModuleBuilder modelBuilder, InstructionBuilder builder) {
         this.modelBuilder = modelBuilder;
         this.builder = builder;
-    }
-
-    private static Constant toConstant(Type type, double value) {
-        if (!PrimitiveType.isFloatingpointType(type)) {
-            throw new AssertionError("unexpected type: " + type);
-        }
-        return FloatingPointConstant.create(type, new long[]{Double.doubleToRawLongBits(value)});
-    }
-
-    private static Constant toConstant(Type type, boolean value) {
-        if (PrimitiveType.isIntegerType(type)) {
-            return new IntegerConstant(type, value ? 1 : 0);
-        } else if (PrimitiveType.isFloatingpointType(type)) {
-            return toConstant(type, value ? 1. : 0.);
-        } else {
-            throw new AssertionError("unexpected type: " + type);
-        }
-    }
-
-    private static Constant toConstant(Type type, long value) {
-        if (PrimitiveType.isIntegerType(type)) {
-            return new IntegerConstant(type, value);
-        } else if (PrimitiveType.isFloatingpointType(type)) {
-            return toConstant(type, (double) value);
-        } else {
-            throw new AssertionError("unexpected type: " + type);
-        }
-    }
-
-    private static Constant toConstant(Type type, BigInteger value) {
-        if (PrimitiveType.isIntegerType(type)) {
-            if (type instanceof VariableBitWidthType) {
-                return new BigIntegerConstant(type, value); // TODO
-            } else {
-                return new IntegerConstant(type, value.longValue());
-            }
-        } else if (PrimitiveType.isFloatingpointType(type)) {
-            return toConstant(type, (double) value.longValue());
-        } else {
-            throw new AssertionError("unexpected type: " + type);
-        }
     }
 
     public InstructionBuilder getInstructionBuilder() {
@@ -133,76 +90,96 @@ public class SimpleInstrunctionBuilder {
 
     // Binary Operator
     public Instruction binaryOperator(BinaryOperator op, Symbol lhs, Symbol rhs) {
+        if (!lhs.getType().equals(rhs.getType())) {
+            throw new AssertionError("Both arguments must have same type! (" + lhs.getType() + " != " + rhs.getType() + ")");
+        }
+        final Type type = lhs.getType();
+        if (op.isFloatingPoint() && (Type.isIntegerType(type) || (type instanceof VectorType && Type.isIntegerType(((VectorType) type).getElementType())))) {
+            throw new AssertionError("You cannot use Floating Point operators with Integer Variables!");
+        }
+        if (!op.isFloatingPoint() && (Type.isFloatingpointType(type) || (type instanceof VectorType && Type.isFloatingpointType(((VectorType) type).getElementType())))) {
+            throw new AssertionError("You cannot use Integer operators with Floating Point Variables!");
+        }
         return builder.createBinaryOperation(lhs, rhs, op);
     }
 
     public Instruction binaryOperator(BinaryOperator op, boolean lhs, Symbol rhs) {
-        return builder.createBinaryOperation(toConstant(rhs.getType(), lhs), rhs, op);
+        return binaryOperator(op, ConstantUtil.getConst(rhs.getType(), lhs), rhs);
     }
 
     public Instruction binaryOperator(BinaryOperator op, Symbol lhs, boolean rhs) {
-        return builder.createBinaryOperation(lhs, toConstant(lhs.getType(), rhs), op);
+        return binaryOperator(op, lhs, ConstantUtil.getConst(lhs.getType(), rhs));
     }
 
     public Instruction binaryOperator(BinaryOperator op, long lhs, Symbol rhs) {
-        return builder.createBinaryOperation(toConstant(rhs.getType(), lhs), rhs, op);
+        return binaryOperator(op, ConstantUtil.getConst(rhs.getType(), lhs), rhs);
     }
 
     public Instruction binaryOperator(BinaryOperator op, Symbol lhs, long rhs) {
-        return builder.createBinaryOperation(lhs, toConstant(lhs.getType(), rhs), op);
+        return binaryOperator(op, lhs, ConstantUtil.getConst(lhs.getType(), rhs));
     }
 
     public Instruction binaryOperator(BinaryOperator op, BigInteger lhs, Symbol rhs) {
-        return builder.createBinaryOperation(toConstant(rhs.getType(), lhs), rhs, op);
+        return binaryOperator(op, ConstantUtil.getConst(rhs.getType(), lhs), rhs);
     }
 
     public Instruction binaryOperator(BinaryOperator op, Symbol lhs, BigInteger rhs) {
-        return builder.createBinaryOperation(lhs, toConstant(lhs.getType(), rhs), op);
+        return binaryOperator(op, lhs, ConstantUtil.getConst(lhs.getType(), rhs));
     }
 
     public Instruction binaryOperator(BinaryOperator op, double lhs, Symbol rhs) {
-        return builder.createBinaryOperation(toConstant(rhs.getType(), lhs), rhs, op);
+        return binaryOperator(op, ConstantUtil.getConst(rhs.getType(), lhs), rhs);
     }
 
     public Instruction binaryOperator(BinaryOperator op, Symbol lhs, double rhs) {
-        return builder.createBinaryOperation(lhs, toConstant(lhs.getType(), rhs), op);
+        return binaryOperator(op, lhs, ConstantUtil.getConst(lhs.getType(), rhs));
     }
 
     // Compare
     public Instruction compare(CompareOperator op, Symbol lhs, Symbol rhs) {
+        if (!lhs.getType().equals(rhs.getType())) {
+            throw new AssertionError("Both arguments must have same type! (" + lhs.getType() + " != " + rhs.getType() + ")");
+        }
+        final Type type = lhs.getType();
+        if (op.isFloatingPoint() && (Type.isIntegerType(type) || type instanceof PointerType || (type instanceof VectorType && Type.isIntegerType(((VectorType) type).getElementType())))) {
+            throw new AssertionError("You cannot use Floating Point operators with Integer Variables!");
+        }
+        if (!op.isFloatingPoint() && (Type.isFloatingpointType(type) || (type instanceof VectorType && Type.isFloatingpointType(((VectorType) type).getElementType())))) {
+            throw new AssertionError("You cannot use Integer operators with Floating Point Variables!");
+        }
         return builder.createCompare(op, lhs, rhs);
     }
 
     public Instruction compare(CompareOperator op, boolean lhs, Symbol rhs) {
-        return builder.createCompare(op, toConstant(rhs.getType(), lhs), rhs);
+        return compare(op, ConstantUtil.getConst(rhs.getType(), lhs), rhs);
     }
 
     public Instruction compare(CompareOperator op, Symbol lhs, boolean rhs) {
-        return builder.createCompare(op, lhs, toConstant(lhs.getType(), rhs));
+        return compare(op, lhs, ConstantUtil.getConst(lhs.getType(), rhs));
     }
 
     public Instruction compare(CompareOperator op, long lhs, Symbol rhs) {
-        return builder.createCompare(op, toConstant(rhs.getType(), lhs), rhs);
+        return compare(op, ConstantUtil.getConst(rhs.getType(), lhs), rhs);
     }
 
     public Instruction compare(CompareOperator op, Symbol lhs, long rhs) {
-        return builder.createCompare(op, lhs, toConstant(lhs.getType(), rhs));
+        return compare(op, lhs, ConstantUtil.getConst(lhs.getType(), rhs));
     }
 
     public Instruction compare(CompareOperator op, BigInteger lhs, Symbol rhs) {
-        return builder.createCompare(op, toConstant(rhs.getType(), lhs), rhs);
+        return compare(op, ConstantUtil.getConst(rhs.getType(), lhs), rhs);
     }
 
     public Instruction compare(CompareOperator op, Symbol lhs, BigInteger rhs) {
-        return builder.createCompare(op, lhs, toConstant(lhs.getType(), rhs));
+        return compare(op, lhs, ConstantUtil.getConst(lhs.getType(), rhs));
     }
 
     public Instruction compare(CompareOperator op, double lhs, Symbol rhs) {
-        return builder.createCompare(op, toConstant(rhs.getType(), lhs), rhs);
+        return compare(op, ConstantUtil.getConst(rhs.getType(), lhs), rhs);
     }
 
     public Instruction compare(CompareOperator op, Symbol lhs, double rhs) {
-        return builder.createCompare(op, lhs, toConstant(lhs.getType(), rhs));
+        return compare(op, lhs, ConstantUtil.getConst(lhs.getType(), rhs));
     }
 
     // Compare Vector (constructed node)
@@ -286,27 +263,34 @@ public class SimpleInstrunctionBuilder {
 
     // Insert Element
     public Instruction insertElement(Instruction vector, Constant value, int index) {
+        AggregateType type = (AggregateType) vector.getType();
+        if (index < 0 || index >= type.getNumberOfElements()) {
+            throw new AssertionError("Cannot insert an element at index " + index + " into the type " + type);
+        }
+        if (!type.getElementType(index).equals(value.getType())) {
+            throw new AssertionError("Cannot insert an element with the type " + value.getType() + " at index " + index + " of " + type);
+        }
         return builder.createInsertElement(vector, value, index);
     }
 
     public Instruction insertElement(Instruction vector, boolean value, int index) {
         AggregateType type = (AggregateType) vector.getType();
-        return builder.createInsertElement(vector, toConstant(type.getElementType(index), value), index);
+        return insertElement(vector, ConstantUtil.getConst(type.getElementType(index), value), index);
     }
 
     public Instruction insertElement(Instruction vector, long value, int index) {
         AggregateType type = (AggregateType) vector.getType();
-        return builder.createInsertElement(vector, toConstant(type.getElementType(index), value), index);
+        return insertElement(vector, ConstantUtil.getConst(type.getElementType(index), value), index);
     }
 
     public Instruction insertElement(Instruction vector, BigInteger value, int index) {
         AggregateType type = (AggregateType) vector.getType();
-        return builder.createInsertElement(vector, toConstant(type.getElementType(index), value), index);
+        return insertElement(vector, ConstantUtil.getConst(type.getElementType(index), value), index);
     }
 
     public Instruction insertElement(Instruction vector, double value, int index) {
         AggregateType type = (AggregateType) vector.getType();
-        return builder.createInsertElement(vector, toConstant(type.getElementType(index), value), index);
+        return insertElement(vector, ConstantUtil.getConst(type.getElementType(index), value), index);
     }
 
     // Load
@@ -316,10 +300,18 @@ public class SimpleInstrunctionBuilder {
 
     // Return
     public void returnx(Symbol value) {
+        final Type functionReturnType = builder.getFunctionDefinition().getType().getReturnType();
+        if (!functionReturnType.equals(value.getType())) {
+            throw new AssertionError("Return type does not match function definition (" + value.getType() + " != " + functionReturnType + ")");
+        }
         builder.createReturn(value);
     }
 
     public void returnx() {
+        final Type functionReturnType = builder.getFunctionDefinition().getType().getReturnType();
+        if (!functionReturnType.equals(VoidType.INSTANCE)) {
+            throw new AssertionError("Function definition requires a non void return type: " + functionReturnType);
+        }
         builder.createReturn();
     }
 
