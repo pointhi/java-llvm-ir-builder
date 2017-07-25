@@ -119,7 +119,7 @@ irBuilderTestsGen38 = {
     'binary_vector' : ["at.pointhi.irbuilder.testgenerator.BinaryVectorOperatorTest", os.path.join(mx_testsuites._cacheDir, 'irbuilder', 'vector')],
     'binary_i1' : ["at.pointhi.irbuilder.testgenerator.BinaryI1Operations", os.path.join(mx_testsuites._cacheDir, 'irbuilder', 'binaryI1')],
     'binary_i1_vector' : ["at.pointhi.irbuilder.testgenerator.BinaryI1VectorOperations", os.path.join(mx_testsuites._cacheDir, 'irbuilder', 'binaryI1Vector')],
-    #'cast_vector' : ["at.pointhi.irbuilder.testgenerator.VectorBitcastTest", os.path.join(mx_testsuites._cacheDir, 'irbuilder', 'castVector')],
+    'cast_vector' : ["at.pointhi.irbuilder.testgenerator.VectorBitcastTest", os.path.join(mx_testsuites._cacheDir, 'irbuilder', 'castVector')],
     'fibonacci' : ["at.pointhi.irbuilder.testgenerator.FibonacciFunctionCallTest", os.path.join(mx_testsuites._cacheDir, 'irbuilder', 'fibonacci')],
 }
 

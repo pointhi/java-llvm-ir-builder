@@ -61,6 +61,7 @@ import com.oracle.truffle.llvm.parser.model.symbols.instructions.InvokeInstructi
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.LandingpadInstruction;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.LoadInstruction;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.PhiInstruction;
+import com.oracle.truffle.llvm.parser.model.symbols.instructions.ReadModifyWriteInstruction;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.ResumeInstruction;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.ReturnInstruction;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.SelectInstruction;
@@ -837,6 +838,42 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
         writeSymbolType(resume.getValue());
         write(" ");
         writeInnerSymbolValue(resume.getValue());
+
+        writeln();
+    }
+
+    private static final String LLVMIR_LABEL_ATOMICRMW = "atomicrmw";
+
+    @Override
+    public void visit(ReadModifyWriteInstruction rmw) {
+        writeIndent();
+
+        write(LLVMIR_LABEL_ATOMICRMW);
+        write(" ");
+
+        if (rmw.isVolatile()) {
+            write("volatile ");
+        }
+
+        write(rmw.getOperator().toString().toLowerCase()); // TODO: implement getIrString();
+        write(" ");
+
+        writeSymbolType(rmw.getPtr());
+        write(" ");
+        writeInnerSymbolValue(rmw.getPtr());
+        write(", ");
+
+        writeSymbolType(rmw.getValue());
+        write(" ");
+        writeInnerSymbolValue(rmw.getValue());
+        write(" ");
+
+        if (rmw.getSynchronizationScope() != null) {
+            // write(rmw.getSynchronizationScope().getIrString()); // TODO: implement
+            // write(" ");
+        }
+
+        write(rmw.getAtomicOrdering().getIrString());
 
         writeln();
     }
