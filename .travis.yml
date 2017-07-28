@@ -100,7 +100,7 @@ matrix:
         - env: BUILD_COMMAND='' TEST_COMMAND='mx check httpcheck checkstyle mdl eclipseformat pylint ecj canonicalizeprojects checkoverlap --verbose'
           jdk: oraclejdk8
         # LLVM 3.2 testcases
-        - env: BUILD_COMMAND='mx build' TEST_COMMAND='mx irbuilder-test32 nwcc llvm'
+        - env: BUILD_COMMAND='mx build' TEST_COMMAND='mx irbuilder-test32 assembly'
           jdk: oraclejdk8
         # LLVM 3.8 testcases
         - env: BUILD_COMMAND='mx build' TEST_COMMAND='mx irbuilder-test38 nwcc llvm'
@@ -115,9 +115,5 @@ matrix:
         - env: BUILD_COMMAND='mx build' TEST_COMMAND='mx irbuilder-testgen38'
           jdk: oraclejdk8
     allow_failures:
-        - env: BUILD_COMMAND='mx build' TEST_COMMAND='mx irbuilder-test32 gcc'
-          jdk: oraclejdk8
         - env: BUILD_COMMAND='mx build' TEST_COMMAND='mx irbuilder-test38 gcc -Dsulongtest.ignoreFortran=True'
-          jdk: oraclejdk8
-        - env: BUILD_COMMAND='mx build' TEST_COMMAND='mx irbuilder-testgen38'
           jdk: oraclejdk8

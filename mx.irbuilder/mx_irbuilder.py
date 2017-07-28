@@ -100,19 +100,14 @@ def runIRBuilderOut(args=None, out=None):
     return mx.run_java(mx_sulong.getCommonOptions(False) + vmArgs + getIRWriterClasspathOptions() + ["at.pointhi.irbuilder.irwriter.SourceParser"] + irbuilderArgs)
 
 irBuilderTests32 = {
-    'sulong' : ['sulong', "at.pointhi.irbuilder.test.SulongGeneratorSuite", os.path.join(mx_testsuites._cacheDir, 'sulong')],
-    'llvm' : ['llvm', "at.pointhi.irbuilder.test.LLVMGeneratorSuite", os.path.join(mx_testsuites._cacheDir, 'llvm')],
-    'gcc' : ['gcc', "at.pointhi.irbuilder.test.GCCGeneratorSuite", os.path.join(mx_testsuites._cacheDir, 'gcc')],
-    'nwcc' : ['nwcc', "at.pointhi.irbuilder.test.NWCCGeneratorSuite", os.path.join(mx_testsuites._cacheDir, 'nwcc')],
+    'gcc' : ['gcc32', "at.pointhi.irbuilder.test.GCCGeneratorSuite", os.path.join(mx_testsuites._cacheDir, 'gcc')],
     'assembly' : ['assembly', "at.pointhi.irbuilder.test.InlineAssemblyGeneratorSuite", os.path.join(mx_testsuites._cacheDir, 'inlineassemblytests')],
 }
 
 irBuilderTests38 = {
-    'sulong' : ['sulong38', "at.pointhi.irbuilder.test.SulongGeneratorSuite", os.path.join(mx_testsuites._cacheDir, 'sulong')],
-    'sulongcpp' : ['sulongcpp38', "at.pointhi.irbuilder.test.SulongCPPGeneratorSuite", os.path.join(mx_testsuites._cacheDir, 'sulongcpp')],
-    'llvm' : ['llvm38', "at.pointhi.irbuilder.test.LLVMGeneratorSuite", os.path.join(mx_testsuites._cacheDir, 'llvm')],
+    'llvm' : ['llvm', "at.pointhi.irbuilder.test.LLVMGeneratorSuite", os.path.join(mx_testsuites._cacheDir, 'llvm')],
     'gcc' : ['gcc38', "at.pointhi.irbuilder.test.GCCGeneratorSuite", os.path.join(mx_testsuites._cacheDir, 'gcc')],
-    'nwcc' : ['nwcc38', "at.pointhi.irbuilder.test.NWCCGeneratorSuite", os.path.join(mx_testsuites._cacheDir, 'nwcc')],
+    'nwcc' : ['nwcc', "at.pointhi.irbuilder.test.NWCCGeneratorSuite", os.path.join(mx_testsuites._cacheDir, 'nwcc')],
 }
 
 irBuilderTestsGen38 = {
