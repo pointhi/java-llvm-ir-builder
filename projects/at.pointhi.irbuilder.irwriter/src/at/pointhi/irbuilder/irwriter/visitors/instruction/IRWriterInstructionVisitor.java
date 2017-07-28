@@ -52,6 +52,7 @@ import com.oracle.truffle.llvm.parser.model.symbols.instructions.CompareInstruct
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.ConditionalBranchInstruction;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.ExtractElementInstruction;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.ExtractValueInstruction;
+import com.oracle.truffle.llvm.parser.model.symbols.instructions.FenceInstruction;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.GetElementPointerInstruction;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.IndirectBranchInstruction;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.InsertElementInstruction;
@@ -379,6 +380,26 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
             write(" ");
             writeInnerSymbolValue(sym);
         }
+
+        writeln();
+    }
+
+    protected static final String LLVMIR_LABEL_FENCE = "fence";
+
+    @Override
+    public void visit(FenceInstruction fence) {
+        writeIndent();
+
+        write(LLVMIR_LABEL_FENCE);
+        write(" ");
+
+        if (fence.getSynchronizationScope() != null) {
+            // TODO: output IR string
+            // write(fence.getSynchronizationScope());
+            // write(" ");
+        }
+
+        write(fence.getAtomicOrdering().getIrString());
 
         writeln();
     }
@@ -1105,4 +1126,5 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
         write(" ");
         write(tmpPtrName);
     }
+
 }
