@@ -96,6 +96,7 @@ def getIRWriterClasspathOptions():
     return mx.get_runtime_jvm_args('IRWRITER')
 
 def runIRBuilderOut(args=None, out=None):
+    """uses java-llvm-ir-builder to parse a LLVM Bitcode file and outputs it's LLVM IR"""
     vmArgs, irbuilderArgs = mx_sulong.truffle_extract_VM_args(args)
     return mx.run_java(mx_sulong.getCommonOptions(False) + vmArgs + getIRWriterClasspathOptions() + ["at.pointhi.irbuilder.irwriter.SourceParser"] + irbuilderArgs)
 
@@ -120,6 +121,7 @@ irBuilderTestsGen38 = {
 }
 
 def runIRBuilderTest32(vmArgs):
+    """test ir-writer with llvm 3.2 bitcode files (see -h or --help)"""
     vmArgs, otherArgs = mx_sulong.truffle_extract_VM_args(vmArgs)
     parser = argparse.ArgumentParser(description="Compiles all or selected test suites.")
     parser.add_argument('suite', nargs='*', help=' '.join(irBuilderTests32.keys()), default=irBuilderTests32.keys())
@@ -149,6 +151,7 @@ def runIRBuilderTest32(vmArgs):
         return returnCode
 
 def runIRBuilderTest38(vmArgs):
+    """test ir-writer with llvm 3.8 bitcode files (see -h or --help)"""
     vmArgs, otherArgs = mx_sulong.truffle_extract_VM_args(vmArgs)
     parser = argparse.ArgumentParser(description="Compiles all or selected test suites.")
     parser.add_argument('suite', nargs='*', help=' '.join(irBuilderTests38.keys()), default=irBuilderTests38.keys())
@@ -178,6 +181,7 @@ def runIRBuilderTest38(vmArgs):
         return returnCode
 
 def runIRBuilderTestGen38(vmArgs):
+    """create llvm-ir testcases which are then run against llvm as well as Sulong (see -h or --help)"""
     vmArgs, otherArgs = mx_sulong.truffle_extract_VM_args(vmArgs)
     parser = argparse.ArgumentParser(description="Compiles all or selected test suites.")
     parser.add_argument('suite', nargs='*', help=' '.join(irBuilderTestsGen38.keys()), default=irBuilderTestsGen38.keys())
