@@ -254,6 +254,9 @@ public class SimpleInstrunctionBuilder {
 
     // Extract Element
     public Instruction extractElement(Instruction vector, int index) {
+        if (index < 0 || ((AggregateType) vector.getType()).getNumberOfElements() <= index) {
+            throw new AssertionError("Cannot extract an element at index " + index + " of the type " + vector.getType());
+        }
         return builder.createExtractElement(vector, index);
     }
 
@@ -263,7 +266,7 @@ public class SimpleInstrunctionBuilder {
         for (int i = 0; i < values.length; i++) {
             vector = insertElement(vector, values[i], i);
         }
-        builder.createStore(source, vector, 0);
+        store(source, vector);
         return vector;
     }
 
@@ -272,7 +275,7 @@ public class SimpleInstrunctionBuilder {
         for (int i = 0; i < values.length; i++) {
             vector = insertElement(vector, values[i], i);
         }
-        builder.createStore(source, vector, 0);
+        store(source, vector);
         return vector;
     }
 
@@ -281,7 +284,7 @@ public class SimpleInstrunctionBuilder {
         for (int i = 0; i < values.length; i++) {
             vector = insertElement(vector, values[i], i);
         }
-        builder.createStore(source, vector, 0);
+        store(source, vector);
         return vector;
     }
 
@@ -290,7 +293,7 @@ public class SimpleInstrunctionBuilder {
         for (int i = 0; i < values.length; i++) {
             vector = insertElement(vector, values[i], i);
         }
-        builder.createStore(source, vector, 0);
+        store(source, vector);
         return vector;
     }
 
@@ -299,7 +302,7 @@ public class SimpleInstrunctionBuilder {
         for (int i = 0; i < values.length; i++) {
             vector = insertElement(vector, values[i], i);
         }
-        builder.createStore(source, vector, 0);
+        store(source, vector);
         return vector;
     }
 
@@ -398,6 +401,9 @@ public class SimpleInstrunctionBuilder {
 
     // Phi
     public Instruction phi(Type type, Symbol[] values, InstructionBlock[] blocks) {
+        if (values.length != blocks.length) {
+            throw new AssertionError("number of values and blocks has to be equal");
+        }
         return builder.createPhi(type, values, blocks);
     }
 
@@ -432,6 +438,9 @@ public class SimpleInstrunctionBuilder {
 
     // Store
     public Instruction store(Symbol destination, Symbol source, int align) {
+        if (source.getType().equals(destination.getType())) {
+            throw new AssertionError("destinatination type is not compatible to source type");
+        }
         return builder.createStore(destination, source, align);
     }
 
