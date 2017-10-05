@@ -86,8 +86,7 @@ public class VarArgFunctionCallTest extends BaseSuite {
     public ModelModule constructModelModule() {
         ModelModuleBuilder builder = new ModelModuleBuilder();
 
-        StructureType struct = new StructureType(false, new Type[]{PrimitiveType.I64, PrimitiveType.I64, PrimitiveType.I64, PrimitiveType.I64, PrimitiveType.I64});
-        struct.setName("struct._asdf");
+        StructureType struct = new StructureType("struct._asdf", false, new Type[]{PrimitiveType.I64, PrimitiveType.I64, PrimitiveType.I64, PrimitiveType.I64, PrimitiveType.I64});
 
         builder.createType(struct);
 

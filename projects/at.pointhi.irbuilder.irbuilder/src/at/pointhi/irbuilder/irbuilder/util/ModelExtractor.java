@@ -35,8 +35,6 @@ import java.util.Optional;
 import java.util.function.Predicate;
 
 import com.oracle.truffle.llvm.parser.model.functions.FunctionDeclaration;
-import com.oracle.truffle.llvm.parser.model.functions.FunctionDefinition;
-import com.oracle.truffle.llvm.parser.model.globals.GlobalConstant;
 import com.oracle.truffle.llvm.parser.model.visitors.ModelVisitor;
 
 /**
@@ -78,10 +76,6 @@ public abstract class ModelExtractor<T extends Object> implements ModelVisitor {
         }
     }
 
-    @Override
-    public final void ifVisitNotOverwritten(Object obj) {
-    }
-
     public static class FunctionDeclarationExtractor extends ModelExtractor<FunctionDeclaration> {
 
         public FunctionDeclarationExtractor(Predicate<? super FunctionDeclaration> predicate) {
@@ -91,30 +85,6 @@ public abstract class ModelExtractor<T extends Object> implements ModelVisitor {
         @Override
         public final void visit(FunctionDeclaration function) {
             onVisit(function);
-        }
-    }
-
-    public static class FunctionDefinitionExtractor extends ModelExtractor<FunctionDefinition> {
-
-        public FunctionDefinitionExtractor(Predicate<? super FunctionDefinition> predicate) {
-            super(predicate);
-        }
-
-        @Override
-        public final void visit(FunctionDefinition function) {
-            onVisit(function);
-        }
-    }
-
-    public static class GlobalConstantExtractor extends ModelExtractor<GlobalConstant> {
-
-        public GlobalConstantExtractor(Predicate<? super GlobalConstant> predicate) {
-            super(predicate);
-        }
-
-        @Override
-        public final void visit(GlobalConstant constant) {
-            onVisit(constant);
         }
     }
 

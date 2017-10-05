@@ -37,16 +37,15 @@ import com.oracle.truffle.llvm.parser.model.enums.Linkage;
 import com.oracle.truffle.llvm.parser.model.enums.Visibility;
 import com.oracle.truffle.llvm.parser.model.functions.FunctionDeclaration;
 import com.oracle.truffle.llvm.parser.model.functions.FunctionDefinition;
-import com.oracle.truffle.llvm.parser.model.globals.GlobalConstant;
+import com.oracle.truffle.llvm.parser.model.symbols.Symbols;
+import com.oracle.truffle.llvm.parser.model.symbols.constants.StringConstant;
+import com.oracle.truffle.llvm.parser.model.symbols.globals.GlobalConstant;
 import com.oracle.truffle.llvm.runtime.types.ArrayType;
 import com.oracle.truffle.llvm.runtime.types.FunctionType;
 import com.oracle.truffle.llvm.runtime.types.PointerType;
 import com.oracle.truffle.llvm.runtime.types.PrimitiveType;
 import com.oracle.truffle.llvm.runtime.types.Type;
-import com.oracle.truffle.llvm.runtime.types.symbols.LLVMIdentifier;
 import com.oracle.truffle.llvm.runtime.types.symbols.ValueSymbol;
-
-import at.pointhi.irbuilder.irbuilder.util.ModelExtractor;
 
 public class ModelModuleBuilder {
     private final ModelModule model;
@@ -63,64 +62,44 @@ public class ModelModuleBuilder {
         return model;
     }
 
-    public FunctionDefinition createFunctionDefinition(String name, int blocks,
-                    FunctionType type) {
-        model.createFunction(type, false, Linkage.EXTERNAL, AttributesCodeEntry.EMPTY);
+    public FunctionDefinition createFunctionDefinition(String name, int blocks, FunctionType type) {
+        FunctionDefinition definition = new FunctionDefinition(type, name, Linkage.EXTERNAL, AttributesCodeEntry.EMPTY);
+        definition.allocateBlocks(blocks);
 
-        ModelExtractor<FunctionDefinition> extractor = new ModelExtractor.FunctionDefinitionExtractor(f -> f.getName().equals(LLVMIdentifier.UNKNOWN) && f.getType().equals(type)) {
-            @Override
-            public void onMatch(FunctionDefinition function) {
-                function.setName(name);
-                function.allocateBlocks(blocks);
-            }
-        };
+        model.addFunctionDefinition(definition);
 
-        model.accept(extractor);
-
-        return extractor.getMatch().get();
+        return definition;
     }
 
     public FunctionDeclaration createFunctionDeclaration(String name, FunctionType type) {
-        model.createFunction(type, true, Linkage.EXTERNAL, AttributesCodeEntry.EMPTY);
+        FunctionDeclaration declaration = new FunctionDeclaration(type, Linkage.EXTERNAL, AttributesCodeEntry.EMPTY);
+        declaration.setName(name);
 
-        ModelExtractor<FunctionDeclaration> extractor = new ModelExtractor.FunctionDeclarationExtractor(f -> f.getName().equals(LLVMIdentifier.UNKNOWN) && f.getType().equals(type)) {
-            @Override
-            public void onMatch(FunctionDeclaration function) {
-                function.setName(name);
-            }
-        };
+        model.addFunctionDeclaration(declaration);
 
-        model.accept(extractor);
-
-        return extractor.getMatch().get();
+        return declaration;
     }
 
     public ValueSymbol createGlobalConstant(String name, Type type, int valueIdx) {
-        model.createGlobal(type, true, valueIdx, 0, Linkage.INTERNAL.ordinal(), Visibility.DEFAULT.ordinal());
+        GlobalConstant global = GlobalConstant.create(type, valueIdx, 0, Linkage.INTERNAL.ordinal(), Visibility.DEFAULT.ordinal());
+        global.setName(name);
 
-        ModelExtractor<GlobalConstant> extractor = new ModelExtractor.GlobalConstantExtractor(c -> c.getName().equals(LLVMIdentifier.UNKNOWN)) {
-            @Override
-            public void onMatch(GlobalConstant constant) {
-                constant.setName(name);
-            }
-        };
-
-        model.accept(extractor);
-
+        model.addGlobalSymbol(global);
         model.exitModule();
 
-        return extractor.getMatch().get();
+        return global;
     }
 
     public ValueSymbol createGlobalStringConstant(String name, String value) {
         Type strType = new PointerType(new ArrayType(PrimitiveType.I8, value.length()));
 
-        model.creatFromString(strType, value, false);
+        Symbols symbols = model.getSymbols();
+        symbols.addSymbol(new StringConstant(strType, value, false));
 
-        return createGlobalConstant(name, strType, model.getSymbolCount());
+        return createGlobalConstant(name, strType, symbols.getSize());
     }
 
     public void createType(Type type) {
-        model.createType(type);
+        model.addGlobalType(type);
     }
 }

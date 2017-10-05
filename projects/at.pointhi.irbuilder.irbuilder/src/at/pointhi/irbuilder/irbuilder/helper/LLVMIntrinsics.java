@@ -116,8 +116,7 @@ public final class LLVMIntrinsics {
         vaListTagTypes[VA_LIST_TAG_TYPE.OVERFLOW_ARG_AREA.getIdx()] = new PointerType(PrimitiveType.I8);
         vaListTagTypes[VA_LIST_TAG_TYPE.REG_SAVE_AREA.getIdx()] = new PointerType(PrimitiveType.I8);
 
-        StructureType vaListTag = new StructureType(false, vaListTagTypes);
-        vaListTag.setName("struct.__va_list_tag");
+        StructureType vaListTag = new StructureType("struct.__va_list_tag", false, vaListTagTypes);
 
         // register our new type
         builder.createType(vaListTag);
@@ -164,8 +163,7 @@ public final class LLVMIntrinsics {
         ioFileTypes[i++] = PrimitiveType.I32;
         ioFileTypes[i++] = new ArrayType(PrimitiveType.I8, 20);
 
-        StructureType ioFile = new StructureType(false, ioFileTypes);
-        ioFile.setName("struct._IO_FILE");
+        StructureType ioFile = new StructureType("struct._IO_FILE", false, ioFileTypes);
 
         /*
          * %struct._IO_marker = type { %struct._IO_marker*, %struct._IO_FILE*, i32 }
@@ -177,8 +175,7 @@ public final class LLVMIntrinsics {
         ioMarkerTypes[i++] = null; // %struct._IO_FILE*
         ioMarkerTypes[i++] = PrimitiveType.I32;
 
-        StructureType ioMarker = new StructureType(false, ioMarkerTypes);
-        ioMarker.setName("struct._IO_marker");
+        StructureType ioMarker = new StructureType("struct._IO_marker", false, ioMarkerTypes);
 
         // Patch Structure Types which couldn't be resolved earlier
         ioFileTypes[12] = new PointerType(ioMarker);

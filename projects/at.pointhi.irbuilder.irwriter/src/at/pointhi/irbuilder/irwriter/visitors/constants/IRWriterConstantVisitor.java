@@ -43,6 +43,7 @@ import com.oracle.truffle.llvm.parser.model.symbols.constants.CastConstant;
 import com.oracle.truffle.llvm.parser.model.symbols.constants.CompareConstant;
 import com.oracle.truffle.llvm.parser.model.symbols.constants.GetElementPointerConstant;
 import com.oracle.truffle.llvm.parser.model.symbols.constants.InlineAsmConstant;
+import com.oracle.truffle.llvm.parser.model.symbols.constants.MetadataConstant;
 import com.oracle.truffle.llvm.parser.model.symbols.constants.NullConstant;
 import com.oracle.truffle.llvm.parser.model.symbols.constants.StringConstant;
 import com.oracle.truffle.llvm.parser.model.symbols.constants.UndefinedConstant;
@@ -378,6 +379,14 @@ public class IRWriterConstantVisitor extends IRWriterBaseVisitor implements Cons
     @Override
     public void visit(UndefinedConstant undefinedConstant) {
         write("undef");
+    }
+
+    private static final String LLVMIR_LABEL_METADATA = "metadata";
+
+    public void visit(MetadataConstant metadataConstant) {
+        write(LLVMIR_LABEL_METADATA);
+        write(" !");
+        write(Long.toString(metadataConstant.getValue()));
     }
 
 }

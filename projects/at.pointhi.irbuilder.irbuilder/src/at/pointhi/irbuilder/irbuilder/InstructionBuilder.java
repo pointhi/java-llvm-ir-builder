@@ -47,8 +47,28 @@ import com.oracle.truffle.llvm.parser.model.functions.FunctionParameter;
 import com.oracle.truffle.llvm.parser.model.symbols.Symbols;
 import com.oracle.truffle.llvm.parser.model.symbols.constants.Constant;
 import com.oracle.truffle.llvm.parser.model.symbols.constants.integer.IntegerConstant;
+import com.oracle.truffle.llvm.parser.model.symbols.instructions.AllocateInstruction;
+import com.oracle.truffle.llvm.parser.model.symbols.instructions.BinaryOperationInstruction;
+import com.oracle.truffle.llvm.parser.model.symbols.instructions.BranchInstruction;
+import com.oracle.truffle.llvm.parser.model.symbols.instructions.CallInstruction;
+import com.oracle.truffle.llvm.parser.model.symbols.instructions.CastInstruction;
+import com.oracle.truffle.llvm.parser.model.symbols.instructions.CompareInstruction;
+import com.oracle.truffle.llvm.parser.model.symbols.instructions.ConditionalBranchInstruction;
+import com.oracle.truffle.llvm.parser.model.symbols.instructions.ExtractElementInstruction;
+import com.oracle.truffle.llvm.parser.model.symbols.instructions.GetElementPointerInstruction;
+import com.oracle.truffle.llvm.parser.model.symbols.instructions.IndirectBranchInstruction;
+import com.oracle.truffle.llvm.parser.model.symbols.instructions.InsertElementInstruction;
+import com.oracle.truffle.llvm.parser.model.symbols.instructions.InsertValueInstruction;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.Instruction;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.LoadInstruction;
+import com.oracle.truffle.llvm.parser.model.symbols.instructions.PhiInstruction;
+import com.oracle.truffle.llvm.parser.model.symbols.instructions.ReturnInstruction;
+import com.oracle.truffle.llvm.parser.model.symbols.instructions.SelectInstruction;
+import com.oracle.truffle.llvm.parser.model.symbols.instructions.ShuffleVectorInstruction;
+import com.oracle.truffle.llvm.parser.model.symbols.instructions.StoreInstruction;
+import com.oracle.truffle.llvm.parser.model.symbols.instructions.SwitchInstruction;
+import com.oracle.truffle.llvm.parser.model.symbols.instructions.SwitchOldInstruction;
+import com.oracle.truffle.llvm.parser.model.symbols.instructions.UnreachableInstruction;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.ValueInstruction;
 import com.oracle.truffle.llvm.runtime.types.AggregateType;
 import com.oracle.truffle.llvm.runtime.types.ArrayType;
@@ -147,7 +167,7 @@ public class InstructionBuilder {
     }
 
     private void ensureBlockExists(int idx) {
-        if (idx < function.getBlockCount()) {
+        if (idx < function.getBlocks().size()) {
             return; // block already exists, nothing to do
         }
 
@@ -167,7 +187,7 @@ public class InstructionBuilder {
 
             // we need to initialize our new InstructionBlock elements
             for (int i = oldBlocks.length; i < newBlocks.length; i++) {
-                newBlocks[i] = new InstructionBlock(function, i);
+                newBlocks[i] = new InstructionBlock(i);
             }
 
             // write new InstructionBlock[] back into the object
@@ -201,7 +221,7 @@ public class InstructionBuilder {
 
             // we need to initialize our new InstructionBlock elements
             for (int i = insertIdx; i < rearIdx; i++) {
-                newBlocks[i] = new InstructionBlock(function, i);
+                newBlocks[i] = new InstructionBlock(i);
             }
 
             // get private blockIndex field and make it public
@@ -235,11 +255,15 @@ public class InstructionBuilder {
         return argCounter;
     }
 
+    private Symbols getSymbols() {
+        return function.getSymbols();
+    }
+
     /**
      * Add a new Symbol to the Symbol list, and return it's given symbol position.
      */
     private int addSymbol(Symbol sym) {
-        Symbols symbols = function.getSymbols();
+        Symbols symbols = getSymbols();
         symbols.addSymbol(sym);
         return symbols.getSize() - 1; // return index of new symbol
     }
@@ -268,21 +292,27 @@ public class InstructionBuilder {
         Type pointerType = new PointerType(type);
         int count = addSymbol(ConstantUtil.getI32Const(1));
         int align = type.getAlignment(targetDataLayout);
-        curBlock.createAllocation(pointerType, count, calculateAlign(align));
-        return getLastInstruction();
+
+        Instruction instr = AllocateInstruction.fromSymbols(getSymbols(), pointerType, count, align);
+        curBlock.append(instr);
+        return instr;
     }
 
     public Instruction createAtomicLoad(Type type, Instruction source, int align, boolean isVolatile, long atomicOrdering, long synchronizationScope) {
         int sourceIdx = addSymbol(source);
-        curBlock.createAtomicLoad(type, sourceIdx, calculateAlign(align), isVolatile, atomicOrdering, synchronizationScope);
-        return getLastInstruction();
+
+        Instruction instr = LoadInstruction.fromSymbols(getSymbols(), type, sourceIdx, calculateAlign(align), isVolatile, atomicOrdering, synchronizationScope);
+        curBlock.append(instr);
+        return instr;
     }
 
     public Instruction createAtomicStore(Instruction destination, Instruction source, int align, boolean isVolatile, long atomicOrdering, long synchronizationScope) {
         int destinationIdx = addSymbol(destination);
         int sourceIdx = addSymbol(source);
-        curBlock.createAtomicStore(destinationIdx, sourceIdx, calculateAlign(align), isVolatile, atomicOrdering, synchronizationScope);
-        return getLastInstruction();
+
+        Instruction instr = StoreInstruction.fromSymbols(getSymbols(), destinationIdx, sourceIdx, calculateAlign(align), isVolatile, atomicOrdering, synchronizationScope);
+        curBlock.append(instr);
+        return instr;
     }
 
     public Instruction createBinaryOperation(Symbol lhs, Symbol rhs, BinaryOperator op) {
@@ -290,20 +320,24 @@ public class InstructionBuilder {
         int flagbits = 0; // TODO: flags are not supported yet
         int lhsIdx = addSymbol(lhs);
         int rhsIdx = addSymbol(rhs);
-        curBlock.createBinaryOperation(type, op.ordinal(), flagbits, lhsIdx, rhsIdx);
-        return getLastInstruction();
+
+        Instruction instr = BinaryOperationInstruction.fromSymbols(getSymbols(), type, op.ordinal(), flagbits, lhsIdx, rhsIdx);
+        curBlock.append(instr);
+        return instr;
     }
 
     public Instruction createBranch(InstructionBlock block) {
-        curBlock.createBranch(block.getBlockIndex());
-        return getLastInstruction();
+        Instruction instr = BranchInstruction.fromTarget(block);
+        curBlock.append(instr);
+        return instr;
     }
 
     public Instruction createBranch(Symbol condition, InstructionBlock ifBlock, InstructionBlock elseBlock) {
         int conditionIdx = addSymbol(condition);
 
-        curBlock.createBranch(conditionIdx, ifBlock.getBlockIndex(), elseBlock.getBlockIndex());
-        return getLastInstruction();
+        Instruction instr = ConditionalBranchInstruction.fromSymbols(getSymbols(), conditionIdx, ifBlock, elseBlock);
+        curBlock.append(instr);
+        return instr;
     }
 
     public Instruction createCall(Symbol target, Symbol[] arguments) {
@@ -328,38 +362,48 @@ public class InstructionBuilder {
         for (int i = 0; i < arguments.length; i++) {
             argumentsIdx[i] = addSymbol(arguments[i]);
         }
-        curBlock.createCall(returnType, targetIdx, argumentsIdx, AttributesCodeEntry.EMPTY);
-        return getLastInstruction();
+
+        Instruction instr = CallInstruction.fromSymbols(getSymbols(), returnType, targetIdx, argumentsIdx, AttributesCodeEntry.EMPTY);
+        curBlock.append(instr);
+        return instr;
     }
 
     public Instruction createCast(Type type, CastOperator op, Symbol value) {
         int valueIdx = addSymbol(value);
-        curBlock.createCast(type, op.ordinal(), valueIdx);
-        return getLastInstruction();
+
+        Instruction instr = CastInstruction.fromSymbols(getSymbols(), type, op.ordinal(), valueIdx);
+        curBlock.append(instr);
+        return instr;
     }
 
     public Instruction createCompare(CompareOperator op, Symbol lhs, Symbol rhs) {
         Type type = lhs.getType();
         int lhsIdx = addSymbol(lhs);
         int rhsIdx = addSymbol(rhs);
-        curBlock.createCompare(type, op.getIrIndex(), lhsIdx, rhsIdx);
-        return getLastInstruction();
+
+        Instruction instr = CompareInstruction.fromSymbols(getSymbols(), type, op.getIrIndex(), lhsIdx, rhsIdx);
+        curBlock.append(instr);
+        return instr;
     }
 
     public Instruction createExtractValue(@SuppressWarnings("unused") Instruction struct, Symbol vector, int index) {
         Type type = ((AggregateType) vector.getType()).getElementType(index); // TODO: correct?
         int vectorIdx = addSymbol(vector);
         int indexIdx = addSymbol(ConstantUtil.getI32Const(index));
-        curBlock.createExtractElement(type, vectorIdx, indexIdx);
-        return getLastInstruction();
+
+        Instruction instr = ExtractElementInstruction.fromSymbols(getSymbols(), type, vectorIdx, indexIdx);
+        curBlock.append(instr);
+        return instr;
     }
 
     public Instruction createExtractElement(Instruction vector, int index) {
         Type type = ((AggregateType) vector.getType()).getElementType(index);
         int vectorIdx = addSymbol(vector);
         int indexIdx = addSymbol(ConstantUtil.getI32Const(index));
-        curBlock.createExtractElement(type, vectorIdx, indexIdx);
-        return getLastInstruction();
+
+        Instruction instr = ExtractElementInstruction.fromSymbols(getSymbols(), type, vectorIdx, indexIdx);
+        curBlock.append(instr);
+        return instr;
     }
 
     public Instruction createGetElementPointer(Symbol base, Symbol[] indices, boolean isInbounds) {
@@ -373,8 +417,10 @@ public class InstructionBuilder {
             instrType.accept(localTypeVisitor);
             instrType = localTypeVisitor.getNewType();
         }
-        curBlock.createGetElementPointer(new PointerType(instrType), pointerIdx, indicesIdx, isInbounds);
-        return getLastInstruction();
+
+        Instruction instr = GetElementPointerInstruction.fromSymbols(getSymbols(), new PointerType(instrType), pointerIdx, indicesIdx, isInbounds);
+        curBlock.append(instr);
+        return instr;
     }
 
     private static final class GetElementPointerTypeVisitor implements TypeVisitor {
@@ -429,10 +475,11 @@ public class InstructionBuilder {
 
     public Instruction createIndirectBranch(Symbol address, InstructionBlock[] successors) {
         int[] successorsIdx = Arrays.stream(successors).mapToInt(f -> f.getBlockIndex()).toArray();
-
         int addressIdx = addSymbol(address);
-        curBlock.createIndirectBranch(addressIdx, successorsIdx);
-        return getLastInstruction();
+
+        Instruction instr = IndirectBranchInstruction.generate(function, addressIdx, successorsIdx);
+        curBlock.append(instr);
+        return instr;
     }
 
     public Instruction createInsertElement(Instruction vector, Constant value, int index) {
@@ -440,16 +487,20 @@ public class InstructionBuilder {
         int vectorIdx = addSymbol(vector);
         int valueIdx = addSymbol(value);
         int indexIdx = addSymbol(new IntegerConstant(PrimitiveType.I32, index));
-        curBlock.createInsertElement(type, vectorIdx, indexIdx, valueIdx);
-        return getLastInstruction();
+
+        Instruction instr = InsertElementInstruction.fromSymbols(getSymbols(), type, vectorIdx, indexIdx, valueIdx);
+        curBlock.append(instr);
+        return instr;
     }
 
     public Instruction createInsertValue(Instruction struct, Symbol aggregate, int index, Symbol value) {
         Type type = struct.getType(); // TODO: correct?
         int valueIdx = addSymbol(value);
         int aggregateIdx = addSymbol(aggregate);
-        curBlock.createInsertValue(type, aggregateIdx, index, valueIdx);
-        return getLastInstruction();
+
+        Instruction instr = InsertValueInstruction.fromSymbols(getSymbols(), type, aggregateIdx, index, valueIdx);
+        curBlock.append(instr);
+        return instr;
     }
 
     public Instruction createLoad(Instruction source) {
@@ -458,48 +509,54 @@ public class InstructionBuilder {
         int align = type.getAlignment(targetDataLayout);
         // because we don't have any optimizations, we can set isVolatile to false
         boolean isVolatile = false;
-        curBlock.createLoad(type, sourceIdx, calculateAlign(align), isVolatile);
-        return getLastInstruction();
+
+        Instruction instr = LoadInstruction.fromSymbols(getSymbols(), type, sourceIdx, calculateAlign(align), isVolatile);
+        curBlock.append(instr);
+        return instr;
     }
 
     public Instruction createPhi(Type type, Symbol[] values, InstructionBlock[] blocks) {
         assert values.length == blocks.length;
 
         int[] valuesIdx = new int[values.length];
-        int[] blocksIdx = new int[blocks.length];
-        for (int i = 0; i < blocks.length; i++) {
-            valuesIdx[i] = addSymbol(values[i]);
-            blocksIdx[i] = blocks[i].getBlockIndex();
-        }
-        curBlock.createPhi(type, valuesIdx, blocksIdx);
-        return getLastInstruction();
+
+        Instruction instr = PhiInstruction.generate(function, type, valuesIdx, blocks);
+        curBlock.append(instr);
+        return instr;
     }
 
     public Instruction createReturn() {
-        curBlock.createReturn();
-        return getLastInstruction();
+        Instruction instr = ReturnInstruction.generate();
+        curBlock.append(instr);
+        return instr;
     }
 
     public Instruction createReturn(Symbol value) {
         int valueIdx = addSymbol(value);
-        curBlock.createReturn(valueIdx);
-        return getLastInstruction();
+
+        Instruction instr = ReturnInstruction.generate(getSymbols(), valueIdx);
+        curBlock.append(instr);
+        return instr;
     }
 
     public Instruction createSelect(Type type, Symbol condition, Symbol trueValue, Symbol falseValue) {
         int conditionIdx = addSymbol(condition);
         int trueValueIdx = addSymbol(trueValue);
         int falseValueIdx = addSymbol(falseValue);
-        curBlock.createSelect(type, conditionIdx, trueValueIdx, falseValueIdx);
-        return getLastInstruction();
+
+        Instruction instr = SelectInstruction.fromSymbols(getSymbols(), type, conditionIdx, trueValueIdx, falseValueIdx);
+        curBlock.append(instr);
+        return instr;
     }
 
     public Instruction createShuffleVector(Type type, Symbol vector1, Symbol vector2, Symbol mask) {
         int vector1Idx = addSymbol(vector1);
         int vector2Idx = addSymbol(vector2);
         int maskIdx = addSymbol(mask);
-        curBlock.createShuffleVector(type, vector1Idx, vector2Idx, maskIdx);
-        return getLastInstruction();
+
+        Instruction instr = ShuffleVectorInstruction.fromSymbols(getSymbols(), type, vector1Idx, vector2Idx, maskIdx);
+        curBlock.append(instr);
+        return instr;
     }
 
     public Instruction createStore(Symbol destination, Symbol source, int align) {
@@ -507,8 +564,10 @@ public class InstructionBuilder {
         int sourceIdx = addSymbol(source);
         // because we don't have any optimizations, we can set isVolatile to false
         boolean isVolatile = false;
-        curBlock.createStore(destinationIdx, sourceIdx, calculateAlign(align), isVolatile);
-        return getLastInstruction();
+
+        Instruction instr = StoreInstruction.fromSymbols(getSymbols(), destinationIdx, sourceIdx, calculateAlign(align), isVolatile);
+        curBlock.append(instr);
+        return instr;
     }
 
     public Instruction createSwitch(Symbol condition, InstructionBlock defaultBlock, Symbol[] caseValues, InstructionBlock[] caseBlocks) {
@@ -524,8 +583,9 @@ public class InstructionBuilder {
             caseBlocksIdx[i] = caseBlocks[i].getBlockIndex();
         }
 
-        curBlock.createSwitch(conditionIdx, defaultBlockIdx, caseValuesIdx, caseBlocksIdx);
-        return getLastInstruction();
+        Instruction instr = SwitchInstruction.generate(function, conditionIdx, defaultBlockIdx, caseValuesIdx, caseBlocksIdx);
+        curBlock.append(instr);
+        return instr;
     }
 
     public Instruction createSwitchOld(Symbol condition, InstructionBlock defaultBlock, long[] caseConstants, InstructionBlock[] caseBlocks) {
@@ -539,12 +599,14 @@ public class InstructionBuilder {
             caseBlocksIdx[i] = caseBlocks[i].getBlockIndex();
         }
 
-        curBlock.createSwitchOld(conditionIdx, defaultBlockIdx, caseConstants, caseBlocksIdx); // TODO
-        return getLastInstruction();
+        Instruction instr = SwitchOldInstruction.generate(function, conditionIdx, defaultBlockIdx, caseConstants, caseBlocksIdx);
+        curBlock.append(instr);
+        return instr;
     }
 
     public Instruction createUnreachable() {
-        curBlock.createUnreachable();
-        return getLastInstruction();
+        Instruction instr = UnreachableInstruction.generate();
+        curBlock.append(instr);
+        return instr;
     }
 }

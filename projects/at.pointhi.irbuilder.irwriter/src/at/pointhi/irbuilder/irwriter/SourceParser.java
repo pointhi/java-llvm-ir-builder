@@ -36,7 +36,13 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.ServiceLoader;
 
@@ -53,6 +59,7 @@ import com.oracle.truffle.llvm.BasicConfiguration;
 import com.oracle.truffle.llvm.Configuration;
 import com.oracle.truffle.llvm.parser.BitcodeParserResult;
 import com.oracle.truffle.llvm.parser.model.ModelModule;
+import com.oracle.truffle.llvm.parser.scanner.LLVMScanner;
 import com.oracle.truffle.llvm.runtime.LLVMContext;
 import com.oracle.truffle.llvm.runtime.LLVMLanguage;
 
@@ -103,8 +110,28 @@ public class SourceParser extends LLVMLanguage {
                 case SourceParser.LLVM_BITCODE_MIME_TYPE:
                 case SourceParser.LLVM_BITCODE_BASE64_MIME_TYPE:
                 case "x-unknown":
+
+                    ByteBuffer bytes;
+
+                    if (source.getMimeType().equals(LLVMLanguage.LLVM_BITCODE_BASE64_MIME_TYPE)) {
+                        ByteBuffer buffer = Charset.forName("ascii").newEncoder().encode(CharBuffer.wrap(source.getCharacters()));
+                        bytes = Base64.getDecoder().decode(buffer);
+                        assert LLVMScanner.isSupportedFile(bytes);
+                    } else if (source.getPath() != null) {
+                        try {
+                            bytes = ByteBuffer.wrap(Files.readAllBytes(Paths.get(source.getPath())));
+                        } catch (IOException ignore) {
+                            bytes = ByteBuffer.allocate(0);
+                        }
+                        assert LLVMScanner.isSupportedFile(bytes);
+                    } else {
+                        throw new IllegalStateException();
+                    }
+
+                    assert bytes != null;
+
                     // we are only interested in the parsed model
-                    final ModelModule model = BitcodeParserResult.getFromSource(source).getModel();
+                    final ModelModule model = BitcodeParserResult.getFromSource(source, bytes).getModel();
 
                     // TODO: add config options to change the behavior of the output function
                     PrintWriter writer = null;
