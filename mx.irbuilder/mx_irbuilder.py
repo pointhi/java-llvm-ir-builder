@@ -107,13 +107,14 @@ def runIRBuilderOut(args=None, out=None):
     return mx.run_java(mx_sulong.getCommonOptions(False) + vmArgs + getIRWriterClasspathOptions() + ["at.pointhi.irbuilder.irwriter.SourceParser"] + irbuilderArgs)
 
 irBuilderTests32 = {
-    'gcc' : ['gcc32', "at.pointhi.irbuilder.test.GCCGeneratorSuite", os.path.join(mx_testsuites._cacheDir, 'gcc')],
+    'gcc_c' : ['gcc_c', "at.pointhi.irbuilder.test.GCCGeneratorSuite", os.path.join(mx_testsuites._cacheDir, 'gcc')],
     'assembly' : ['assembly', "at.pointhi.irbuilder.test.InlineAssemblyGeneratorSuite", os.path.join(mx_testsuites._cacheDir, 'inlineassemblytests')],
 }
 
 irBuilderTests38 = {
     'llvm' : ['llvm', "at.pointhi.irbuilder.test.LLVMGeneratorSuite", os.path.join(mx_testsuites._cacheDir, 'llvm')],
-    'gcc' : ['gcc38', "at.pointhi.irbuilder.test.GCCGeneratorSuite", os.path.join(mx_testsuites._cacheDir, 'gcc')],
+    'gcc_c' : ['gcc_c', "at.pointhi.irbuilder.test.GCCGeneratorSuite", os.path.join(mx_testsuites._cacheDir, 'gcc')],
+    'gcc_cpp' : ['gcc_cpp', "at.pointhi.irbuilder.test.GCCGeneratorSuite", os.path.join(mx_testsuites._cacheDir, 'gcc')],
     'nwcc' : ['nwcc', "at.pointhi.irbuilder.test.NWCCGeneratorSuite", os.path.join(mx_testsuites._cacheDir, 'nwcc')],
 }
 

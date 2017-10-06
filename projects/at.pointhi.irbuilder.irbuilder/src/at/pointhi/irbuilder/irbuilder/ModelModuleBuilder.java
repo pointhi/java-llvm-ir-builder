@@ -45,6 +45,7 @@ import com.oracle.truffle.llvm.runtime.types.FunctionType;
 import com.oracle.truffle.llvm.runtime.types.PointerType;
 import com.oracle.truffle.llvm.runtime.types.PrimitiveType;
 import com.oracle.truffle.llvm.runtime.types.Type;
+import com.oracle.truffle.llvm.runtime.types.symbols.LLVMIdentifier;
 import com.oracle.truffle.llvm.runtime.types.symbols.ValueSymbol;
 
 public class ModelModuleBuilder {
@@ -63,7 +64,8 @@ public class ModelModuleBuilder {
     }
 
     public FunctionDefinition createFunctionDefinition(String name, int blocks, FunctionType type) {
-        FunctionDefinition definition = new FunctionDefinition(type, name, Linkage.EXTERNAL, AttributesCodeEntry.EMPTY);
+        String globalName = LLVMIdentifier.toGlobalIdentifier(name);
+        FunctionDefinition definition = new FunctionDefinition(type, globalName, Linkage.EXTERNAL, AttributesCodeEntry.EMPTY);
         definition.allocateBlocks(blocks);
 
         model.addFunctionDefinition(definition);
@@ -72,8 +74,9 @@ public class ModelModuleBuilder {
     }
 
     public FunctionDeclaration createFunctionDeclaration(String name, FunctionType type) {
+        String globalName = LLVMIdentifier.toGlobalIdentifier(name);
         FunctionDeclaration declaration = new FunctionDeclaration(type, Linkage.EXTERNAL, AttributesCodeEntry.EMPTY);
-        declaration.setName(name);
+        declaration.setName(globalName);
 
         model.addFunctionDeclaration(declaration);
 
@@ -81,8 +84,9 @@ public class ModelModuleBuilder {
     }
 
     public ValueSymbol createGlobalConstant(String name, Type type, int valueIdx) {
+        String globalName = LLVMIdentifier.toGlobalIdentifier(name);
         GlobalConstant global = GlobalConstant.create(type, valueIdx, 0, Linkage.INTERNAL.ordinal(), Visibility.DEFAULT.ordinal());
-        global.setName(name);
+        global.setName(globalName);
 
         model.addGlobalSymbol(global);
         model.exitModule();
