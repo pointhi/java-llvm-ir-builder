@@ -31,17 +31,17 @@
  */
 package at.pointhi.irbuilder.test;
 
-import at.pointhi.irbuilder.irwriter.IRWriterVersion;
-
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameter;
+import org.junit.runners.Parameterized.Parameters;
 
 import com.oracle.truffle.llvm.test.options.TestOptions;
 
 import java.io.File;
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.function.Predicate;
 
 @RunWith(Parameterized.class)
 public final class GCCGeneratorSuite extends BaseGeneratorSuite {
@@ -50,20 +50,10 @@ public final class GCCGeneratorSuite extends BaseGeneratorSuite {
     private static final Path GCC_SOURCE_DIR = new File(TestOptions.PROJECT_ROOT + "/../tests/gcc/gcc-5.2.0").toPath();
     private static final Path GCC_CONFIG_DIR = new File(TestOptions.PROJECT_ROOT + "/../tests/gcc/configs").toPath();
 
-    // Sulong exception handling not supported in Sulong v3.2 mode; use Sulong mode v3.8 or higher.
-    private static final File[] GCC_EXCLUDED_FILES_32 = new File[]{
-                    new File(GCC_SUITE_DIR.toFile(), "/gcc-5.2.0/gcc/testsuite/g++.dg/torture/pr47541/pr47541_clangcpp_O0.bc"),
-                    new File(GCC_SUITE_DIR.toFile(), "/gcc-5.2.0/gcc/testsuite/g++.dg/opt/pr15054-2/pr15054-2_clangcpp_O0.bc"),
-                    new File(GCC_SUITE_DIR.toFile(), "/gcc-5.2.0/gcc/testsuite/g++.dg/opt/pr17697-1/pr17697-1_clangcpp_O0.bc"),
-                    new File(GCC_SUITE_DIR.toFile(), "/gcc-5.2.0/gcc/testsuite/g++.dg/opt/pr43655/pr43655_clangcpp_O0.bc"),
-                    new File(GCC_SUITE_DIR.toFile(), "/gcc-5.2.0/gcc/testsuite/g++.dg/opt/dtor1/dtor1_clangcpp_O0.bc"),
-                    new File(GCC_SUITE_DIR.toFile(), "/gcc-5.2.0/gcc/testsuite/g++.dg/template/repo9/repo9_clangcpp_O0.bc")
-    };
+    @Parameter(value = 0) public Path path;
+    @Parameter(value = 1) public String testName;
 
-    @Parameterized.Parameter(value = 0) public Path path;
-    @Parameterized.Parameter(value = 1) public String testName;
-
-    @Parameterized.Parameters(name = "{1}")
+    @Parameters(name = "{1}")
     public static Collection<Object[]> data() {
         return collectTestCases(GCC_CONFIG_DIR, GCC_SUITE_DIR, GCC_SOURCE_DIR);
     }
@@ -79,10 +69,8 @@ public final class GCCGeneratorSuite extends BaseGeneratorSuite {
     }
 
     @Override
-    public boolean isExcluded(File file) {
-        if (IRWriterVersion.fromEnviromentVariables() == IRWriterVersion.LLVM_IR_3_2) {
-            return Arrays.stream(GCC_EXCLUDED_FILES_32).filter(f -> f.equals(file)).findAny().isPresent();
-        }
-        return false;
+    protected Predicate<String> filterFileName() {
+        return s -> !s.endsWith("clangcpp_O0.bc");
     }
+
 }

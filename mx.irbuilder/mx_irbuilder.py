@@ -107,15 +107,15 @@ def runIRBuilderOut(args=None, out=None):
     return mx.run_java(mx_sulong.getCommonOptions(False) + vmArgs + getIRWriterClasspathOptions() + ["at.pointhi.irbuilder.irwriter.SourceParser"] + irbuilderArgs)
 
 irBuilderTests32 = {
-    'gcc_c' : ['gcc_c', "at.pointhi.irbuilder.test.GCCGeneratorSuite", os.path.join(mx_testsuites._cacheDir, 'gcc')],
-    'assembly' : ['assembly', "at.pointhi.irbuilder.test.InlineAssemblyGeneratorSuite", os.path.join(mx_testsuites._cacheDir, 'inlineassemblytests')],
+    'gcc_c' : ['gcc_c', "at.pointhi.irbuilder.test.GCCGeneratorSuite", os.path.join(mx_testsuites._cacheDir, 'gcc'), ['-Dsulongtest.fileExtensionFilter=.c']],
+    'assembly' : ['assembly', "at.pointhi.irbuilder.test.InlineAssemblyGeneratorSuite", os.path.join(mx_testsuites._cacheDir, 'inlineassemblytests'), []],
 }
 
 irBuilderTests38 = {
-    'llvm' : ['llvm', "at.pointhi.irbuilder.test.LLVMGeneratorSuite", os.path.join(mx_testsuites._cacheDir, 'llvm')],
-    'gcc_c' : ['gcc_c', "at.pointhi.irbuilder.test.GCCGeneratorSuite", os.path.join(mx_testsuites._cacheDir, 'gcc')],
-    'gcc_cpp' : ['gcc_cpp', "at.pointhi.irbuilder.test.GCCGeneratorSuite", os.path.join(mx_testsuites._cacheDir, 'gcc')],
-    'nwcc' : ['nwcc', "at.pointhi.irbuilder.test.NWCCGeneratorSuite", os.path.join(mx_testsuites._cacheDir, 'nwcc')],
+    'llvm' : ['llvm', "at.pointhi.irbuilder.test.LLVMGeneratorSuite", os.path.join(mx_testsuites._cacheDir, 'llvm'), []],
+    'gcc_c' : ['gcc_c', "at.pointhi.irbuilder.test.GCCGeneratorSuite", os.path.join(mx_testsuites._cacheDir, 'gcc'), ['-Dsulongtest.fileExtensionFilter=.c']],
+    'gcc_cpp' : ['gcc_cpp', "at.pointhi.irbuilder.test.GCCGeneratorSuite", os.path.join(mx_testsuites._cacheDir, 'gcc'), ['-Dsulongtest.fileExtensionFilter=.cpp:.C:.cc']],
+    'nwcc' : ['nwcc', "at.pointhi.irbuilder.test.NWCCGeneratorSuite", os.path.join(mx_testsuites._cacheDir, 'nwcc'), []],
 }
 
 irBuilderTestsGen38 = {
@@ -148,7 +148,7 @@ def runIRBuilderTest32(vmArgs):
                 mx_sulong.ensureDragonEggExists()
                 mx_sulong.mx_testsuites.compileSuite([suite[0]])
             try:
-                mx_sulong.mx_testsuites.run(vmArgs, suite[1], [])
+                mx_sulong.mx_testsuites.run(vmArgs + suite[3], suite[1], [])
             except KeyboardInterrupt:
                 sys.exit(-1)
             except:
@@ -182,7 +182,7 @@ def runIRBuilderTest38(vmArgs):
                 mx_sulong.ensureDragonEggExists()
                 mx_sulong.mx_testsuites.compileSuite([suite[0]])
             try:
-                mx_sulong.mx_testsuites.run(vmArgs, suite[1], [])
+                mx_sulong.mx_testsuites.run(vmArgs + suite[3], suite[1], [])
             except KeyboardInterrupt:
                 sys.exit(-1)
             except:
