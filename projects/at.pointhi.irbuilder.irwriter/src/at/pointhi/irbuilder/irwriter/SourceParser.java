@@ -55,7 +55,6 @@ import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.source.Source;
-import com.oracle.truffle.llvm.BasicConfiguration;
 import com.oracle.truffle.llvm.Configuration;
 import com.oracle.truffle.llvm.parser.BitcodeParserResult;
 import com.oracle.truffle.llvm.parser.model.ModelModule;
@@ -63,14 +62,14 @@ import com.oracle.truffle.llvm.parser.scanner.LLVMScanner;
 import com.oracle.truffle.llvm.runtime.LLVMContext;
 import com.oracle.truffle.llvm.runtime.LLVMLanguage;
 
-@TruffleLanguage.Registration(id = "llvm", name = "llvm", version = "0.01", mimeType = {SourceParser.LLVM_BITCODE_MIME_TYPE, SourceParser.LLVM_BITCODE_BASE64_MIME_TYPE,
+@TruffleLanguage.Registration(id = "irwriter", name = "irwriter", version = "0.01", mimeType = {SourceParser.LLVM_BITCODE_MIME_TYPE, SourceParser.LLVM_BITCODE_BASE64_MIME_TYPE,
                 SourceParser.SULONG_LIBRARY_MIME_TYPE})
 public class SourceParser extends LLVMLanguage {
 
     private static final List<Configuration> configurations = new ArrayList<>();
 
     static {
-        configurations.add(new BasicConfiguration());
+        configurations.add(new IRWriterBasicConfiguration());
         for (Configuration f : ServiceLoader.load(Configuration.class)) {
             configurations.add(f);
         }
@@ -83,13 +82,12 @@ public class SourceParser extends LLVMLanguage {
 
     @Override
     protected LLVMContext createContext(Env env) {
-        final LLVMContext context = new LLVMContext(env);
-        return context;
+        return null; // not required for parsing
     }
 
     @Override
     protected Object findExportedSymbol(LLVMContext context, String globalName, boolean onlyExplicit) {
-        return null; // not required
+        return null; // not required for parsing
     }
 
     @Override
@@ -110,7 +108,6 @@ public class SourceParser extends LLVMLanguage {
                 case SourceParser.LLVM_BITCODE_MIME_TYPE:
                 case SourceParser.LLVM_BITCODE_BASE64_MIME_TYPE:
                 case "x-unknown":
-
                     ByteBuffer bytes;
 
                     if (source.getMimeType().equals(LLVMLanguage.LLVM_BITCODE_BASE64_MIME_TYPE)) {
@@ -179,7 +176,7 @@ public class SourceParser extends LLVMLanguage {
      * @throws IOException
      */
     public static void parseAndOutputFile(File file, String[] args) throws IOException {
-        org.graalvm.polyglot.Source source = org.graalvm.polyglot.Source.newBuilder(LLVMLanguage.NAME, file).build();
+        org.graalvm.polyglot.Source source = org.graalvm.polyglot.Source.newBuilder("irwriter", file).build();
         Context context = Context.newBuilder().arguments(LLVMLanguage.NAME, args).build();
 
         try {
