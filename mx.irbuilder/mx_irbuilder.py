@@ -69,27 +69,33 @@ class LlvmAS(Tool):
     def __init__(self, supportedVersions):
         self.supportedVersions = supportedVersions
 
+    def find_tool(self):
+        return mx_sulong.findLLVMProgram('llvm-as', self.supportedVersions)
+
     def run(self, inputFile, flags=None):
         if flags is None:
             flags = []
-        tool = mx_sulong.findLLVMProgram('llvm-as', self.supportedVersions)
+        tool = self.find_tool()
         return self.runTool([tool] + flags + [inputFile], errorMsg='Cannot assemble %s with %s' % (inputFile, tool), verbose=True)
 
 class LlvmLLI(Tool):
     def __init__(self, supportedVersions):
         self.supportedVersions = supportedVersions
 
+    def find_tool(self):
+        return mx_sulong.findLLVMProgram('lli', self.supportedVersions)
+
     def run(self, inputFile, flags=None):
         if flags is None:
             flags = []
-        tool = mx_sulong.findLLVMProgram('lli', self.supportedVersions)
+        tool = self.find_tool()
         return self.runTool([tool] + flags + [inputFile], nonZeroIsFatal=False, timeout=30, errorMsg='Cannot run %s with %s' % (inputFile, tool))
 
 LlvmAS_32 = LlvmAS(['3.2', '3.3'])
-LlvmAS_38 = LlvmAS(['3.8', '3.9', '4.0'])
+LlvmAS_38 = LlvmAS(['3.8', '3.9', '4.0', '5.0'])
 
 LlvmLLI_32 = LlvmLLI(['3.2', '3.3'])
-LlvmLLI_38 = LlvmLLI(['3.8', '3.9', '4.0'])
+LlvmLLI_38 = LlvmLLI(['3.8', '3.9', '4.0', '5.0'])
 
 def getIRWriterClasspathOptions():
     """gets the classpath of the IRWRITER distributions"""
@@ -128,6 +134,10 @@ def runIRBuilderTest32(vmArgs):
     parser.add_argument('--skip-compilation', help='skip suite compilation', action='store_true')  # TODO: makefile
     parsedArgs = parser.parse_args(otherArgs)
 
+    # test if we have the required tools installed
+    LlvmAS_32.find_tool()
+    LlvmLLI_32.find_tool()
+
     with TemporaryEnv("LLVMIR_VERSION", "3.2"):
         returnCode = 0
         for testSuiteName in parsedArgs.suite:
@@ -157,6 +167,10 @@ def runIRBuilderTest38(vmArgs):
     parser.add_argument('suite', nargs='*', help=' '.join(irBuilderTests38.keys()), default=irBuilderTests38.keys())
     parser.add_argument('--skip-compilation', help='skip suite compilation', action='store_true')  # TODO: makefile
     parsedArgs = parser.parse_args(otherArgs)
+
+    # test if we have the required tools installed
+    LlvmAS_38.find_tool()
+    LlvmLLI_38.find_tool()
 
     with TemporaryEnv("LLVMIR_VERSION", "3.8"):
         returnCode = 0
