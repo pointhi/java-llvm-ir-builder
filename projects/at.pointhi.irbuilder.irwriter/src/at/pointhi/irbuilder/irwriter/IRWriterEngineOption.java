@@ -43,13 +43,13 @@ public final class IRWriterEngineOption {
 
     public static final String OPTION_ARRAY_SEPARATOR = ":";
 
-    public static final OptionKey<String> PRINT_LLVM = new OptionKey<>(String.valueOf(false));
-    public static final String PRINT_LLVM_NAME = "irwriter.printLLVM";
-    public static final String PRINT_LLVM_INFO = "Prints the Parsed LLVM-IR for the parsed functions. Can be \'true\', \'false\', \'stdout\', \'stderr\' or a filepath.";
+    public static final OptionKey<String> WRITE_LLVM_IR = new OptionKey<>("*.out.ll");
+    public static final String WRITE_LLVM_IR_NAME = "irwriter.writeLLVM";
+    public static final String WRITE_LLVM_IR_INFO = "Outputs the parsed LLVM-IR to the specified location. Can be \'stdout\', \'stderr\', \'*.out.ll\', or a file path (starting with . or beeing an absulute path).";
 
     public static List<OptionDescriptor> describeOptions() {
         ArrayList<OptionDescriptor> options = new ArrayList<>();
-        options.add(OptionDescriptor.newBuilder(IRWriterEngineOption.PRINT_LLVM, IRWriterEngineOption.PRINT_LLVM_NAME).help(IRWriterEngineOption.PRINT_LLVM_INFO).category(
+        options.add(OptionDescriptor.newBuilder(IRWriterEngineOption.WRITE_LLVM_IR, IRWriterEngineOption.WRITE_LLVM_IR_NAME).help(IRWriterEngineOption.WRITE_LLVM_IR_INFO).category(
                         OptionCategory.USER).build());
 
         return options;

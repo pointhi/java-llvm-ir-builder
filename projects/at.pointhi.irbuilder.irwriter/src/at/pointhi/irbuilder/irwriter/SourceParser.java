@@ -40,6 +40,7 @@ import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -75,18 +76,17 @@ public class SourceParser extends LLVMLanguage {
         }
     }
 
+    private Env env = null;
+
     @Override
     public LLVMContext findLLVMContext() {
         return getContextReference().get();
     }
 
     @Override
-    protected LLVMContext createContext(Env env) {
-        return null; // not required for parsing
-    }
+    protected LLVMContext createContext(Env contextEnv) {
+        this.env = contextEnv;
 
-    @Override
-    protected Object findExportedSymbol(LLVMContext context, String globalName, boolean onlyExplicit) {
         return null; // not required for parsing
     }
 
@@ -102,6 +102,8 @@ public class SourceParser extends LLVMLanguage {
 
     @Override
     protected CallTarget parse(com.oracle.truffle.api.TruffleLanguage.ParsingRequest request) throws Exception {
+        assert env != null;
+
         Source source = request.getSource();
         try {
             switch (source.getMimeType()) {
@@ -130,16 +132,41 @@ public class SourceParser extends LLVMLanguage {
                     // we are only interested in the parsed model
                     final ModelModule model = BitcodeParserResult.getFromSource(source, bytes).getModel();
 
-                    // TODO: add config options to change the behavior of the output function
+                    // specify where to write the result
                     PrintWriter writer = null;
+                    final String writeLLVM = env.getOptions().get(IRWriterEngineOption.WRITE_LLVM_IR);
+                    switch (writeLLVM) {
+                        case "stdout":
+                            writer = new PrintWriter(System.out);
+                            break;
 
-                    try {
-                        final String sourceFileName = source.getPath();
-                        final String actualTarget = sourceFileName.substring(0, sourceFileName.length() - ".bc".length()) + ".out.ll";
-                        writer = new PrintWriter(actualTarget);
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                        throw new RuntimeException("Could not open File Stream");
+                        case "stderr":
+                            writer = new PrintWriter(System.err);
+                            break;
+
+                        case "*.out.ll":
+                            try {
+                                final String sourceFileName = source.getPath();
+                                final String actualTarget = sourceFileName.substring(0, sourceFileName.length() - ".bc".length()) + ".out.ll";
+                                writer = new PrintWriter(actualTarget);
+                            } catch (FileNotFoundException e) {
+                                e.printStackTrace();
+                                throw new RuntimeException("Could not open File Stream");
+                            }
+                            break;
+
+                        default:
+                            Path path = Paths.get(writeLLVM);
+                            if (!(path.isAbsolute() || writeLLVM.matches("^\\.\\.?[/\\\\].+$"))) {
+                                throw new IllegalArgumentException("is not a valid path! paths need to start either with a reference to the local dir or are absulute");
+                            }
+                            try {
+                                writer = new PrintWriter(path.toFile());
+                            } catch (FileNotFoundException e) {
+                                e.printStackTrace();
+                                throw new RuntimeException("Could not open File Stream");
+                            }
+                            break;
                     }
 
                     final IRWriterVersion llvmVersion = IRWriterVersion.fromEnviromentVariables();
