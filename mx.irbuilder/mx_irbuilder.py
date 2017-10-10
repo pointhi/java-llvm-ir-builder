@@ -32,8 +32,6 @@ import os
 import argparse
 import sys
 
-from mx_irbuilder_util import TemporaryEnv
-
 import mx
 import mx_sulong
 import mx_testsuites
@@ -139,25 +137,24 @@ def runIRBuilderTest32(vmArgs):
     LlvmAS_32.find_tool()
     LlvmLLI_32.find_tool()
 
-    with TemporaryEnv("LLVMIR_VERSION", "3.2"):
-        returnCode = 0
-        for testSuiteName in parsedArgs.suite:
-            suite = irBuilderTests32[testSuiteName]
-            """runs the test suite"""
-            if parsedArgs.skip_compilation is False:
-                mx_sulong.ensureDragonEggExists()
-                mx_sulong.mx_testsuites.compileSuite([suite[0]])
-            try:
-                mx_sulong.mx_testsuites.run(vmArgs + suite[3], suite[1], [])
-            except KeyboardInterrupt:
-                sys.exit(-1)
-            except:
-                mx.log_error("unexpected exception thrown, continue...")
+    returnCode = 0
+    for testSuiteName in parsedArgs.suite:
+        suite = irBuilderTests32[testSuiteName]
+        """runs the test suite"""
+        if parsedArgs.skip_compilation is False:
+            mx_sulong.ensureDragonEggExists()
+            mx_sulong.mx_testsuites.compileSuite([suite[0]])
+        try:
+            mx_sulong.mx_testsuites.run(vmArgs + suite[3] + ['-Dpolyglot.irwriter.LLVMVersion=3.2'], suite[1], [])
+        except KeyboardInterrupt:
+            sys.exit(-1)
+        except:
+            mx.log_error("unexpected exception thrown, continue...")
 
-            testSuite = IRGeneratorSuite(LlvmAS_32, LlvmLLI_32)
-            testSuite.run(suite[2])
-            if not testSuite.wasSuccessfull():
-                returnCode = 1
+        testSuite = IRGeneratorSuite(LlvmAS_32, LlvmLLI_32)
+        testSuite.run(suite[2])
+        if not testSuite.wasSuccessfull():
+            returnCode = 1
 
         return returnCode
 
@@ -173,25 +170,24 @@ def runIRBuilderTest38(vmArgs):
     LlvmAS_38.find_tool()
     LlvmLLI_38.find_tool()
 
-    with TemporaryEnv("LLVMIR_VERSION", "3.8"):
-        returnCode = 0
-        for testSuiteName in parsedArgs.suite:
-            suite = irBuilderTests38[testSuiteName]
-            """runs the test suite"""
-            if parsedArgs.skip_compilation is False:
-                mx_sulong.ensureDragonEggExists()
-                mx_sulong.mx_testsuites.compileSuite([suite[0]])
-            try:
-                mx_sulong.mx_testsuites.run(vmArgs + suite[3], suite[1], [])
-            except KeyboardInterrupt:
-                sys.exit(-1)
-            except:
-                mx.log_error("unexpected exception thrown, continue...")
+    returnCode = 0
+    for testSuiteName in parsedArgs.suite:
+        suite = irBuilderTests38[testSuiteName]
+        """runs the test suite"""
+        if parsedArgs.skip_compilation is False:
+            mx_sulong.ensureDragonEggExists()
+            mx_sulong.mx_testsuites.compileSuite([suite[0]])
+        try:
+            mx_sulong.mx_testsuites.run(vmArgs + suite[3] + ['-Dpolyglot.irwriter.LLVMVersion=3.8'], suite[1], [])
+        except KeyboardInterrupt:
+            sys.exit(-1)
+        except:
+            mx.log_error("unexpected exception thrown, continue...")
 
-            testSuite = IRGeneratorSuite(LlvmAS_38, LlvmLLI_38)
-            testSuite.run(suite[2])
-            if not testSuite.wasSuccessfull():
-                returnCode = 1
+        testSuite = IRGeneratorSuite(LlvmAS_38, LlvmLLI_38)
+        testSuite.run(suite[2])
+        if not testSuite.wasSuccessfull():
+            returnCode = 1
 
         return returnCode
 

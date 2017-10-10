@@ -169,7 +169,7 @@ public class SourceParser extends LLVMLanguage {
                             break;
                     }
 
-                    final IRWriterVersion llvmVersion = IRWriterVersion.fromEnviromentVariables();
+                    final IRWriterVersion llvmVersion = IRWriterVersion.fromString(env.getOptions().get(IRWriterEngineOption.VERSION_LLVM_IR));
                     IRWriter.writeIRToStream(model, llvmVersion, writer);
 
                     // because we are only parsing the file, there is nothing to execute

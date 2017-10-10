@@ -32,8 +32,6 @@
 
 package at.pointhi.irbuilder.irwriter;
 
-import java.util.Objects;
-
 import at.pointhi.irbuilder.irwriter.visitors.constants.IRWriterConstantVisitor;
 import at.pointhi.irbuilder.irwriter.visitors.constants.IRWriterConstantVisitorV38;
 import at.pointhi.irbuilder.irwriter.visitors.function.IRWriterFunctionVisitor;
@@ -85,13 +83,7 @@ public enum IRWriterVersion {
         IRWriterTypeVisitor instantiate(IRWriterVisitors out, IRWriter.PrintTarget target);
     }
 
-    public static IRWriterVersion fromEnviromentVariables() {
-        final String llvmVersion = System.getenv("LLVMIR_VERSION"); // TODO: using better techniques
-
-        if (Objects.isNull(llvmVersion)) {
-            return LLVM_IR_3_8; // default IR version
-        }
-
+    public static IRWriterVersion fromString(String llvmVersion) {
         switch (llvmVersion) {
             case "3.2":
             case "3.3":
@@ -100,6 +92,7 @@ public enum IRWriterVersion {
             case "3.8":
             case "3.9":
             case "4.0":
+            case "5.0":
                 return LLVM_IR_3_8;
 
             default:

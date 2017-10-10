@@ -47,9 +47,15 @@ public final class IRWriterEngineOption {
     public static final String WRITE_LLVM_IR_NAME = "irwriter.writeLLVM";
     public static final String WRITE_LLVM_IR_INFO = "Outputs the parsed LLVM-IR to the specified location. Can be \'stdout\', \'stderr\', \'*.out.ll\', or a file path (starting with . or beeing an absulute path).";
 
+    public static final OptionKey<String> VERSION_LLVM_IR = new OptionKey<>("3.8");
+    public static final String VERSION_LLVM_IR_NAME = "irwriter.LLVMVersion";
+    public static final String VERSION_LLVM_IR_INFO = "Specify which version of the LLVM-IR is used for generation. Can be \'3.2\' or \'3.8\'.";
+
     public static List<OptionDescriptor> describeOptions() {
         ArrayList<OptionDescriptor> options = new ArrayList<>();
         options.add(OptionDescriptor.newBuilder(IRWriterEngineOption.WRITE_LLVM_IR, IRWriterEngineOption.WRITE_LLVM_IR_NAME).help(IRWriterEngineOption.WRITE_LLVM_IR_INFO).category(
+                        OptionCategory.USER).build());
+        options.add(OptionDescriptor.newBuilder(IRWriterEngineOption.VERSION_LLVM_IR, IRWriterEngineOption.VERSION_LLVM_IR_NAME).help(IRWriterEngineOption.VERSION_LLVM_IR_INFO).category(
                         OptionCategory.USER).build());
 
         return options;
