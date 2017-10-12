@@ -38,6 +38,7 @@ import at.pointhi.irbuilder.irwriter.visitors.function.IRWriterFunctionVisitor;
 import at.pointhi.irbuilder.irwriter.visitors.function.IRWriterFunctionVisitorV38;
 import at.pointhi.irbuilder.irwriter.visitors.instruction.IRWriterInstructionVisitor;
 import at.pointhi.irbuilder.irwriter.visitors.instruction.IRWriterInstructionVisitorV38;
+import at.pointhi.irbuilder.irwriter.visitors.metadata.IRWriterMetadataVisitorV38;
 import at.pointhi.irbuilder.irwriter.visitors.model.IRWriterModelVisitor;
 import at.pointhi.irbuilder.irwriter.visitors.model.IRWriterModelVisitorV38;
 import at.pointhi.irbuilder.irwriter.visitors.type.IRWriterTypeVisitor;
@@ -49,14 +50,16 @@ public enum IRWriterVersion {
                     IRWriterFunctionVisitor::new,
                     IRWriterInstructionVisitor::new,
                     IRWriterConstantVisitor::new,
-                    IRWriterTypeVisitor::new),
+                    IRWriterTypeVisitor::new,
+                    IRWriterMetadataVisitorV38::new),
 
     LLVM_IR_3_8(
                     IRWriterModelVisitorV38::new,
                     IRWriterFunctionVisitorV38::new,
                     IRWriterInstructionVisitorV38::new,
                     IRWriterConstantVisitorV38::new,
-                    IRWriterTypeVisitorV38::new);
+                    IRWriterTypeVisitorV38::new,
+                    IRWriterMetadataVisitorV38::new);
 
     @FunctionalInterface
     private interface ModelWriter {
@@ -81,6 +84,11 @@ public enum IRWriterVersion {
     @FunctionalInterface
     private interface TypeWriter {
         IRWriterTypeVisitor instantiate(IRWriterVisitors out, IRWriter.PrintTarget target);
+    }
+
+    @FunctionalInterface
+    private interface MetadataWriter {
+        IRWriterMetadataVisitorV38 instantiate(IRWriterVisitors out, IRWriter.PrintTarget target);
     }
 
     public static IRWriterVersion fromSystemProperty() {
@@ -110,14 +118,16 @@ public enum IRWriterVersion {
     private final InstructionWriter instructionVisitor;
     private final ConstantWriter constantVisitor;
     private final TypeWriter typeVisitor;
+    private final MetadataWriter metadataVisitor;
 
     IRWriterVersion(ModelWriter modelVisitor, FunctionWriter functionVisitor, InstructionWriter instructionVisitor, ConstantWriter constantVisitor,
-                    TypeWriter typeVisitor) {
+                    TypeWriter typeVisitor, MetadataWriter metadataVisitor) {
         this.modelVisitor = modelVisitor;
         this.functionVisitor = functionVisitor;
         this.instructionVisitor = instructionVisitor;
         this.constantVisitor = constantVisitor;
         this.typeVisitor = typeVisitor;
+        this.metadataVisitor = metadataVisitor;
     }
 
     private IRWriterModelVisitor createModelPrintVisitor(IRWriterVisitors out, IRWriter.PrintTarget target) {
@@ -140,6 +150,10 @@ public enum IRWriterVersion {
         return typeVisitor.instantiate(out, target);
     }
 
+    private IRWriterMetadataVisitorV38 createMetadataPrintVisitor(IRWriterVisitors out, IRWriter.PrintTarget target) {
+        return metadataVisitor.instantiate(out, target);
+    }
+
     IRWriterVisitors createIRWriterVisitors(IRWriter.PrintTarget target) {
         return new IRWriterVisitors(this, target);
     }
@@ -151,6 +165,7 @@ public enum IRWriterVersion {
         private final IRWriterInstructionVisitor instructionVisitor;
         private final IRWriterConstantVisitor constantVisitor;
         private final IRWriterTypeVisitor typeVisitor;
+        private final IRWriterMetadataVisitorV38 metadataVisitor;
 
         private IRWriterVisitors(IRWriterVersion version, IRWriter.PrintTarget target) {
             this.modelVisitor = version.createModelPrintVisitor(this, target);
@@ -158,6 +173,7 @@ public enum IRWriterVersion {
             this.instructionVisitor = version.createInstructionPrintVisitor(this, target);
             this.constantVisitor = version.createConstantPrintVisitor(this, target);
             this.typeVisitor = version.createTypePrintVisitor(this, target);
+            this.metadataVisitor = version.createMetadataPrintVisitor(this, target);
         }
 
         public IRWriterModelVisitor getModelVisitor() {
@@ -178,6 +194,10 @@ public enum IRWriterVersion {
 
         public IRWriterTypeVisitor getTypeVisitor() {
             return typeVisitor;
+        }
+
+        public IRWriterMetadataVisitorV38 getMetadataVisitor() {
+            return metadataVisitor;
         }
     }
 }

@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.oracle.truffle.llvm.parser.metadata.MDBaseNode;
+import com.oracle.truffle.llvm.parser.metadata.MDNamedNode;
 import com.oracle.truffle.llvm.parser.metadata.MetadataVisitor;
 import com.oracle.truffle.llvm.parser.model.ModelModule;
 import com.oracle.truffle.llvm.parser.model.attributes.AttributesGroup;
@@ -59,6 +60,7 @@ public class IRWriterModelVisitorV38 extends IRWriterModelVisitor {
     }
 
     private final List<AttributesGroup> attributes = new ArrayList<>();
+    private final List<MDBaseNode> metadata = new ArrayList<>();
 
     @Override
     public void writePrologue(ModelModule model) {
@@ -71,12 +73,7 @@ public class IRWriterModelVisitorV38 extends IRWriterModelVisitor {
             writeAttributes();
         }
 
-        model.getMetadata().accept(new MetadataVisitor() {
-            @Override
-            public void ifVisitNotOverwritten(MDBaseNode alias) {
-                writeln("; TODO: " + alias.getClass().getName());
-            }
-        });
+        writeMetadata(model);
     }
 
     public int addAttribute(AttributesGroup a) {
@@ -98,6 +95,40 @@ public class IRWriterModelVisitorV38 extends IRWriterModelVisitor {
             write("attributes #" + i + " = {");
             writeAttributesGroup(paramAttr);
             writeln(" }");
+        }
+    }
+
+    public int addMetadata(MDBaseNode m) {
+        for (int i = 0; i < metadata.size(); i++) {
+            final MDBaseNode metadataAttr = metadata.get(i);
+            if (metadataAttr.equals(m)) {
+                return i;
+            }
+        }
+        metadata.add(m);
+        return metadata.size() - 1;
+    }
+
+    private void writeMetadata(ModelModule model) {
+        writeln();
+
+        // Write named nodes first
+        model.getMetadata().accept(new MetadataVisitor() {
+            @Override
+            public void visit(MDNamedNode alias) {
+                writef("!%s = ", alias.getName());
+                writeMetadataValue(alias);
+            }
+        });
+
+        writeln();
+
+        // write nodes by id
+        for (int i = 0; i < metadata.size(); i++) {
+            final MDBaseNode metadataAttr = metadata.get(i);
+            writef("!%d = ", i);
+            metadataAttr.accept(visitors.getMetadataVisitor());
+            writeln();
         }
     }
 
