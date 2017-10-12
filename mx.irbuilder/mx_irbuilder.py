@@ -156,7 +156,7 @@ def runIRBuilderTest32(vmArgs):
         if not testSuite.wasSuccessfull():
             returnCode = 1
 
-        return returnCode
+    return returnCode
 
 def runIRBuilderTest38(vmArgs):
     """test ir-writer with llvm 3.8 bitcode files (see -h or --help)"""
@@ -189,7 +189,7 @@ def runIRBuilderTest38(vmArgs):
         if not testSuite.wasSuccessfull():
             returnCode = 1
 
-        return returnCode
+    return returnCode
 
 def runIRBuilderTestGen38(vmArgs):
     """create llvm-ir testcases which are then run against llvm as well as Sulong (see -h or --help)"""
@@ -198,24 +198,23 @@ def runIRBuilderTestGen38(vmArgs):
     parser.add_argument('suite', nargs='*', help=' '.join(irBuilderTestsGen38.keys()), default=irBuilderTestsGen38.keys())
     parsedArgs = parser.parse_args(otherArgs)
 
-    with TemporaryEnv("LLVMIR_VERSION", "3.8"):
-        returnCode = 0
-        for testSuiteName in parsedArgs.suite:
-            suite = irBuilderTestsGen38[testSuiteName]
-            """runs the test suite"""
-            try:
-                mx_sulong.mx_testsuites.run(vmArgs, suite[0], [])
-            except KeyboardInterrupt:
-                sys.exit(-1)
-            except:
-                mx.log_error("unexpected exception thrown, continue...")
+    returnCode = 0
+    for testSuiteName in parsedArgs.suite:
+        suite = irBuilderTestsGen38[testSuiteName]
+        """runs the test suite"""
+        try:
+            mx_sulong.mx_testsuites.run(vmArgs + ['-Dpolyglot.irwriter.LLVMVersion=3.8'], suite[0], [])
+        except KeyboardInterrupt:
+            sys.exit(-1)
+        except:
+            mx.log_error("unexpected exception thrown, continue...")
 
-            testSuite = IRGeneratorBuilderSuite(LlvmAS_38, LlvmLLI_38)
-            testSuite.run(suite[1])
-            if not testSuite.wasSuccessfull():
-                returnCode = 1
+        testSuite = IRGeneratorBuilderSuite(LlvmAS_38, LlvmLLI_38)
+        testSuite.run(suite[1])
+        if not testSuite.wasSuccessfull():
+            returnCode = 1
 
-        return returnCode
+    return returnCode
 
 
 class CompareFileResult(object):
