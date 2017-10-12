@@ -69,7 +69,7 @@ public class IRWriterModelVisitorV38 extends IRWriterModelVisitor {
         }
     }
 
-    private int addAttribute(AttributesGroup a) {
+    public int addAttribute(AttributesGroup a) {
         for (int i = 0; i < attributes.size(); i++) {
             final AttributesGroup paramAttr = attributes.get(i);
             if (paramAttr.equals(a)) {

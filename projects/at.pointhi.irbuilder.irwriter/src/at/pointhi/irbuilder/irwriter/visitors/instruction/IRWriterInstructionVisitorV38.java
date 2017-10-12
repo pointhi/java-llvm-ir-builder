@@ -45,6 +45,7 @@ import com.oracle.truffle.llvm.runtime.types.Type;
 import com.oracle.truffle.llvm.runtime.types.symbols.Symbol;
 import at.pointhi.irbuilder.irwriter.IRWriter;
 import at.pointhi.irbuilder.irwriter.IRWriterVersion;
+import at.pointhi.irbuilder.irwriter.visitors.model.IRWriterModelVisitorV38;
 
 public class IRWriterInstructionVisitorV38 extends IRWriterInstructionVisitor {
 
@@ -240,6 +241,11 @@ public class IRWriterInstructionVisitorV38 extends IRWriterInstructionVisitor {
         writeActualArgs(call);
 
         // [fn attrs] [ operand bundles ]
+        if (call.getFunctionAttributesGroup() != null) {
+            // it's expected that the model visitor is also from V38!
+            IRWriterModelVisitorV38 visitor = (IRWriterModelVisitorV38) visitors.getModelVisitor();
+            write(" #" + visitor.addAttribute(call.getFunctionAttributesGroup()));
+        }
     }
 
 }
