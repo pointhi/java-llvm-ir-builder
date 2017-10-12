@@ -118,8 +118,8 @@ public class IRWriter {
         final IRWriterVersion.IRWriterVisitors visitors = version.createIRWriterVisitors(printer);
         final IRWriterModelVisitor modelVisitor = visitors.getModelVisitor();
 
-        modelVisitor.writePrologue();
+        modelVisitor.writePrologue(model);
         model.accept(modelVisitor);
-        modelVisitor.writeEpilogue();
+        modelVisitor.writeEpilogue(model);
     }
 }

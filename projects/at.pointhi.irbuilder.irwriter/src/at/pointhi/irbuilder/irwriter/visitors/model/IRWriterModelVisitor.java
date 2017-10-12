@@ -32,6 +32,7 @@
 
 package at.pointhi.irbuilder.irwriter.visitors.model;
 
+import com.oracle.truffle.llvm.parser.model.ModelModule;
 import com.oracle.truffle.llvm.parser.model.attributes.AttributesGroup;
 import com.oracle.truffle.llvm.parser.model.enums.Linkage;
 import com.oracle.truffle.llvm.parser.model.enums.Visibility;
@@ -71,10 +72,10 @@ public class IRWriterModelVisitor extends IRWriterBaseVisitor implements ModelVi
         super(visitors, target);
     }
 
-    public void writePrologue() {
+    public void writePrologue(@SuppressWarnings("unused") ModelModule model) {
     }
 
-    public void writeEpilogue() {
+    public void writeEpilogue(@SuppressWarnings("unused") ModelModule model) {
     }
 
     private void writeGlobal(String keyword, GlobalValueSymbol global) {

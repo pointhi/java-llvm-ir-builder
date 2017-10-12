@@ -35,6 +35,9 @@ package at.pointhi.irbuilder.irwriter.visitors.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.oracle.truffle.llvm.parser.metadata.MDBaseNode;
+import com.oracle.truffle.llvm.parser.metadata.MetadataVisitor;
+import com.oracle.truffle.llvm.parser.model.ModelModule;
 import com.oracle.truffle.llvm.parser.model.attributes.AttributesGroup;
 import com.oracle.truffle.llvm.parser.model.enums.Linkage;
 import com.oracle.truffle.llvm.parser.model.enums.Visibility;
@@ -58,15 +61,22 @@ public class IRWriterModelVisitorV38 extends IRWriterModelVisitor {
     private final List<AttributesGroup> attributes = new ArrayList<>();
 
     @Override
-    public void writePrologue() {
+    public void writePrologue(ModelModule model) {
 
     }
 
     @Override
-    public void writeEpilogue() {
+    public void writeEpilogue(ModelModule model) {
         if (!attributes.isEmpty()) {
             writeAttributes();
         }
+
+        model.getMetadata().accept(new MetadataVisitor() {
+            @Override
+            public void ifVisitNotOverwritten(MDBaseNode alias) {
+                writeln("; TODO: " + alias.getClass().getName());
+            }
+        });
     }
 
     public int addAttribute(AttributesGroup a) {
