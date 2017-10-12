@@ -199,6 +199,11 @@ public class IRWriterModelVisitorV38 extends IRWriterModelVisitor {
         }
 
         write("define");
+        Linkage linkage = function.getLinkage();
+        if (linkage != Linkage.EXTERNAL) {
+            write(" ");
+            write(linkage.getIrString());
+        }
         writeAttributesGroupIfPresent(function.getReturnAttributesGroup());
         write(" ");
         writeType(function.getType().getReturnType());
