@@ -106,12 +106,15 @@ matrix:
         # LLVM 3.8 testcases
         - env: BUILD_COMMAND='mx build' TEST_COMMAND='mx irbuilder-test38 nwcc llvm'
           jdk: oraclejdk8
-        # LLVM 3.2 - GCC testcases
-        #- env: BUILD_COMMAND='mx build' TEST_COMMAND='mx irbuilder-test32 gcc_c'
-        #  jdk: oraclejdk8
-        # LLVM 3.8 - GCC testcases
+        # LLVM 3.8 - GCC C testcases
         - env: BUILD_COMMAND='mx build' TEST_COMMAND='mx irbuilder-test38 gcc_c'
+          jdk: oraclejdk8
+        # LLVM 3.8 - GCC C++ testcases
+        - env: BUILD_COMMAND='mx build' TEST_COMMAND='mx irbuilder-test38 gcc_cpp'
           jdk: oraclejdk8
         # LLVM 3.8 - irbuilder testcases
         - env: BUILD_COMMAND='mx build' TEST_COMMAND='mx irbuilder-testgen38'
+          jdk: oraclejdk8
+    allow_failures:
+        - env: BUILD_COMMAND='mx build' TEST_COMMAND='mx irbuilder-test38 gcc_cpp'
           jdk: oraclejdk8
