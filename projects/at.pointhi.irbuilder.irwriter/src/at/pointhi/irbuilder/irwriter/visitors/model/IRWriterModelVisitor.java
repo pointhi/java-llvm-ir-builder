@@ -43,6 +43,8 @@ import com.oracle.truffle.llvm.parser.model.symbols.globals.GlobalConstant;
 import com.oracle.truffle.llvm.parser.model.symbols.globals.GlobalValueSymbol;
 import com.oracle.truffle.llvm.parser.model.symbols.globals.GlobalVariable;
 import com.oracle.truffle.llvm.parser.model.target.TargetDataLayout;
+import com.oracle.truffle.llvm.parser.model.target.TargetInformation;
+import com.oracle.truffle.llvm.parser.model.target.TargetTriple;
 import com.oracle.truffle.llvm.parser.model.visitors.ModelVisitor;
 import com.oracle.truffle.llvm.runtime.types.ArrayType;
 import com.oracle.truffle.llvm.runtime.types.FunctionType;
@@ -244,6 +246,17 @@ public class IRWriterModelVisitor extends IRWriterBaseVisitor implements ModelVi
     }
 
     @Override
+    public void visit(TargetInformation info) {
+        if (info instanceof TargetTriple) {
+            TargetTriple tripple = (TargetTriple) info;
+            writeln(String.format("target triple = \"%s\"", tripple.getTriple()));
+            writeln();
+        } else {
+            throw new AssertionError("unexpected TargetInformation: " + info.getClass().getName());
+        }
+    }
+
+    @Override
     public void visit(Type type) {
         type.accept(new TypeVisitor() {
 
@@ -286,5 +299,10 @@ public class IRWriterModelVisitor extends IRWriterBaseVisitor implements ModelVi
             public void visit(FunctionType functionType) {
             }
         });
+    }
+
+    @Override
+    public void defaultAction(Object obj) {
+        throw new AssertionError("unhandled Model Visitor for object: " + obj.getClass().getName());
     }
 }

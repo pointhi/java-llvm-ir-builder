@@ -43,6 +43,7 @@ import com.oracle.truffle.llvm.parser.model.functions.FunctionDefinition;
 import com.oracle.truffle.llvm.parser.model.functions.FunctionParameter;
 import com.oracle.truffle.llvm.parser.model.symbols.globals.GlobalAlias;
 import com.oracle.truffle.llvm.runtime.types.PointerType;
+import com.oracle.truffle.llvm.runtime.types.Type;
 import com.oracle.truffle.llvm.runtime.types.symbols.Symbol;
 
 import at.pointhi.irbuilder.irwriter.IRWriter;
@@ -147,7 +148,27 @@ public class IRWriterModelVisitorV38 extends IRWriterModelVisitor {
 
         writef(" %s", function.getName());
 
-        writeFormalArguments(function.getType());
+        write("(");
+
+        final Type[] argTypes = function.getType().getArgumentTypes();
+        for (int i = 0; i < argTypes.length; i++) {
+            if (i != 0) {
+                write(", ");
+            }
+
+            writeType(argTypes[i]);
+            writeAttributesGroupIfPresent(function.getParameterAttributesGroup(i));
+        }
+
+        if (function.getType().isVarargs()) {
+            if (argTypes.length != 0) {
+                write(", ");
+            }
+
+            write("...");
+        }
+
+        write(")");
 
         if (paramAttr != null) {
             write(" #" + addAttribute(paramAttr));
