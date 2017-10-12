@@ -59,7 +59,7 @@ public abstract class BaseSuite {
     public void test() throws Exception {
         final ModelModule model = constructModelModule();
 
-        final IRWriterVersion version = IRWriterVersion.fromEnviromentVariables();
+        final IRWriterVersion version = IRWriterVersion.fromSystemProperty();
         if (outputIr) {
             IRWriter.writeIRToStream(model, version, new PrintWriter(System.out));
         } else {

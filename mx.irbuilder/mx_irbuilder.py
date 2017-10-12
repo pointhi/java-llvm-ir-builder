@@ -203,7 +203,7 @@ def runIRBuilderTestGen38(vmArgs):
         suite = irBuilderTestsGen38[testSuiteName]
         """runs the test suite"""
         try:
-            mx_sulong.mx_testsuites.run(vmArgs + ['-Dpolyglot.irwriter.LLVMVersion=3.8'], suite[0], [])
+            mx_sulong.mx_testsuites.run(vmArgs + ['-Dirwriter.LLVMVersion=3.8'], suite[0], [])
         except KeyboardInterrupt:
             sys.exit(-1)
         except:

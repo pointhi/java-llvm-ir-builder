@@ -93,7 +93,7 @@ public class VarArgFunctionCallTest extends BaseSuite {
         FunctionDefinition foo = createFoo(builder, struct);
         createMain(builder, foo, struct);
 
-        IRWriter.writeIRToStream(builder.getModelModule(), IRWriterVersion.fromEnviromentVariables(), new PrintWriter(System.out));
+        IRWriter.writeIRToStream(builder.getModelModule(), IRWriterVersion.fromSystemProperty(), new PrintWriter(System.out));
 
         return builder.getModelModule();
     }

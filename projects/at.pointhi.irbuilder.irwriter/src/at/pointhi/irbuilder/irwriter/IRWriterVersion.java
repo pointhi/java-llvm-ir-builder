@@ -83,8 +83,13 @@ public enum IRWriterVersion {
         IRWriterTypeVisitor instantiate(IRWriterVisitors out, IRWriter.PrintTarget target);
     }
 
+    public static IRWriterVersion fromSystemProperty() {
+        String property = System.getProperty(IRWriterEngineOption.VERSION_LLVM_IR_NAME, IRWriterEngineOption.VERSION_LLVM_IR.getDefaultValue());
+        return fromString(property);
+    }
+
     public static IRWriterVersion fromString(String llvmVersion) {
-        switch (llvmVersion) {
+        switch (llvmVersion.trim()) {
             case "3.2":
             case "3.3":
                 return LLVM_IR_3_2;
