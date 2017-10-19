@@ -35,7 +35,6 @@ package at.pointhi.irbuilder.irwriter.visitors;
 import com.oracle.truffle.llvm.parser.metadata.MDBaseNode;
 import com.oracle.truffle.llvm.parser.metadata.MDNamedNode;
 import com.oracle.truffle.llvm.parser.metadata.MDNode;
-import com.oracle.truffle.llvm.parser.metadata.MDReference;
 import com.oracle.truffle.llvm.parser.model.attributes.Attribute;
 import com.oracle.truffle.llvm.parser.model.attributes.AttributesGroup;
 import com.oracle.truffle.llvm.parser.model.blocks.InstructionBlock;
@@ -177,7 +176,7 @@ public class IRWriterBaseVisitor {
         } else if (symbol instanceof Constant) {
             writeConstant((Constant) symbol);
         } else {
-            throw new IllegalStateException("Cannot write this value: " + symbol);
+            throw new IllegalStateException("Cannot write this value: " + symbol + " of type: " + symbol.getClass().getName());
         }
     }
 
@@ -213,13 +212,12 @@ public class IRWriterBaseVisitor {
         }
     }
 
-    protected void writeMetadataReference(MDReference ref) {
-        final MDBaseNode node = ref.get();
+    protected void writeMetadataReference(MDBaseNode node) {
         if (node instanceof MDNamedNode) {
             write("!");
             write(((MDNamedNode) node).getName());
         } else {
-            writeMetadataValue(node);
+            writef("!%d", ((IRWriterModelVisitorV38) visitors.getModelVisitor()).addMetadata(node));
         }
     }
 

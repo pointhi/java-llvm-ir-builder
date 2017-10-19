@@ -57,6 +57,7 @@ import com.oracle.truffle.llvm.parser.model.symbols.instructions.GetElementPoint
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.IndirectBranchInstruction;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.InsertElementInstruction;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.InsertValueInstruction;
+import com.oracle.truffle.llvm.parser.model.symbols.instructions.Instruction;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.Invoke;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.InvokeInstruction;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.LandingpadInstruction;
@@ -105,6 +106,10 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
         write(DEEP_INDENTATION);
     }
 
+    protected void writeInstructionTail(@SuppressWarnings("unused") Instruction instr) {
+        writeln();
+    }
+
     private static final String LLVMIR_LABEL_ALLOCATE = "alloca";
 
     @Override
@@ -128,7 +133,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
             writef(", %s %d", LLVMIR_LABEL_ALIGN, 1 << (allocate.getAlign() - 1));
         }
 
-        writeln();
+        writeInstructionTail(allocate);
     }
 
     @Override
@@ -151,7 +156,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
         write(", ");
         writeInnerSymbolValue(operation.getRHS());
 
-        writeln();
+        writeInstructionTail(operation);
     }
 
     private static final String LLVMIR_LABEL_BRANCH = "br";
@@ -165,7 +170,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
         writef("%s %s ", LLVMIR_LABEL_BRANCH, LLVMIR_LABEL_BRANCH_LABEL);
         writeBlockName(branch.getSuccessor());
 
-        writeln();
+        writeInstructionTail(branch);
     }
 
     protected static final String LLVMIR_LABEL_CALL = "call";
@@ -184,7 +189,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
 
         writeFunctionCall(call);
 
-        writeln();
+        writeInstructionTail(call);
     }
 
     @Override
@@ -198,7 +203,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
         write(" to ");
         writeType(cast.getType());
 
-        writeln();
+        writeInstructionTail(cast);
     }
 
     protected static final String LLVMIR_LABEL_COMPARE_EXCHANGE = "cmpxchg";
@@ -240,7 +245,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
         write(" ");
         write(cmpxchg.getSuccessOrdering().getIrString());
 
-        writeln();
+        writeInstructionTail(cmpxchg);
     }
 
     private static final String LLVMIR_LABEL_COMPARE = "icmp";
@@ -269,7 +274,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
         write(", ");
         writeInnerSymbolValue(operation.getRHS());
 
-        writeln();
+        writeInstructionTail(operation);
     }
 
     private static final String LLVMIR_LABEL_CONDITIONAL_BRANCH = "br";
@@ -293,7 +298,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
         write(" ");
         writeBlockName(branch.getFalseSuccessor());
 
-        writeln();
+        writeInstructionTail(branch);
     }
 
     private static final String LLVMIR_LABEL_EXTRACT_ELEMENT = "extractelement";
@@ -315,7 +320,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
         write(" ");
         writeInnerSymbolValue(extract.getIndex());
 
-        writeln();
+        writeInstructionTail(extract);
     }
 
     protected static final String LLVMIR_LABEL_EXTRACT_VALUE = "extractvalue";
@@ -348,7 +353,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
         writeInnerSymbolValue(extract.getAggregate());
         writef(", %d", extract.getIndex());
 
-        writeln();
+        writeInstructionTail(extract);
     }
 
     protected static final String LLVMIR_LABEL_GET_ELEMENT_POINTER = "getelementptr";
@@ -381,7 +386,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
             writeInnerSymbolValue(sym);
         }
 
-        writeln();
+        writeInstructionTail(gep);
     }
 
     protected static final String LLVMIR_LABEL_FENCE = "fence";
@@ -401,7 +406,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
 
         write(fence.getAtomicOrdering().getIrString());
 
-        writeln();
+        writeInstructionTail(fence);
     }
 
     private static final String LLVMIR_LABEL_INDIRECT_BRANCH = "indirectbr";
@@ -427,7 +432,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
         }
         write(" ]");
 
-        writeln();
+        writeInstructionTail(branch);
     }
 
     private static final String LLVMIR_LABEL_INSERT_ELEMENT = "insertelement";
@@ -453,7 +458,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
         write(" ");
         writeInnerSymbolValue(insert.getIndex());
 
-        writeln();
+        writeInstructionTail(insert);
     }
 
     private static final String LLVMIR_LABEL_INSERT_VALUE = "insertvalue";
@@ -476,7 +481,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
         writeInnerSymbolValue(insert.getValue());
         writef(", %d", insert.getIndex());
 
-        writeln();
+        writeInstructionTail(insert);
     }
 
     protected static final String LLVMIR_LABEL_LOAD = "load";
@@ -525,7 +530,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
             writef(", %s %d", LLVMIR_LABEL_ALIGN, 1 << (load.getAlign() - 1));
         }
 
-        writeln();
+        writeInstructionTail(load);
     }
 
     private static final String LLVMIR_LABEL_PHI = "phi";
@@ -556,7 +561,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
             write(" ]");
         }
 
-        writeln();
+        writeInstructionTail(phi);
     }
 
     private static final String LLVMIR_LABEL_RETURN = "ret";
@@ -577,7 +582,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
             writeInnerSymbolValue(value);
         }
 
-        writeln();
+        writeInstructionTail(ret);
     }
 
     private static final String LLVMIR_LABEL_SELECT = "select";
@@ -606,7 +611,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
         write(" ");
         writeInnerSymbolValue(select.getFalseValue());
 
-        writeln();
+        writeInstructionTail(select);
     }
 
     private static final String LLVMIR_LABEL_SHUFFLE_VECTOR = "shufflevector";
@@ -635,7 +640,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
         write(" ");
         writeInnerSymbolValue(shuffle.getMask());
 
-        writeln();
+        writeInstructionTail(shuffle);
     }
 
     private static final String LLVMIR_LABEL_STORE = "store";
@@ -680,7 +685,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
             writef(", %s %d", LLVMIR_LABEL_ALIGN, 1 << (store.getAlign() - 1));
         }
 
-        writeln();
+        writeInstructionTail(store);
     }
 
     private static final String LLVMIR_LABEL_SWITCH = "switch";
@@ -720,7 +725,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
         }
         write(" ]");
 
-        writeln();
+        writeInstructionTail(select);
     }
 
     private static final String LLVMIR_LABEL_SWITCH_OLD = "switch";
@@ -756,7 +761,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
         }
         write(" ]");
 
-        writeln();
+        writeInstructionTail(select);
     }
 
     private static final String LLVMIR_LABEL_UNREACHABLE = "unreachable";
@@ -767,7 +772,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
 
         write(LLVMIR_LABEL_UNREACHABLE);
 
-        writeln();
+        writeInstructionTail(unreachable);
     }
 
     @Override
@@ -780,37 +785,37 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
 
         writeFunctionCall(call);
 
-        writeln();
+        writeInstructionTail(call);
     }
 
     private static final String LLVMIR_LABEL_INVOKE = "invoke";
 
     @Override
-    public void visit(InvokeInstruction call) {
+    public void visit(InvokeInstruction invoke) {
         // <result> =
-        write(call.getName());
+        write(invoke.getName());
         write(" = ");
 
         // invoke
         write(LLVMIR_LABEL_INVOKE);
         write(" ");
 
-        writeFunctionInvoke(call);
+        writeFunctionInvoke(invoke);
 
-        writeln();
+        writeInstructionTail(invoke);
     }
 
     @Override
-    public void visit(VoidInvokeInstruction call) {
+    public void visit(VoidInvokeInstruction invoke) {
         writeIndent();
 
         // invoke
         write(LLVMIR_LABEL_INVOKE);
         write(" ");
 
-        writeFunctionInvoke(call);
+        writeFunctionInvoke(invoke);
 
-        writeln();
+        writeInstructionTail(invoke);
     }
 
     private static final String LLVMIR_LABEL_LANDINGPAD = "landingpad";
@@ -843,7 +848,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
         // <clause>*
         // TODO: implement
 
-        writeln();
+        writeInstructionTail(landingpad);
     }
 
     private static final String LLVMIR_LABEL_RESUME = "resume";
@@ -860,7 +865,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
         write(" ");
         writeInnerSymbolValue(resume.getValue());
 
-        writeln();
+        writeInstructionTail(resume);
     }
 
     private static final String LLVMIR_LABEL_ATOMICRMW = "atomicrmw";
@@ -896,7 +901,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
 
         write(rmw.getAtomicOrdering().getIrString());
 
-        writeln();
+        writeInstructionTail(rmw);
     }
 
     /**

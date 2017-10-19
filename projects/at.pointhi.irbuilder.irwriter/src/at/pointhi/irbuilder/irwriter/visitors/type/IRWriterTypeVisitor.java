@@ -102,6 +102,10 @@ public class IRWriterTypeVisitor extends IRWriterBaseVisitor implements TypeVisi
             write("metadata");
         } else if (MetaType.X86MMX.equals(metaType)) {
             write("x86mmx");
+        } else if (MetaType.DEBUG.equals(metaType)) {
+            write("metadata");
+        } else {
+            throw new IllegalStateException("unexpected MetaType: " + metaType);
         }
     }
 

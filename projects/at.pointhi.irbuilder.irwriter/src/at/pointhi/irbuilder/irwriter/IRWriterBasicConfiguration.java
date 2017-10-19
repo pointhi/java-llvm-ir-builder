@@ -57,4 +57,9 @@ public final class IRWriterBasicConfiguration implements Configuration {
         throw new AssertionError("Node Factory is not required for IRWriter implementation!");
     }
 
+    @Override
+    public Object createContextExtension() {
+        return null;
+    }
+
 }

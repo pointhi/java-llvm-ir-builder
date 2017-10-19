@@ -64,7 +64,6 @@ public class IRWriterModelVisitorV38 extends IRWriterModelVisitor {
 
     @Override
     public void writePrologue(ModelModule model) {
-
     }
 
     @Override

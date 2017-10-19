@@ -84,102 +84,120 @@ public class IRWriterMetadataVisitorV38 extends IRWriterBaseVisitor implements M
 
     @Override
     public void visit(MDAttachment alias) {
-        // TODO: implement
+        write("!{} ; TODO: " + alias.getClass().getSimpleName()); // TODO: implement
     }
 
     @Override
     public void visit(MDBasicType alias) {
-        // TODO: implement
+        write("!{} ; TODO: " + alias.getClass().getSimpleName()); // TODO: implement
     }
 
     @Override
     public void visit(MDCompileUnit alias) {
-        // TODO: implement
+        write("!DICompileUnit(");
+
+        writef("language: %s, ", alias.getLanguage().toString());
+
+        write("file: ");
+        writeMetadataReference(alias.getFile().get());
+        write(", ");
+
+        writef("producer: ");
+        writeMetadataValue(alias.getProducer().get());
+        write(", ");
+
+        writef("isOptimized: %b, ", alias.isOptimized());
+
+        writef("runtimeVersion: %d", alias.getRuntimeVersion());
+
+        // TODO: finish
+
+        write(")");
     }
 
     @Override
     public void visit(MDCompositeType alias) {
-        // TODO: implement
+        write("!{} ; TODO: " + alias.getClass().getSimpleName()); // TODO: implement
     }
 
     @Override
     public void visit(MDDerivedType alias) {
-        // TODO: implement
+        write("!{} ; TODO: " + alias.getClass().getSimpleName()); // TODO: implement
     }
 
     @Override
     public void visit(MDEmptyNode alias) {
-        // TODO: implement
+        write("!{} ; TODO: " + alias.getClass().getSimpleName()); // TODO: implement
     }
 
     @Override
     public void visit(MDEnumerator alias) {
-        // TODO: implement
+        write("!{} ; TODO: " + alias.getClass().getSimpleName()); // TODO: implement
     }
 
     @Override
     public void visit(MDExpression alias) {
-        // TODO: implement
+        write("!{} ; TODO: " + alias.getClass().getSimpleName()); // TODO: implement
     }
 
     @Override
     public void visit(MDFile alias) {
-        // TODO: implement
+        write("!{} ; TODO: " + alias.getClass().getSimpleName()); // TODO: implement
     }
 
     @Override
     public void visit(MDFnNode alias) {
-        // TODO: implement
+        write("!{} ; TODO: " + alias.getClass().getSimpleName()); // TODO: implement
     }
 
     @Override
     public void visit(MDGenericDebug alias) {
-        // TODO: implement
+        write("!{} ; TODO: " + alias.getClass().getSimpleName()); // TODO: implement
     }
 
     @Override
     public void visit(MDGlobalVariable alias) {
-        // TODO: implement
+        write("!{} ; TODO: " + alias.getClass().getSimpleName()); // TODO: implement
     }
 
     @Override
     public void visit(MDImportedEntity alias) {
-        // TODO: implement
+        write("!{} ; TODO: " + alias.getClass().getSimpleName()); // TODO: implement
     }
 
     @Override
     public void visit(MDKind alias) {
-        // TODO: implement
+        write("!{} ; TODO: " + alias.getClass().getSimpleName()); // TODO: implement
     }
 
     @Override
     public void visit(MDLexicalBlock alias) {
-        // TODO: implement
+        write("!{} ; TODO: " + alias.getClass().getSimpleName()); // TODO: implement
     }
 
     @Override
     public void visit(MDLexicalBlockFile alias) {
-        // TODO: implement
+        write("!{} ; TODO: " + alias.getClass().getSimpleName()); // TODO: implement
     }
 
     @Override
     public void visit(MDLocalVariable alias) {
-        // TODO: implement
+        write("!{} ; TODO: " + alias.getClass().getSimpleName()); // TODO: implement
     }
 
     @Override
     public void visit(MDMacro alias) {
-        // TODO: implement
+        write("!{} ; TODO: " + alias.getClass().getSimpleName()); // TODO: implement
     }
 
     @Override
     public void visit(MDMacroFile alias) {
-        // TODO: implement
+        write("!{} ; TODO: " + alias.getClass().getSimpleName()); // TODO: implement
     }
 
     @Override
     public void visit(MDModule alias) {
-        // TODO: implement
+        write("!{} ; TODO: " + alias.getClass().getSimpleName()); // TODO: implement
     }
 
     @Override
@@ -193,14 +211,14 @@ public class IRWriterMetadataVisitorV38 extends IRWriterBaseVisitor implements M
                 write(", ");
             }
 
-            writeMetadataReference(ref);
+            writeMetadataReference(ref.get());
         }
         writeln("}");
     }
 
     @Override
     public void visit(MDNamespace alias) {
-        // TODO: implement
+        write("!{} ; TODO: " + alias.getClass().getSimpleName()); // TODO: implement
     }
 
     @Override
@@ -214,19 +232,19 @@ public class IRWriterMetadataVisitorV38 extends IRWriterBaseVisitor implements M
                 write(", ");
             }
 
-            writeMetadataReference(ref);
+            writeMetadataValue(ref.get());
         }
         write("}");
     }
 
     @Override
     public void visit(MDObjCProperty alias) {
-        // TODO: implement
+        write("!{} ; TODO: " + alias.getClass().getSimpleName()); // TODO: implement
     }
 
     @Override
     public void visit(MDOldNode alias) {
-        // TODO: implement
+        write("!{} ; TODO: " + alias.getClass().getSimpleName()); // TODO: implement
     }
 
     @Override
@@ -236,37 +254,37 @@ public class IRWriterMetadataVisitorV38 extends IRWriterBaseVisitor implements M
 
     @Override
     public void visit(MDSubprogram alias) {
-        // TODO: implement
+        write("!{} ; TODO: " + alias.getClass().getSimpleName()); // TODO: implement
     }
 
     @Override
     public void visit(MDSubrange alias) {
-        // TODO: implement
+        write("!{} ; TODO: " + alias.getClass().getSimpleName()); // TODO: implement
     }
 
     @Override
     public void visit(MDSubroutine alias) {
-        // TODO: implement
+        write("!{} ; TODO: " + alias.getClass().getSimpleName()); // TODO: implement
     }
 
     @Override
     public void visit(MDSymbolReference alias) {
-        // TODO: implement
+        write("!{} ; TODO: " + alias.getClass().getSimpleName()); // TODO: implement
     }
 
     @Override
     public void visit(MDTemplateType alias) {
-        // TODO: implement
+        write("!{} ; TODO: " + alias.getClass().getSimpleName()); // TODO: implement
     }
 
     @Override
     public void visit(MDTemplateTypeParameter alias) {
-        // TODO: implement
+        write("!{} ; TODO: " + alias.getClass().getSimpleName()); // TODO: implement
     }
 
     @Override
     public void visit(MDTemplateValue alias) {
-        // TODO: implement
+        write("!{} ; TODO: " + alias.getClass().getSimpleName()); // TODO: implement
     }
 
     @Override
@@ -279,16 +297,21 @@ public class IRWriterMetadataVisitorV38 extends IRWriterBaseVisitor implements M
 
     @Override
     public void visit(MDReference alias) {
-        // TODO: implement
+        write("!{} ; TODO: " + alias.getClass().getSimpleName()); // TODO: implement
     }
 
     @Override
     public void visit(MDLocation alias) {
-        // TODO: implement
+        write("!DILocation(");
+        writef("line: %d, ", alias.getLine());
+        writef("column: %d, ", alias.getColumn());
+        write("scope: ");
+        writeMetadataReference(alias.getScope().get());
+        write(")");
     }
 
     @Override
     public void visit(MDGlobalVariableExpression alias) {
-        // TODO: implement
+        write("!{} ; TODO: " + alias.getClass().getSimpleName()); // TODO: implement
     }
 }

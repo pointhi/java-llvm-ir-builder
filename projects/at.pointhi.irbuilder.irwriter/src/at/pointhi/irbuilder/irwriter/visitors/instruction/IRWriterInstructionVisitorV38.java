@@ -38,6 +38,7 @@ import com.oracle.truffle.llvm.parser.model.symbols.instructions.Call;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.CompareExchangeInstruction;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.ExtractValueInstruction;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.GetElementPointerInstruction;
+import com.oracle.truffle.llvm.parser.model.symbols.instructions.Instruction;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.LoadInstruction;
 import com.oracle.truffle.llvm.runtime.types.FunctionType;
 import com.oracle.truffle.llvm.runtime.types.PointerType;
@@ -51,6 +52,17 @@ public class IRWriterInstructionVisitorV38 extends IRWriterInstructionVisitor {
 
     public IRWriterInstructionVisitorV38(IRWriterVersion.IRWriterVisitors visitors, IRWriter.PrintTarget target) {
         super(visitors, target);
+    }
+
+    @Override
+    protected void writeInstructionTail(Instruction instr) {
+        if (instr.getDebugLocation() != null) {
+            // TODO: enable when all Metadata Visitors are implemented
+            // write(", !dbg ");
+            // writeMetadataReference(instr.getDebugLocation());
+        }
+
+        writeln();
     }
 
     /*
@@ -96,7 +108,7 @@ public class IRWriterInstructionVisitorV38 extends IRWriterInstructionVisitor {
         write(" ");
         write(cmpxchg.getFailureOrdering().getIrString());
 
-        writeln();
+        writeInstructionTail(cmpxchg);
     }
 
     @Override
@@ -113,7 +125,7 @@ public class IRWriterInstructionVisitorV38 extends IRWriterInstructionVisitor {
         writeInnerSymbolValue(extract.getAggregate());
         writef(", %d", extract.getIndex());
 
-        writeln();
+        writeInstructionTail(extract);
     }
 
     @Override
@@ -145,7 +157,7 @@ public class IRWriterInstructionVisitorV38 extends IRWriterInstructionVisitor {
             writeInnerSymbolValue(sym);
         }
 
-        writeln();
+        writeInstructionTail(gep);
     }
 
     @Override
@@ -187,7 +199,7 @@ public class IRWriterInstructionVisitorV38 extends IRWriterInstructionVisitor {
             write(String.format(", %s %d", LLVMIR_LABEL_ALIGN, 1 << (load.getAlign() - 1)));
         }
 
-        writeln();
+        writeInstructionTail(load);
     }
 
     /**
