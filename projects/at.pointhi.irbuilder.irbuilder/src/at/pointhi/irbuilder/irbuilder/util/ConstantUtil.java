@@ -32,11 +32,14 @@
 package at.pointhi.irbuilder.irbuilder.util;
 
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 import com.oracle.truffle.llvm.parser.model.symbols.constants.Constant;
 import com.oracle.truffle.llvm.parser.model.symbols.constants.floatingpoint.FloatingPointConstant;
 import com.oracle.truffle.llvm.parser.model.symbols.constants.integer.BigIntegerConstant;
 import com.oracle.truffle.llvm.parser.model.symbols.constants.integer.IntegerConstant;
+import com.oracle.truffle.llvm.runtime.floating.LLVM80BitFloat;
 import com.oracle.truffle.llvm.runtime.types.PrimitiveType;
 import com.oracle.truffle.llvm.runtime.types.Type;
 import com.oracle.truffle.llvm.runtime.types.VariableBitWidthType;
@@ -77,7 +80,26 @@ public final class ConstantUtil {
         if (!PrimitiveType.isFloatingpointType(type)) {
             throw new AssertionError("unexpected type: " + type);
         }
-        return FloatingPointConstant.create(type, new long[]{Double.doubleToRawLongBits(value)});
+        if (type.equals(PrimitiveType.FLOAT)) {
+            return FloatingPointConstant.create(type, new long[]{Float.floatToRawIntBits((float) value)});
+        } else if (type.equals(PrimitiveType.DOUBLE)) {
+            return FloatingPointConstant.create(type, new long[]{Double.doubleToRawLongBits(value)});
+        } else if (type.equals(PrimitiveType.X86_FP80)) {
+            ByteBuffer buffer = ByteBuffer.allocate(PrimitiveType.X86_FP80.getBitSize() / Byte.SIZE);
+            buffer.order(ByteOrder.LITTLE_ENDIAN);
+            buffer.put(LLVM80BitFloat.fromDouble(value).getBytes());
+            buffer.flip();
+
+            long byte2 = buffer.getShort(); // TODO: Why in reversed order?
+            long byte1 = buffer.getLong();
+
+            long[] bytes = new long[]{byte1, byte2};
+
+            return FloatingPointConstant.create(type, bytes);
+        } else {
+            throw new AssertionError("unsuported floatingpoint type: " + type);
+        }
+
     }
 
     public static Constant getConst(Type type, boolean value) {
