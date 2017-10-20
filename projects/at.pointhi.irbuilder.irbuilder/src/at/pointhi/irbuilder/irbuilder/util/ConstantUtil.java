@@ -76,7 +76,7 @@ public final class ConstantUtil {
         return FloatingPointConstant.create(PrimitiveType.DOUBLE, new long[]{Double.doubleToRawLongBits(val)});
     }
 
-    public static FloatingPointConstant getX86_fp80Const(double val) {
+    public static FloatingPointConstant getFP80Const(double val) {
         ByteBuffer buffer = ByteBuffer.allocate(PrimitiveType.X86_FP80.getBitSize() / Byte.SIZE);
         buffer.order(ByteOrder.LITTLE_ENDIAN);
         buffer.put(LLVM80BitFloat.fromDouble(val).getBytes());
@@ -101,7 +101,7 @@ public final class ConstantUtil {
         } else if (type.equals(PrimitiveType.DOUBLE)) {
             return getDoubleConst(value);
         } else if (type.equals(PrimitiveType.X86_FP80)) {
-            return getX86_fp80Const(value);
+            return getFP80Const(value);
         } else {
             throw new AssertionError("unsuported floatingpoint type: " + type);
         }
