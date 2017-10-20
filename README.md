@@ -35,3 +35,23 @@ mx build
 ```
 
 **TODO: there are some parts missing in this setup manual, regarding dependencies**
+
+## Features
+
+By compiling this project, we get some new mx commands to work with:
+
+```bash
+mx irbuilder-out path_to_file.bc # output the .ll equivalent ir as it's parsed by Sulong
+```
+
+```bash
+mx irbuilder-test32 # Run LLVM 3.2 compatible irwriter tests (compile testsuite and test the written output)
+```
+
+```bash
+mx irbuilder-test38 # Run LLVM 3.8 compatible irwriter tests (compile testsuite and test the written output)
+```
+
+```bash
+mx irbuilder-testgen32 # Create LLVM 3.8 compatible LLVM-IR Testcases from scratch and use them to test Sulong
+```
