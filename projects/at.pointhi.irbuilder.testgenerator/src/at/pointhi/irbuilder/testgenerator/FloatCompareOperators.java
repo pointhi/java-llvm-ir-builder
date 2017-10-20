@@ -186,6 +186,18 @@ public class FloatCompareOperators extends BaseSuite {
         appendCheck(instr, errorCode++, CompareOperator.FP_UNORDERED, Double.NaN, 1.0);
         appendCheck(instr, errorCode++, CompareOperator.FP_UNORDERED, Double.NaN, Double.NaN);
 
+        if (PrimitiveType.X86_FP80.equals(type)) {
+            // check if ordered
+            appendCheckInv(instr, errorCode++, CompareOperator.FP_ORDERED, ConstantUtil.getConst(type, 1.0), ConstantUtil.X86_FP80_SNaN);
+            appendCheckInv(instr, errorCode++, CompareOperator.FP_ORDERED, ConstantUtil.X86_FP80_SNaN, ConstantUtil.getConst(type, 1.0));
+            appendCheckInv(instr, errorCode++, CompareOperator.FP_ORDERED, ConstantUtil.X86_FP80_SNaN, ConstantUtil.X86_FP80_SNaN);
+
+            // check if unordered
+            appendCheck(instr, errorCode++, CompareOperator.FP_UNORDERED, ConstantUtil.getConst(type, 1.0), ConstantUtil.X86_FP80_SNaN);
+            appendCheck(instr, errorCode++, CompareOperator.FP_UNORDERED, ConstantUtil.X86_FP80_SNaN, ConstantUtil.getConst(type, 1.0));
+            appendCheck(instr, errorCode++, CompareOperator.FP_UNORDERED, ConstantUtil.X86_FP80_SNaN, ConstantUtil.X86_FP80_SNaN);
+        }
+
         // return success
         instr.returnx(ConstantUtil.getI32Const(0));
 

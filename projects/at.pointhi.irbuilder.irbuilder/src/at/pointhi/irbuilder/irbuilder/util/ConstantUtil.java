@@ -76,26 +76,32 @@ public final class ConstantUtil {
         return FloatingPointConstant.create(PrimitiveType.DOUBLE, new long[]{Double.doubleToRawLongBits(val)});
     }
 
+    public static FloatingPointConstant getX86_fp80Const(double val) {
+        ByteBuffer buffer = ByteBuffer.allocate(PrimitiveType.X86_FP80.getBitSize() / Byte.SIZE);
+        buffer.order(ByteOrder.LITTLE_ENDIAN);
+        buffer.put(LLVM80BitFloat.fromDouble(val).getBytes());
+        buffer.flip();
+
+        long byte2 = buffer.getShort(); // TODO: Why in reversed order?
+        long byte1 = buffer.getLong();
+
+        long[] bytes = new long[]{byte1, byte2};
+
+        return FloatingPointConstant.create(PrimitiveType.X86_FP80, bytes);
+    }
+
+    public static final FloatingPointConstant X86_FP80_SNaN = FloatingPointConstant.create(PrimitiveType.X86_FP80, new long[]{0x7FFFA000_00000000L, 0x0});
+
     public static Constant getConst(Type type, double value) {
         if (!PrimitiveType.isFloatingpointType(type)) {
             throw new AssertionError("unexpected type: " + type);
         }
         if (type.equals(PrimitiveType.FLOAT)) {
-            return FloatingPointConstant.create(type, new long[]{Float.floatToRawIntBits((float) value)});
+            return getFloatConst((float) value);
         } else if (type.equals(PrimitiveType.DOUBLE)) {
-            return FloatingPointConstant.create(type, new long[]{Double.doubleToRawLongBits(value)});
+            return getDoubleConst(value);
         } else if (type.equals(PrimitiveType.X86_FP80)) {
-            ByteBuffer buffer = ByteBuffer.allocate(PrimitiveType.X86_FP80.getBitSize() / Byte.SIZE);
-            buffer.order(ByteOrder.LITTLE_ENDIAN);
-            buffer.put(LLVM80BitFloat.fromDouble(value).getBytes());
-            buffer.flip();
-
-            long byte2 = buffer.getShort(); // TODO: Why in reversed order?
-            long byte1 = buffer.getLong();
-
-            long[] bytes = new long[]{byte1, byte2};
-
-            return FloatingPointConstant.create(type, bytes);
+            return getX86_fp80Const(value);
         } else {
             throw new AssertionError("unsuported floatingpoint type: " + type);
         }
