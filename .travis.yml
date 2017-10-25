@@ -100,11 +100,8 @@ matrix:
         # Basic checks
         - env: BUILD_COMMAND='' TEST_COMMAND='mx check httpcheck checkstyle mdl eclipseformat pylint ecj canonicalizeprojects checkoverlap --verbose'
           jdk: oraclejdk8
-        # LLVM 3.2 testcases
-        - env: BUILD_COMMAND='mx build' TEST_COMMAND='mx irbuilder-test32 assembly'
-          jdk: oraclejdk8
         # LLVM 3.8 testcases
-        - env: BUILD_COMMAND='mx build' TEST_COMMAND='mx irbuilder-test38 nwcc llvm'
+        - env: BUILD_COMMAND='mx build' TEST_COMMAND='mx irbuilder-test38 nwcc llvm assembly'
           jdk: oraclejdk8
         # LLVM 3.8 - GCC C testcases
         - env: BUILD_COMMAND='mx build' TEST_COMMAND='mx irbuilder-test38 gcc_c'

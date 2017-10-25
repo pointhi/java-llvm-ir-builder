@@ -289,9 +289,6 @@ public class IRWriterConstantVisitor extends IRWriterBaseVisitor implements Cons
     public void visit(InlineAsmConstant inlineAsmConstant) {
         final FunctionType decl = (FunctionType) ((PointerType) inlineAsmConstant.getType()).getPointeeType();
 
-        writeType(decl.getReturnType());
-        write(" ");
-
         if (decl.isVarargs() || (decl.getReturnType() instanceof PointerType && ((PointerType) decl.getReturnType()).getPointeeType() instanceof FunctionType)) {
             writeFormalArguments(decl);
             write(" ");
@@ -381,11 +378,8 @@ public class IRWriterConstantVisitor extends IRWriterBaseVisitor implements Cons
         write("undef");
     }
 
-    private static final String LLVMIR_LABEL_METADATA = "metadata";
-
     public void visit(MetadataConstant metadataConstant) {
-        write(LLVMIR_LABEL_METADATA);
-        write(" !");
+        write("!");
         write(Long.toString(metadataConstant.getValue()));
     }
 

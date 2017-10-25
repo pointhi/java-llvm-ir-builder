@@ -106,7 +106,6 @@ def runIRBuilderOut(args=None, out=None):
 
 irBuilderTests32 = {
     'gcc_c' : ['gcc_c', "at.pointhi.irbuilder.test.GCCGeneratorSuite", os.path.join(mx_testsuites._cacheDir, 'gcc'), ['-Dsulongtest.fileExtensionFilter=.c']],
-    'assembly' : ['assembly', "at.pointhi.irbuilder.test.InlineAssemblyGeneratorSuite", os.path.join(mx_testsuites._cacheDir, 'inlineassemblytests'), []],
 }
 
 irBuilderTests38 = {
@@ -114,6 +113,7 @@ irBuilderTests38 = {
     'gcc_c' : ['gcc_c', "at.pointhi.irbuilder.test.GCCGeneratorSuite", os.path.join(mx_testsuites._cacheDir, 'gcc'), ['-Dsulongtest.fileExtensionFilter=.c']],
     'gcc_cpp' : ['gcc_cpp', "at.pointhi.irbuilder.test.GCCGeneratorSuite", os.path.join(mx_testsuites._cacheDir, 'gcc'), ['-Dsulongtest.fileExtensionFilter=.cpp:.C:.cc']],
     'nwcc' : ['nwcc', "at.pointhi.irbuilder.test.NWCCGeneratorSuite", os.path.join(mx_testsuites._cacheDir, 'nwcc'), []],
+    'assembly' : ['assembly', "at.pointhi.irbuilder.test.InlineAssemblyGeneratorSuite", os.path.join(mx_testsuites._cacheDir, 'inlineassemblytests'), []],
 }
 
 irBuilderTestsGen38 = {
