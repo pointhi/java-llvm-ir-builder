@@ -160,7 +160,7 @@ public class BinaryI1AssemblyOperations extends BaseSuite {
                 asmStr.append("mulb $1;");
                 break;
             case INT_UNSIGNED_DIVIDE:
-                asmStr.append("movsbw $1, %ax;");
+                asmStr.append("movzbw $1, %ax;");
                 asmStr.append("divb $2;");
                 break;
             case INT_SIGNED_DIVIDE:
@@ -168,7 +168,7 @@ public class BinaryI1AssemblyOperations extends BaseSuite {
                 asmStr.append("idivb $2;");
                 break;
             case INT_UNSIGNED_REMAINDER:
-                asmStr.append("movsbw $1, %ax;");
+                asmStr.append("movzbw $1, %ax;");
                 asmStr.append("divb $2;");
                 asmStr.append("movb %ah, %al;");
                 break;
