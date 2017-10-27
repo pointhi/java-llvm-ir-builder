@@ -34,8 +34,11 @@ package at.pointhi.irbuilder.irbuilder.util;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.ArrayList;
 
+import com.oracle.truffle.llvm.parser.model.enums.AsmDialect;
 import com.oracle.truffle.llvm.parser.model.symbols.constants.Constant;
+import com.oracle.truffle.llvm.parser.model.symbols.constants.InlineAsmConstant;
 import com.oracle.truffle.llvm.parser.model.symbols.constants.floatingpoint.FloatingPointConstant;
 import com.oracle.truffle.llvm.parser.model.symbols.constants.integer.BigIntegerConstant;
 import com.oracle.truffle.llvm.parser.model.symbols.constants.integer.IntegerConstant;
@@ -140,5 +143,28 @@ public final class ConstantUtil {
         } else {
             throw new AssertionError("unexpected type: " + type);
         }
+    }
+
+    public static Constant getInlineAssemblyConstant(Type type, String asmExpression, String asmFlags, boolean hasSideEffects, boolean stackAlign, AsmDialect dialect) {
+        ArrayList<Long> args = new ArrayList<>();
+
+        long flags = 0;
+        flags |= hasSideEffects ? 1L << 0 : 0;
+        flags |= stackAlign ? 1L << 1 : 0;
+        flags |= dialect.ordinal() << 2;
+        args.add(flags);
+
+        args.add((long) asmExpression.length());
+        for (byte c : asmExpression.getBytes()) {
+            args.add((long) c);
+        }
+
+        args.add((long) asmFlags.length());
+        for (byte c : asmFlags.getBytes()) {
+            args.add((long) c);
+        }
+
+        long[] longArgs = args.stream().mapToLong(l -> l).toArray();
+        return InlineAsmConstant.generate(type, longArgs);
     }
 }

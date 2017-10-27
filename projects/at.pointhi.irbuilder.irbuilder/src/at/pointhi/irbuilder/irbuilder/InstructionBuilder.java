@@ -45,6 +45,7 @@ import com.oracle.truffle.llvm.parser.model.functions.FunctionDefinition;
 import com.oracle.truffle.llvm.parser.model.functions.FunctionParameter;
 import com.oracle.truffle.llvm.parser.model.symbols.Symbols;
 import com.oracle.truffle.llvm.parser.model.symbols.constants.Constant;
+import com.oracle.truffle.llvm.parser.model.symbols.constants.InlineAsmConstant;
 import com.oracle.truffle.llvm.parser.model.symbols.constants.integer.IntegerConstant;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.AllocateInstruction;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.BinaryOperationInstruction;
@@ -69,6 +70,7 @@ import com.oracle.truffle.llvm.parser.model.symbols.instructions.SwitchInstructi
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.SwitchOldInstruction;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.UnreachableInstruction;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.ValueInstruction;
+import com.oracle.truffle.llvm.parser.model.symbols.instructions.VoidCallInstruction;
 import com.oracle.truffle.llvm.runtime.datalayout.DataLayoutConverter;
 import com.oracle.truffle.llvm.runtime.types.AggregateType;
 import com.oracle.truffle.llvm.runtime.types.ArrayType;
@@ -343,29 +345,43 @@ public class InstructionBuilder {
     }
 
     public Instruction createCall(Symbol target, Symbol[] arguments) {
-        Type returnType;
+        final FunctionType functionType;
         if (target.getType() instanceof FunctionType) {
-            returnType = ((FunctionType) target.getType()).getReturnType();
-        } else if (target instanceof LoadInstruction) {
-            Type pointeeType = ((LoadInstruction) target).getSource().getType();
+            functionType = ((FunctionType) target.getType());
+        } else {
+            Type pointeeType;
+            if (target instanceof LoadInstruction) {
+                pointeeType = ((LoadInstruction) target).getSource().getType();
+            } else if (target instanceof InlineAsmConstant) {
+                pointeeType = ((InlineAsmConstant) target).getType();
+            } else {
+                throw new RuntimeException("cannot handle target type: " + target.getClass().getName());
+            }
+
             while (pointeeType instanceof PointerType) {
                 pointeeType = ((PointerType) pointeeType).getPointeeType();
             }
             if (pointeeType instanceof FunctionType) {
-                returnType = ((FunctionType) pointeeType).getReturnType();
+                functionType = ((FunctionType) pointeeType);
             } else {
                 throw new RuntimeException("cannot handle target type: " + pointeeType.getClass().getName());
             }
-        } else {
-            throw new RuntimeException("cannot handle target type: " + target.getClass().getName());
         }
+
+        Type returnType = functionType.getReturnType();
+
         int targetIdx = addSymbol(target);
         int[] argumentsIdx = new int[arguments.length];
         for (int i = 0; i < arguments.length; i++) {
             argumentsIdx[i] = addSymbol(arguments[i]);
         }
 
-        Instruction instr = CallInstruction.fromSymbols(getSymbols(), returnType, targetIdx, argumentsIdx, AttributesCodeEntry.EMPTY);
+        Instruction instr;
+        if (VoidType.INSTANCE.equals(returnType)) {
+            instr = VoidCallInstruction.fromSymbols(getSymbols(), targetIdx, argumentsIdx, AttributesCodeEntry.EMPTY);
+        } else {
+            instr = CallInstruction.fromSymbols(getSymbols(), returnType, targetIdx, argumentsIdx, AttributesCodeEntry.EMPTY);
+        }
         return appendAndReturnInstruction(instr);
     }
 
