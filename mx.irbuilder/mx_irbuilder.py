@@ -205,6 +205,12 @@ def runIRBuilderTestGen38(vmArgs):
     for testSuiteName in parsedArgs.suite:
         suite = irBuilderTestsGen38[testSuiteName]
         """runs the test suite"""
+
+        # remove old files inside build directory
+        for file in os.listdir(suite[1]):
+            if file.endswith(".ll") or file.endswith(".bc"):
+                os.remove(os.path.join(suite[1], file))
+
         try:
             mx_sulong.mx_testsuites.run(vmArgs + ['-Dirwriter.LLVMVersion=3.8'], suite[0], [])
         except KeyboardInterrupt:
