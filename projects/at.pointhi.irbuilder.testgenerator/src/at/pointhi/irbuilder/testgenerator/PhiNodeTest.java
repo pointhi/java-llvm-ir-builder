@@ -54,13 +54,13 @@ import at.pointhi.irbuilder.irbuilder.SimpleInstrunctionBuilder;
 
 public class PhiNodeTest extends BaseSuite {
 
-    private static final Path PHI_SUITE_DIR = Paths.get(TestOptions.PROJECT_ROOT + "/../cache/tests/irbuilder/phi");
+    private static final Path SUITE_DIR = Paths.get(TestOptions.PROJECT_ROOT + "/../cache/tests/irbuilder/phi");
 
     @Parameterized.Parameter(value = 0) public Path path;
 
     @Override
     public Path getSuiteDir() {
-        return PHI_SUITE_DIR;
+        return SUITE_DIR;
     }
 
     @Override

@@ -61,7 +61,7 @@ import at.pointhi.irbuilder.testgenerator.util.IntegerBinaryOperations.Undefined
 @RunWith(Parameterized.class)
 public class BinaryVectorOperatorTest extends BaseSuite {
 
-    private static final Path VECTOR_SUITE_DIR = Paths.get(TestOptions.PROJECT_ROOT + "/../cache/tests/irbuilder/vector");
+    private static final Path SUITE_DIR = Paths.get(TestOptions.PROJECT_ROOT + "/../cache/tests/irbuilder/vector");
 
     private final PrimitiveType type;
     private final BinaryOperator operator;
@@ -112,7 +112,7 @@ public class BinaryVectorOperatorTest extends BaseSuite {
 
     @Override
     public Path getSuiteDir() {
-        return VECTOR_SUITE_DIR;
+        return SUITE_DIR;
     }
 
     @Override

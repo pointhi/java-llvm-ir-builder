@@ -55,7 +55,7 @@ import at.pointhi.irbuilder.irbuilder.util.ConstantUtil;
 
 public class VectorLoopTest extends BaseSuite {
 
-    private static final Path FIBONACCI_SUITE_DIR = Paths.get(TestOptions.PROJECT_ROOT + "/../cache/tests/irbuilder/performance/vector");
+    private static final Path SUITE_DIR = Paths.get(TestOptions.PROJECT_ROOT + "/../cache/tests/irbuilder/performance/vector");
 
     @Parameterized.Parameter(value = 0) public Path path;
 
@@ -63,7 +63,7 @@ public class VectorLoopTest extends BaseSuite {
 
     @Override
     public Path getSuiteDir() {
-        return FIBONACCI_SUITE_DIR;
+        return SUITE_DIR;
     }
 
     @Override

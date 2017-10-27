@@ -54,13 +54,13 @@ import at.pointhi.irbuilder.irbuilder.SimpleInstrunctionBuilder;
 
 public class FibonacciFunctionCallTest extends BaseSuite {
 
-    private static final Path FIBONACCI_SUITE_DIR = Paths.get(TestOptions.PROJECT_ROOT + "/../cache/tests/irbuilder/fibonacci");
+    private static final Path SUITE_DIR = Paths.get(TestOptions.PROJECT_ROOT + "/../cache/tests/irbuilder/fibonacci");
 
     @Parameterized.Parameter(value = 0) public Path path;
 
     @Override
     public Path getSuiteDir() {
-        return FIBONACCI_SUITE_DIR;
+        return SUITE_DIR;
     }
 
     @Override

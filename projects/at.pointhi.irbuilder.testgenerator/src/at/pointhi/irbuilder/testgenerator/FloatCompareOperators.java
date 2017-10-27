@@ -59,7 +59,7 @@ import at.pointhi.irbuilder.testgenerator.util.IntegerBinaryOperations.Undefined
 @RunWith(Parameterized.class)
 public class FloatCompareOperators extends BaseSuite {
 
-    private static final Path FLOAT_SUITE_DIR = Paths.get(TestOptions.PROJECT_ROOT + "/../cache/tests/irbuilder/FloatCompareOperator");
+    private static final Path SUITE_DIR = Paths.get(TestOptions.PROJECT_ROOT + "/../cache/tests/irbuilder/FloatCompareOperator");
 
     private final PrimitiveType type;
 
@@ -69,7 +69,7 @@ public class FloatCompareOperators extends BaseSuite {
 
     @Override
     public Path getSuiteDir() {
-        return FLOAT_SUITE_DIR;
+        return SUITE_DIR;
     }
 
     @Override

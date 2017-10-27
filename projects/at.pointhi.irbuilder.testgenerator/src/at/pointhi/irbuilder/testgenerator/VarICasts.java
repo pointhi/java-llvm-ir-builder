@@ -61,7 +61,7 @@ import at.pointhi.irbuilder.testgenerator.util.IntegerBinaryOperations.Undefined
 @RunWith(Parameterized.class)
 public class VarICasts extends BaseSuite {
 
-    private static final Path I1_SUITE_DIR = Paths.get(TestOptions.PROJECT_ROOT + "/../cache/tests/irbuilder/VarICasts");
+    private static final Path SUITE_DIR = Paths.get(TestOptions.PROJECT_ROOT + "/../cache/tests/irbuilder/VarICasts");
 
     private final VariableBitWidthType type1;
     private final VariableBitWidthType type2;
@@ -75,7 +75,7 @@ public class VarICasts extends BaseSuite {
 
     @Override
     public Path getSuiteDir() {
-        return I1_SUITE_DIR;
+        return SUITE_DIR;
     }
 
     @Override

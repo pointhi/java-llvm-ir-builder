@@ -60,7 +60,7 @@ import at.pointhi.irbuilder.testgenerator.util.IntegerBinaryOperations.Undefined
 @RunWith(Parameterized.class)
 public class BinaryI1Operations extends BaseSuite {
 
-    private static final Path I1_SUITE_DIR = Paths.get(TestOptions.PROJECT_ROOT + "/../cache/tests/irbuilder/binaryI1");
+    private static final Path SUITE_DIR = Paths.get(TestOptions.PROJECT_ROOT + "/../cache/tests/irbuilder/binaryI1");
 
     private final BinaryOperator operator;
     private final boolean op1;
@@ -74,7 +74,7 @@ public class BinaryI1Operations extends BaseSuite {
 
     @Override
     public Path getSuiteDir() {
-        return I1_SUITE_DIR;
+        return SUITE_DIR;
     }
 
     @Override

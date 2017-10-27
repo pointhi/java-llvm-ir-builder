@@ -59,13 +59,13 @@ import at.pointhi.irbuilder.irwriter.IRWriterVersion;
 
 public class VarArgFunctionCallTest extends BaseSuite {
 
-    private static final Path VAR_ARG_SUITE_DIR = Paths.get(TestOptions.PROJECT_ROOT + "/../cache/tests/irbuilder/vararg");
+    private static final Path SUITE_DIR = Paths.get(TestOptions.PROJECT_ROOT + "/../cache/tests/irbuilder/vararg");
 
     @Parameterized.Parameter(value = 0) public Path path;
 
     @Override
     public Path getSuiteDir() {
-        return VAR_ARG_SUITE_DIR;
+        return SUITE_DIR;
     }
 
     @Override
