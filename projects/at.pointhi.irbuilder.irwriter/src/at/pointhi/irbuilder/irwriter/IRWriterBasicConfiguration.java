@@ -36,8 +36,11 @@ import java.util.List;
 
 import org.graalvm.options.OptionDescriptor;
 
+import com.oracle.truffle.api.TruffleLanguage;
+import com.oracle.truffle.api.TruffleLanguage.Env;
 import com.oracle.truffle.llvm.Configuration;
 import com.oracle.truffle.llvm.parser.NodeFactory;
+import com.oracle.truffle.llvm.runtime.ContextExtension;
 import com.oracle.truffle.llvm.runtime.LLVMContext;
 
 public final class IRWriterBasicConfiguration implements Configuration {
@@ -58,7 +61,7 @@ public final class IRWriterBasicConfiguration implements Configuration {
     }
 
     @Override
-    public Object createContextExtension() {
+    public List<ContextExtension> createContextExtensions(Env env, TruffleLanguage<?> language) {
         return null;
     }
 

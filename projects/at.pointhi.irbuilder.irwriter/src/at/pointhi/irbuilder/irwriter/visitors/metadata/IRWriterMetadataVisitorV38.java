@@ -33,15 +33,14 @@
 package at.pointhi.irbuilder.irwriter.visitors.metadata;
 
 import com.oracle.truffle.llvm.parser.metadata.MDAttachment;
+import com.oracle.truffle.llvm.parser.metadata.MDBaseNode;
 import com.oracle.truffle.llvm.parser.metadata.MDBasicType;
 import com.oracle.truffle.llvm.parser.metadata.MDCompileUnit;
 import com.oracle.truffle.llvm.parser.metadata.MDCompositeType;
 import com.oracle.truffle.llvm.parser.metadata.MDDerivedType;
-import com.oracle.truffle.llvm.parser.metadata.MDEmptyNode;
 import com.oracle.truffle.llvm.parser.metadata.MDEnumerator;
 import com.oracle.truffle.llvm.parser.metadata.MDExpression;
 import com.oracle.truffle.llvm.parser.metadata.MDFile;
-import com.oracle.truffle.llvm.parser.metadata.MDFnNode;
 import com.oracle.truffle.llvm.parser.metadata.MDGenericDebug;
 import com.oracle.truffle.llvm.parser.metadata.MDGlobalVariable;
 import com.oracle.truffle.llvm.parser.metadata.MDGlobalVariableExpression;
@@ -58,13 +57,10 @@ import com.oracle.truffle.llvm.parser.metadata.MDNamedNode;
 import com.oracle.truffle.llvm.parser.metadata.MDNamespace;
 import com.oracle.truffle.llvm.parser.metadata.MDNode;
 import com.oracle.truffle.llvm.parser.metadata.MDObjCProperty;
-import com.oracle.truffle.llvm.parser.metadata.MDOldNode;
-import com.oracle.truffle.llvm.parser.metadata.MDReference;
 import com.oracle.truffle.llvm.parser.metadata.MDString;
 import com.oracle.truffle.llvm.parser.metadata.MDSubprogram;
 import com.oracle.truffle.llvm.parser.metadata.MDSubrange;
 import com.oracle.truffle.llvm.parser.metadata.MDSubroutine;
-import com.oracle.truffle.llvm.parser.metadata.MDSymbolReference;
 import com.oracle.truffle.llvm.parser.metadata.MDTemplateType;
 import com.oracle.truffle.llvm.parser.metadata.MDTemplateTypeParameter;
 import com.oracle.truffle.llvm.parser.metadata.MDTemplateValue;
@@ -99,11 +95,11 @@ public class IRWriterMetadataVisitorV38 extends IRWriterBaseVisitor implements M
         writef("language: %s, ", alias.getLanguage().toString());
 
         write("file: ");
-        writeMetadataReference(alias.getFile().get());
+        writeMetadataReference(alias.getFile());
         write(", ");
 
         writef("producer: ");
-        writeMetadataValue(alias.getProducer().get());
+        writeMetadataValue(alias.getProducer());
         write(", ");
 
         writef("isOptimized: %b, ", alias.isOptimized());
@@ -126,11 +122,6 @@ public class IRWriterMetadataVisitorV38 extends IRWriterBaseVisitor implements M
     }
 
     @Override
-    public void visit(MDEmptyNode alias) {
-        write("!{} ; TODO: " + alias.getClass().getSimpleName()); // TODO: implement
-    }
-
-    @Override
     public void visit(MDEnumerator alias) {
         write("!{} ; TODO: " + alias.getClass().getSimpleName()); // TODO: implement
     }
@@ -142,11 +133,6 @@ public class IRWriterMetadataVisitorV38 extends IRWriterBaseVisitor implements M
 
     @Override
     public void visit(MDFile alias) {
-        write("!{} ; TODO: " + alias.getClass().getSimpleName()); // TODO: implement
-    }
-
-    @Override
-    public void visit(MDFnNode alias) {
         write("!{} ; TODO: " + alias.getClass().getSimpleName()); // TODO: implement
     }
 
@@ -204,14 +190,14 @@ public class IRWriterMetadataVisitorV38 extends IRWriterBaseVisitor implements M
     public void visit(MDNamedNode alias) {
         write("!{");
         boolean first = true;
-        for (MDReference ref : alias) {
+        for (MDBaseNode ref : alias) {
             if (first) {
                 first = false;
             } else {
                 write(", ");
             }
 
-            writeMetadataReference(ref.get());
+            writeMetadataReference(ref);
         }
         writeln("}");
     }
@@ -225,25 +211,20 @@ public class IRWriterMetadataVisitorV38 extends IRWriterBaseVisitor implements M
     public void visit(MDNode alias) {
         write("!{");
         boolean first = true;
-        for (MDReference ref : alias) {
+        for (MDBaseNode ref : alias) {
             if (first) {
                 first = false;
             } else {
                 write(", ");
             }
 
-            writeMetadataValue(ref.get());
+            writeMetadataValue(ref);
         }
         write("}");
     }
 
     @Override
     public void visit(MDObjCProperty alias) {
-        write("!{} ; TODO: " + alias.getClass().getSimpleName()); // TODO: implement
-    }
-
-    @Override
-    public void visit(MDOldNode alias) {
         write("!{} ; TODO: " + alias.getClass().getSimpleName()); // TODO: implement
     }
 
@@ -268,11 +249,6 @@ public class IRWriterMetadataVisitorV38 extends IRWriterBaseVisitor implements M
     }
 
     @Override
-    public void visit(MDSymbolReference alias) {
-        write("!{} ; TODO: " + alias.getClass().getSimpleName()); // TODO: implement
-    }
-
-    @Override
     public void visit(MDTemplateType alias) {
         write("!{} ; TODO: " + alias.getClass().getSimpleName()); // TODO: implement
     }
@@ -289,15 +265,10 @@ public class IRWriterMetadataVisitorV38 extends IRWriterBaseVisitor implements M
 
     @Override
     public void visit(MDValue alias) {
-        final Symbol sym = alias.getValue().get();
+        final Symbol sym = alias.getValue();
         writeSymbolType(sym);
         write(" ");
         writeInnerSymbolValue(sym);
-    }
-
-    @Override
-    public void visit(MDReference alias) {
-        write("!{} ; TODO: " + alias.getClass().getSimpleName()); // TODO: implement
     }
 
     @Override
@@ -306,7 +277,7 @@ public class IRWriterMetadataVisitorV38 extends IRWriterBaseVisitor implements M
         writef("line: %d, ", alias.getLine());
         writef("column: %d, ", alias.getColumn());
         write("scope: ");
-        writeMetadataReference(alias.getScope().get());
+        writeMetadataReference(alias.getScope());
         write(")");
     }
 
