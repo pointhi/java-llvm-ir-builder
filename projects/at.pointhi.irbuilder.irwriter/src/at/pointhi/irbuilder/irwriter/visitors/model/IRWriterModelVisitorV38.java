@@ -131,8 +131,10 @@ public class IRWriterModelVisitorV38 extends IRWriterModelVisitor {
     }
 
     private void writeMetadataIfNotNull(MDNamedNode node) {
-        writef("!%s = ", node.getName());
-        writeMetadataValue(node);
+        if (node != null) {
+            writef("!%s = ", node.getName());
+            writeMetadataValue(node);
+        }
     }
 
     private static final String UNRESOLVED_FORWARD_REFERENCE = "<unresolved>";
