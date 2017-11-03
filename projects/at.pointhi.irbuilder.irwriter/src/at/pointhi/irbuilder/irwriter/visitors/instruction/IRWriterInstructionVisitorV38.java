@@ -32,6 +32,7 @@
 
 package at.pointhi.irbuilder.irwriter.visitors.instruction;
 
+import com.oracle.truffle.llvm.parser.metadata.MDAttachment;
 import com.oracle.truffle.llvm.parser.model.enums.AtomicOrdering;
 import com.oracle.truffle.llvm.parser.model.enums.SynchronizationScope;
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.Call;
@@ -57,9 +58,14 @@ public class IRWriterInstructionVisitorV38 extends IRWriterInstructionVisitor {
     @Override
     protected void writeInstructionTail(Instruction instr) {
         if (instr.getDebugLocation() != null) {
-            // TODO: enable when all Metadata Visitors are implemented
-            // write(", !dbg ");
-            // writeMetadataReference(instr.getDebugLocation());
+            write(", !dbg ");
+            writeMetadataValueReference(instr.getDebugLocation());
+        }
+        if (instr.hasAttachedMetadata()) {
+            for (MDAttachment node : instr.getAttachedMetadata()) {
+                write(", ");
+                writeMetadataValue(node);
+            }
         }
 
         writeln();

@@ -65,6 +65,7 @@ import com.oracle.truffle.llvm.parser.metadata.MDTemplateType;
 import com.oracle.truffle.llvm.parser.metadata.MDTemplateTypeParameter;
 import com.oracle.truffle.llvm.parser.metadata.MDTemplateValue;
 import com.oracle.truffle.llvm.parser.metadata.MDValue;
+import com.oracle.truffle.llvm.parser.metadata.MDVoidNode;
 import com.oracle.truffle.llvm.parser.metadata.MetadataVisitor;
 import com.oracle.truffle.llvm.runtime.types.symbols.Symbol;
 
@@ -80,60 +81,144 @@ public class IRWriterMetadataVisitorV38 extends IRWriterBaseVisitor implements M
 
     @Override
     public void visit(MDAttachment alias) {
-        write("!{} ; TODO: " + alias.getClass().getSimpleName()); // TODO: implement
+        write("!");
+        write(alias.getKind().getName());
+
+        write(" ");
+        writeMetadataValueReference(alias.getValue());
     }
 
     @Override
     public void visit(MDBasicType alias) {
-        write("!{} ; TODO: " + alias.getClass().getSimpleName()); // TODO: implement
+        MDNodeWriter writer = new MDNodeWriter("DIBasicType");
+
+        // TODO: tag
+        writer.writeKeyValue("name", alias.getName());
+        writer.writeKeyValue("size", alias.getSize());
+        if (alias.getAlign() != 0) {
+            writer.writeKeyValue("align", alias.getAlign());
+        }
+
+        String encoding = null;
+        switch (alias.getEncoding()) {
+            case DW_ATE_ADDRESS:
+                encoding = "DW_ATE_address";
+                break;
+            case DW_ATE_BOOLEAN:
+                encoding = "DW_ATE_boolean";
+                break;
+            case DW_ATE_FLOAT:
+                encoding = "DW_ATE_float";
+                break;
+            case DW_ATE_SIGNED:
+                encoding = "DW_ATE_signed";
+                break;
+            case DW_ATE_SIGNED_CHAR:
+                encoding = "DW_ATE_signed_char";
+                break;
+            case DW_ATE_UNSIGNED:
+                encoding = "DW_ATE_unsigned";
+                break;
+            case DW_ATE_UNSIGNED_CHAR:
+                encoding = "DW_ATE_unsigned_char";
+                break;
+            default:
+                throw new RuntimeException("Unexpected encoding!");
+
+        }
+
+        if (encoding != null) {
+            writer.writeRawKeyValue("encoding", encoding);
+        }
+
+        writer.writeEplioge();
     }
 
     @Override
     public void visit(MDCompileUnit alias) {
-        write("!DICompileUnit(");
+        MDNodeWriter writer = new MDNodeWriter("DICompileUnit", true);
 
-        writef("language: %s, ", alias.getLanguage().toString());
+        writer.writeRawKeyValue("language", alias.getLanguage().toString());
+        writer.writeKeyValue("file", alias.getFile());
+        writer.writeKeyValue("producer", alias.getProducer());
+        writer.writeKeyValue("isOptimized", alias.isOptimized());
+        writer.writeKeyValueIfNotEmpty("flags", alias.getFlags());
+        writer.writeKeyValue("runtimeVersion", alias.getRuntimeVersion());
+        writer.writeKeyValueIfNotEmpty("splitDebugFilename", alias.getSplitdebugFilename());
+        // TODO: emissionKind
+        writer.writeKeyValue("enums", alias.getEnums());
+        writer.writeKeyValueIfNotEmpty("retainedTypes", alias.getRetainedTypes());
+        writer.writeKeyValueIfNotEmpty("globals", alias.getGlobalVariables());
+        writer.writeKeyValueIfNotEmpty("imports", alias.getImportedEntities());
+        writer.writeKeyValueIfNotEmpty("macros", alias.getMacros());
+        if (alias.getDwoId() != 0) {
+            writer.writeKeyValue("dwoId", alias.getDwoId());
+        }
 
-        write("file: ");
-        writeMetadataReference(alias.getFile());
-        write(", ");
-
-        writef("producer: ");
-        writeMetadataValue(alias.getProducer());
-        write(", ");
-
-        writef("isOptimized: %b, ", alias.isOptimized());
-
-        writef("runtimeVersion: %d", alias.getRuntimeVersion());
-
-        // TODO: finish
-
-        write(")");
+        writer.writeEplioge();
     }
 
     @Override
     public void visit(MDCompositeType alias) {
-        write("!{} ; TODO: " + alias.getClass().getSimpleName()); // TODO: implement
+        MDNodeWriter writer = new MDNodeWriter("DICompositeType");
+
+        // TODO: tag
+        writer.writeKeyValueIfNotEmpty("baseType", alias.getBaseType());
+        writer.writeKeyValue("name", alias.getName());
+        writer.writeKeyValue("file", alias.getFile());
+        writer.writeKeyValue("line", alias.getLine());
+        writer.writeKeyValue("size", alias.getSize());
+        if (alias.getAlign() != 0) {
+            writer.writeKeyValue("align", alias.getAlign());
+        }
+        writer.writeKeyValue("identifier", alias.getIdentifier());
+        writer.writeKeyValue("elements", alias.getMembers());
+
+        writer.writeEplioge();
     }
 
     @Override
     public void visit(MDDerivedType alias) {
-        write("!{} ; TODO: " + alias.getClass().getSimpleName()); // TODO: implement
+        MDNodeWriter writer = new MDNodeWriter("DIBasicType");
+
+        // TODO: tag
+        writer.writeKeyValueIfNotEmpty("baseType", alias.getBaseType());
+        writer.writeKeyValue("name", alias.getName());
+        writer.writeKeyValue("size", alias.getSize());
+        if (alias.getAlign() != 0) {
+            writer.writeKeyValue("align", alias.getAlign());
+        }
+
+        writer.writeEplioge();
     }
 
     @Override
     public void visit(MDEnumerator alias) {
-        write("!{} ; TODO: " + alias.getClass().getSimpleName()); // TODO: implement
+        MDNodeWriter writer = new MDNodeWriter("DIEnumerator");
+
+        writer.writeKeyValue("name", alias.getName());
+        writer.writeKeyValue("value", alias.getValue());
+
+        writer.writeEplioge();
     }
 
     @Override
     public void visit(MDExpression alias) {
-        write("!{} ; TODO: " + alias.getClass().getSimpleName()); // TODO: implement
+        MDNodeWriter writer = new MDNodeWriter("DIExpression");
+
+        // TODO: elements
+
+        writer.writeEplioge();
     }
 
     @Override
     public void visit(MDFile alias) {
-        write("!{} ; TODO: " + alias.getClass().getSimpleName()); // TODO: implement
+        MDNodeWriter writer = new MDNodeWriter("DIFile");
+
+        writer.writeKeyValue("filename", alias.getFile());
+        writer.writeKeyValue("directory", alias.getDirectory());
+
+        writer.writeEplioge();
     }
 
     @Override
@@ -143,12 +228,33 @@ public class IRWriterMetadataVisitorV38 extends IRWriterBaseVisitor implements M
 
     @Override
     public void visit(MDGlobalVariable alias) {
-        write("!{} ; TODO: " + alias.getClass().getSimpleName()); // TODO: implement
+        MDNodeWriter writer = new MDNodeWriter("DIGlobalVariable");
+
+        writer.writeKeyValue("name", alias.getName());
+        writer.writeKeyValue("linkageName", alias.getLinkageName());
+        writer.writeKeyValue("scope", alias.getScope());
+        writer.writeKeyValue("file", alias.getFile());
+        writer.writeKeyValue("line", alias.getLine());
+        writer.writeKeyValue("type", alias.getType());
+        writer.writeKeyValue("isLocal", alias.isLocalToCompileUnit());
+        writer.writeKeyValue("isDefinition", alias.isDefinedInCompileUnit());
+        writer.writeKeyValue("variable", alias.getVariable());
+        // TODO: declaration
+
+        writer.writeEplioge();
     }
 
     @Override
     public void visit(MDImportedEntity alias) {
-        write("!{} ; TODO: " + alias.getClass().getSimpleName()); // TODO: implement
+        MDNodeWriter writer = new MDNodeWriter("DIImportedEntity");
+
+        // TODO: tag
+        writer.writeKeyValue("name", alias.getName());
+        writer.writeKeyValue("scope", alias.getScope());
+        writer.writeKeyValue("entity", alias.getEntity());
+        writer.writeKeyValue("line", alias.getLine());
+
+        writer.writeEplioge();
     }
 
     @Override
@@ -158,27 +264,66 @@ public class IRWriterMetadataVisitorV38 extends IRWriterBaseVisitor implements M
 
     @Override
     public void visit(MDLexicalBlock alias) {
-        write("!{} ; TODO: " + alias.getClass().getSimpleName()); // TODO: implement
+        MDNodeWriter writer = new MDNodeWriter("DILexicalBlock", true);
+
+        writer.writeKeyValue("scope", alias.getScope());
+        writer.writeKeyValue("file", alias.getFile());
+        writer.writeKeyValue("line", alias.getLine());
+        writer.writeKeyValue("column", alias.getColumn());
+
+        writer.writeEplioge();
     }
 
     @Override
     public void visit(MDLexicalBlockFile alias) {
-        write("!{} ; TODO: " + alias.getClass().getSimpleName()); // TODO: implement
+        MDNodeWriter writer = new MDNodeWriter("DILexicalBlock");
+
+        // writer.writeKeyValue("scope", alias.getScope()); // TODO: wait until available in sulong
+        writer.writeKeyValue("file", alias.getFile());
+        writer.writeKeyValue("discriminator", alias.getDiscriminator());
+
+        writer.writeEplioge();
     }
 
     @Override
     public void visit(MDLocalVariable alias) {
-        write("!{} ; TODO: " + alias.getClass().getSimpleName()); // TODO: implement
+        MDNodeWriter writer = new MDNodeWriter("DILocalVariable");
+
+        writer.writeKeyValue("name", alias.getName());
+        if (alias.getArg() != 0) {
+            writer.writeKeyValue("arg", alias.getArg());
+        }
+        writer.writeKeyValue("scope", alias.getScope());
+        writer.writeKeyValue("file", alias.getFile());
+        writer.writeKeyValue("line", alias.getLine());
+        writer.writeKeyValue("type", alias.getType());
+        // TODO: flags
+
+        writer.writeEplioge();
     }
 
     @Override
     public void visit(MDMacro alias) {
-        write("!{} ; TODO: " + alias.getClass().getSimpleName()); // TODO: implement
+        MDNodeWriter writer = new MDNodeWriter("DIMacro");
+
+        // TODO: macinfo
+        writer.writeKeyValue("line", alias.getLine());
+        writer.writeKeyValue("name", alias.getName());
+        writer.writeKeyValue("value", alias.getValue());
+
+        writer.writeEplioge();
     }
 
     @Override
     public void visit(MDMacroFile alias) {
-        write("!{} ; TODO: " + alias.getClass().getSimpleName()); // TODO: implement
+        MDNodeWriter writer = new MDNodeWriter("DIMacroFile");
+
+        // TODO: macinfo
+        writer.writeKeyValue("line", alias.getLine());
+        writer.writeKeyValue("file", alias.getFile());
+        writer.writeKeyValue("nodes", alias.getElements());
+
+        writer.writeEplioge();
     }
 
     @Override
@@ -197,14 +342,21 @@ public class IRWriterMetadataVisitorV38 extends IRWriterBaseVisitor implements M
                 write(", ");
             }
 
-            writeMetadataReference(ref);
+            writeMetadataValueReference(ref);
         }
         writeln("}");
     }
 
     @Override
     public void visit(MDNamespace alias) {
-        write("!{} ; TODO: " + alias.getClass().getSimpleName()); // TODO: implement
+        MDNodeWriter writer = new MDNodeWriter("DINamespace");
+
+        writer.writeKeyValue("name", alias.getName());
+        writer.writeKeyValue("scope", alias.getScope());
+        writer.writeKeyValue("file", alias.getFile());
+        writer.writeKeyValue("line", alias.getLine());
+
+        writer.writeEplioge();
     }
 
     @Override
@@ -218,14 +370,24 @@ public class IRWriterMetadataVisitorV38 extends IRWriterBaseVisitor implements M
                 write(", ");
             }
 
-            writeMetadataValue(ref);
+            writeMetadataValueReference(ref);
         }
         write("}");
     }
 
     @Override
     public void visit(MDObjCProperty alias) {
-        write("!{} ; TODO: " + alias.getClass().getSimpleName()); // TODO: implement
+        MDNodeWriter writer = new MDNodeWriter("DIObjCProperty");
+
+        writer.writeKeyValue("name", alias.getName());
+        writer.writeKeyValue("file", alias.getFile());
+        writer.writeKeyValue("line", alias.getLine());
+        writer.writeKeyValue("setter", alias.getSetterName());
+        writer.writeKeyValue("getter", alias.getGetterName());
+        writer.writeKeyValue("attributes", alias.getAttribute());
+        writer.writeKeyValue("type", alias.getType());
+
+        writer.writeEplioge();
     }
 
     @Override
@@ -235,17 +397,52 @@ public class IRWriterMetadataVisitorV38 extends IRWriterBaseVisitor implements M
 
     @Override
     public void visit(MDSubprogram alias) {
-        write("!{} ; TODO: " + alias.getClass().getSimpleName()); // TODO: implement
+        MDNodeWriter writer = new MDNodeWriter("DISubprogram", true);
+
+        writer.writeKeyValue("name", alias.getName());
+        writer.writeKeyValueIfNotEmpty("linkageName", alias.getLinkageName());
+        writer.writeKeyValue("scope", alias.getScope());
+        writer.writeKeyValue("file", alias.getFile());
+        writer.writeKeyValue("line", alias.getLine());
+        writer.writeKeyValue("type", alias.getType());
+        writer.writeKeyValue("isLocal", alias.isLocalToUnit());
+        writer.writeKeyValue("isDefinition", alias.isDefinedInCompileUnit());
+        writer.writeKeyValue("scopeLine", alias.getScopeLine());
+        writer.writeKeyValueIfNotEmpty("containingType", alias.getContainingType());
+        // TODO: virtuality
+        if (alias.getVirtualIndex() != 0) {
+            writer.writeKeyValue("virtualIndex", alias.getVirtualIndex());
+        }
+        // TOOD: flags
+        writer.writeKeyValue("isOptimized", alias.isOptimized());
+        writer.writeKeyValue("unit", alias.getCompileUnit());
+        writer.writeKeyValueIfNotEmpty("templateParams", alias.getTemplateParams());
+        writer.writeKeyValueIfNotEmpty("declaration", alias.getDeclaration());
+        writer.writeKeyValue("variables", alias.getVariables());
+        // TODO: thrownTypes
+
+        writer.writeEplioge();
     }
 
     @Override
     public void visit(MDSubrange alias) {
-        write("!{} ; TODO: " + alias.getClass().getSimpleName()); // TODO: implement
+        MDNodeWriter writer = new MDNodeWriter("DISubrange");
+
+        writer.writeKeyValue("count", alias.getSize());
+        if (alias.getSize() != -1) {
+            writer.writeKeyValue("lowerBound", alias.getLowerBound());
+        }
+
+        writer.writeEplioge();
     }
 
     @Override
     public void visit(MDSubroutine alias) {
-        write("!{} ; TODO: " + alias.getClass().getSimpleName()); // TODO: implement
+        MDNodeWriter writer = new MDNodeWriter("DISubroutineType");
+
+        writer.writeKeyValue("types", alias.getTypes());
+
+        writer.writeEplioge();
     }
 
     @Override
@@ -255,12 +452,24 @@ public class IRWriterMetadataVisitorV38 extends IRWriterBaseVisitor implements M
 
     @Override
     public void visit(MDTemplateTypeParameter alias) {
-        write("!{} ; TODO: " + alias.getClass().getSimpleName()); // TODO: implement
+        MDNodeWriter writer = new MDNodeWriter("DITemplateTypeParameter");
+
+        writer.writeKeyValue("name", alias.getName());
+        writer.writeKeyValue("type", alias.getBaseType());
+        // TODO: scope, file
+
+        writer.writeEplioge();
     }
 
     @Override
     public void visit(MDTemplateValue alias) {
-        write("!{} ; TODO: " + alias.getClass().getSimpleName()); // TODO: implement
+        MDNodeWriter writer = new MDNodeWriter("DITemplateValueParameter");
+
+        writer.writeKeyValue("name", alias.getName());
+        writer.writeKeyValue("type", alias.getType());
+        writer.writeKeyValue("value", alias.getValue());
+
+        writer.writeEplioge();
     }
 
     @Override
@@ -273,16 +482,93 @@ public class IRWriterMetadataVisitorV38 extends IRWriterBaseVisitor implements M
 
     @Override
     public void visit(MDLocation alias) {
-        write("!DILocation(");
-        writef("line: %d, ", alias.getLine());
-        writef("column: %d, ", alias.getColumn());
-        write("scope: ");
-        writeMetadataReference(alias.getScope());
-        write(")");
+        MDNodeWriter writer = new MDNodeWriter("DILocation");
+
+        writer.writeKeyValue("line", alias.getLine());
+        writer.writeKeyValue("column", alias.getColumn());
+        writer.writeKeyValue("scope", alias.getScope());
+        writer.writeKeyValueIfNotEmpty("inlineAt", alias.getInlinedAt());
+
+        writer.writeEplioge();
     }
 
     @Override
     public void visit(MDGlobalVariableExpression alias) {
         write("!{} ; TODO: " + alias.getClass().getSimpleName()); // TODO: implement
+    }
+
+    public void visit(MDVoidNode alias) {
+        write("!{}");
+    }
+
+    protected class MDNodeWriter {
+        private boolean first = true;
+
+        protected MDNodeWriter(String nodeName, boolean distinct) {
+            writeProloge(nodeName, distinct);
+        }
+
+        protected MDNodeWriter(String nodeName) {
+            this(nodeName, false);
+        }
+
+        private void writeProloge(String nodeName, boolean distinct) {
+            if (distinct) {
+                write("distinct ");
+            }
+
+            write("!");
+            write(nodeName);
+            write("(");
+        }
+
+        protected void writeEplioge() {
+            write(")");
+        }
+
+        private void writeSeperator() {
+            if (first) {
+                first = false;
+            } else {
+                write(", ");
+            }
+        }
+
+        protected void writeRawKeyValue(String key, String value) {
+            writeSeperator();
+            writef("%s: %s", key, value);
+        }
+
+        protected void writeKeyValue(String key, boolean value) {
+            writeSeperator();
+            writef("%s: %b", key, value);
+        }
+
+        protected void writeKeyValue(String key, long value) {
+            writeSeperator();
+            writef("%s: %d", key, value);
+        }
+
+        protected void writeKeyValue(String key, double value) {
+            writeSeperator();
+            writef("%s: %f", key, value);
+        }
+
+        protected void writeKeyValue(String key, MDBaseNode value) {
+            writeSeperator();
+            writef("%s: ", key);
+            if (value instanceof MDString) {
+                writeMetadataString(value);
+            } else {
+                writeMetadataValueReference(value);
+            }
+        }
+
+        protected void writeKeyValueIfNotEmpty(String key, MDBaseNode value) {
+            if (!(value instanceof MDVoidNode)) {
+                writeKeyValue(key, value);
+            }
+        }
+
     }
 }

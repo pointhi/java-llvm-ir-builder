@@ -35,9 +35,10 @@ package at.pointhi.irbuilder.irwriter.visitors.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.oracle.truffle.llvm.parser.metadata.MDAttachment;
 import com.oracle.truffle.llvm.parser.metadata.MDBaseNode;
 import com.oracle.truffle.llvm.parser.metadata.MDNamedNode;
-import com.oracle.truffle.llvm.parser.metadata.MetadataVisitor;
+import com.oracle.truffle.llvm.parser.metadata.MetadataValueList;
 import com.oracle.truffle.llvm.parser.model.ModelModule;
 import com.oracle.truffle.llvm.parser.model.attributes.AttributesGroup;
 import com.oracle.truffle.llvm.parser.model.enums.Linkage;
@@ -111,14 +112,12 @@ public class IRWriterModelVisitorV38 extends IRWriterModelVisitor {
     private void writeMetadata(ModelModule model) {
         writeln();
 
+        MetadataValueList valueList = model.getMetadata();
+
         // Write named nodes first
-        model.getMetadata().accept(new MetadataVisitor() {
-            @Override
-            public void visit(MDNamedNode alias) {
-                writef("!%s = ", alias.getName());
-                writeMetadataValue(alias);
-            }
-        });
+        writeMetadataIfNotNull(valueList.getNamedNode("llvm.dbg.cu"));
+        writeMetadataIfNotNull(valueList.getNamedNode("llvm.module.flags"));
+        writeMetadataIfNotNull(valueList.getNamedNode("llvm.ident"));
 
         writeln();
 
@@ -129,6 +128,11 @@ public class IRWriterModelVisitorV38 extends IRWriterModelVisitor {
             metadataAttr.accept(visitors.getMetadataVisitor());
             writeln();
         }
+    }
+
+    private void writeMetadataIfNotNull(MDNamedNode node) {
+        writef("!%s = ", node.getName());
+        writeMetadataValue(node);
     }
 
     private static final String UNRESOLVED_FORWARD_REFERENCE = "<unresolved>";
@@ -264,6 +268,13 @@ public class IRWriterModelVisitorV38 extends IRWriterModelVisitor {
 
         if (paramAttr != null) {
             write(" #" + addAttribute(paramAttr));
+        }
+
+        if (function.hasAttachedMetadata()) {
+            for (MDAttachment node : function.getAttachedMetadata()) {
+                write(" ");
+                writeMetadataValue(node);
+            }
         }
 
         writeln(" {");
