@@ -208,9 +208,9 @@ def runIRBuilderTestGen38(vmArgs):
 
         # remove old files inside build directory
         if os.path.isdir(suite[1]):
-            for file in os.listdir(suite[1]):
-                if file.endswith(".ll") or file.endswith(".bc"):
-                    os.remove(os.path.join(suite[1], file))
+            for _file in os.listdir(suite[1]):
+                if _file.endswith(".ll") or _file.endswith(".bc"):
+                    os.remove(os.path.join(suite[1], _file))
 
         try:
             mx_sulong.mx_testsuites.run(vmArgs + ['-Dirwriter.LLVMVersion=3.8'], suite[0], [])
