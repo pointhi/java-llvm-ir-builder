@@ -113,7 +113,7 @@ public class BinaryI1VectorOperations extends BaseSuite {
     }
 
     private void createMain(ModelModuleBuilder builder) {
-        FunctionDefinition main = builder.createFunctionDefinition("main", 1, new FunctionType(PrimitiveType.I1, new Type[]{}, false));
+        FunctionDefinition main = builder.createFunctionDefinition("main", 1, new FunctionType(PrimitiveType.I32, new Type[]{}, false));
         SimpleInstrunctionBuilder instr = new SimpleInstrunctionBuilder(builder, main);
 
         List<Object[]> paramList = new ArrayList<>();
@@ -130,7 +130,7 @@ public class BinaryI1VectorOperations extends BaseSuite {
         Instruction retVec = instr.binaryOperator(operator, vec1, vec2); // Instruction under test
 
         Instruction ret = instr.compareVector(CompareOperator.INT_NOT_EQUAL, retVec, resVec);
-        instr.returnx(ret); // 0=OK, 1=ERROR
+        instr.returnxWithCast(ret); // 0=OK, 1=ERROR
     }
 
     private static IntegerConstant[] getConstantArray(List<Object[]> paramList, int idx) {

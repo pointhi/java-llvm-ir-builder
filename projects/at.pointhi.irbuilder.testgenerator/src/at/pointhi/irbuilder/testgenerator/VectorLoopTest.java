@@ -121,8 +121,8 @@ public class VectorLoopTest extends BaseSuite {
         instr.branch(cmpRes, loopBlock, returnBlock);
         instr.nextBlock();
 
-        final Instruction res = instr.extractElement(instr.load(calcReg), 0);
+        final Instruction ret = instr.extractElement(instr.load(calcReg), 0);
 
-        instr.returnx(res);
+        instr.returnxWithCast(ret); // 0=OK, 1=ERROR
     }
 }

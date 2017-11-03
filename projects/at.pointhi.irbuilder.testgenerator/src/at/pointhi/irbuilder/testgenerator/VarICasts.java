@@ -112,7 +112,7 @@ public class VarICasts extends BaseSuite {
     }
 
     private void createMain(ModelModuleBuilder builder) {
-        FunctionDefinition main = builder.createFunctionDefinition("main", 1, new FunctionType(PrimitiveType.I1, new Type[]{}, false));
+        FunctionDefinition main = builder.createFunctionDefinition("main", 1, new FunctionType(PrimitiveType.I32, new Type[]{}, false));
         SimpleInstrunctionBuilder instr = new SimpleInstrunctionBuilder(builder, main);
 
         // check if bit's are stored in a truncated way
@@ -138,7 +138,7 @@ public class VarICasts extends BaseSuite {
 
         Instruction ret = instr.binaryOperator(BinaryOperator.INT_OR, bitTruncRet, bitExtensionRet);
 
-        instr.returnx(ret); // 0=OK, 1=ERROR
+        instr.returnxWithCast(ret); // 0=OK, 1=ERROR
     }
 
 }

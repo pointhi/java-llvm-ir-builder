@@ -417,6 +417,17 @@ public class SimpleInstrunctionBuilder {
         builder.exitFunction();
     }
 
+    public void returnxWithCast(Symbol value) {
+        final Type returnType = builder.getFunctionDefinition().getType().getReturnType();
+        final Symbol castedValue;
+        if (returnType.equals(value.getType())) {
+            castedValue = value;
+        } else {
+            castedValue = cast(CastOperator.ZERO_EXTEND, returnType, value);
+        }
+        returnx(castedValue);
+    }
+
     public void returnx() {
         final Type functionReturnType = builder.getFunctionDefinition().getType().getReturnType();
         if (!functionReturnType.equals(VoidType.INSTANCE)) {

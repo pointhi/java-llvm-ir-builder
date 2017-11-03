@@ -128,7 +128,7 @@ public class BinaryI1Operations extends BaseSuite {
     }
 
     private void createMain(ModelModuleBuilder builder) throws UndefinedArithmeticResult {
-        FunctionDefinition main = builder.createFunctionDefinition("main", 1, new FunctionType(PrimitiveType.I1, new Type[]{}, false));
+        FunctionDefinition main = builder.createFunctionDefinition("main", 1, new FunctionType(PrimitiveType.I32, new Type[]{}, false));
         SimpleInstrunctionBuilder instr = new SimpleInstrunctionBuilder(builder, main);
 
         IntegerConstant op1Sym = new IntegerConstant(PrimitiveType.I1, op1 ? 1 : 0);
@@ -138,7 +138,7 @@ public class BinaryI1Operations extends BaseSuite {
 
         boolean opResult = IntegerBinaryOperations.I1.calculateResult(operator, op1, op2);
         Instruction ret = instr.compare(CompareOperator.INT_NOT_EQUAL, opRet, opResult);
-        instr.returnx(ret); // 0=OK, 1=ERROR
+        instr.returnxWithCast(ret); // 0=OK, 1=ERROR
     }
 
 }

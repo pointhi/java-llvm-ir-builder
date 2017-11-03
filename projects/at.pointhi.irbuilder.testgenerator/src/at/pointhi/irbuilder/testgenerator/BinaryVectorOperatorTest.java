@@ -131,7 +131,7 @@ public class BinaryVectorOperatorTest extends BaseSuite {
                         BigInteger.valueOf(VECTOR2_1), BigInteger.valueOf(VECTOR2_2),
                         BigInteger.ZERO, BigInteger.valueOf(maxValue));
 
-        FunctionDefinition main = builder.createFunctionDefinition("main", 1, new FunctionType(PrimitiveType.I1, new Type[]{}, false));
+        FunctionDefinition main = builder.createFunctionDefinition("main", 1, new FunctionType(PrimitiveType.I32, new Type[]{}, false));
         SimpleInstrunctionBuilder instr = new SimpleInstrunctionBuilder(builder, main);
 
         // TODO: wrong align?
@@ -146,7 +146,7 @@ public class BinaryVectorOperatorTest extends BaseSuite {
         Instruction retVec = instr.binaryOperator(operator, vec1, vec2); // Instruction under test
 
         Instruction ret = instr.compareVector(CompareOperator.INT_NOT_EQUAL, retVec, resVec);
-        instr.returnx(ret); // 0=OK, 1=ERROR
+        instr.returnxWithCast(ret); // 0=OK, 1=ERROR
     }
 
     private static final class OperatorResult {

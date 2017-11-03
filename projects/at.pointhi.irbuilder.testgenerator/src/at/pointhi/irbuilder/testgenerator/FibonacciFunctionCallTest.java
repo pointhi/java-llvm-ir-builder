@@ -109,11 +109,11 @@ public class FibonacciFunctionCallTest extends BaseSuite {
     }
 
     private static void createMain(ModelModuleBuilder builder, FunctionDefinition fibonacci) {
-        FunctionDefinition main = builder.createFunctionDefinition("main", 1, new FunctionType(PrimitiveType.I1, new Type[]{}, false));
+        FunctionDefinition main = builder.createFunctionDefinition("main", 1, new FunctionType(PrimitiveType.I32, new Type[]{}, false));
         SimpleInstrunctionBuilder mainInstr = new SimpleInstrunctionBuilder(builder, main);
 
         Instruction fibRes = mainInstr.call(fibonacci, new IntegerConstant(PrimitiveType.I32, 10));
         Instruction ret = mainInstr.compare(CompareOperator.INT_NOT_EQUAL, fibRes, 55);
-        mainInstr.returnx(ret); // 0=OK, 1=ERROR
+        mainInstr.returnxWithCast(ret); // 0=OK, 1=ERROR
     }
 }

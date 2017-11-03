@@ -158,7 +158,7 @@ public class VectorBitcastTest extends BaseSuite {
     }
 
     private static void createMain(ModelModuleBuilder builder, FunctionDefinition max, FunctionDefinition mid, FunctionDefinition min, FunctionDefinition endian) {
-        FunctionDefinition main = builder.createFunctionDefinition("main", 1, new FunctionType(PrimitiveType.I1, new Type[]{}, false));
+        FunctionDefinition main = builder.createFunctionDefinition("main", 1, new FunctionType(PrimitiveType.I32, new Type[]{}, false));
         SimpleInstrunctionBuilder instr = new SimpleInstrunctionBuilder(builder, main);
 
         Instruction retMax = instr.call(max);
@@ -171,9 +171,9 @@ public class VectorBitcastTest extends BaseSuite {
         if (endian != null) {
             Instruction retEndian = instr.call(endian);
             Instruction ret = instr.binaryOperator(BinaryOperator.INT_OR, retMaxMidMin, retEndian);
-            instr.returnx(ret); // 0=OK, 1=ERROR
+            instr.returnxWithCast(ret); // 0=OK, 1=ERROR
         } else {
-            instr.returnx(retMaxMidMin); // 0=OK, 1=ERROR
+            instr.returnxWithCast(retMaxMidMin); // 0=OK, 1=ERROR
         }
     }
 
