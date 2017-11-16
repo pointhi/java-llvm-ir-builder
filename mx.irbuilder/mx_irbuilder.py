@@ -145,7 +145,6 @@ def runIRBuilderTest32(vmArgs):
         suite = irBuilderTests32[testSuiteName]
         """runs the test suite"""
         if parsedArgs.skip_compilation is False:
-            mx_sulong.ensureDragonEggExists()
             mx_sulong.mx_testsuites.compileSuite([suite[0]])
         try:
             mx_sulong.mx_testsuites.run(vmArgs + suite[3] + ['-Dpolyglot.irwriter.LLVMVersion=3.2'], suite[1], [])
@@ -178,7 +177,6 @@ def runIRBuilderTest38(vmArgs):
         suite = irBuilderTests38[testSuiteName]
         """runs the test suite"""
         if parsedArgs.skip_compilation is False:
-            mx_sulong.ensureDragonEggExists()
             mx_sulong.mx_testsuites.compileSuite([suite[0]])
         try:
             mx_sulong.mx_testsuites.run(vmArgs + suite[3] + ['-Dpolyglot.irwriter.LLVMVersion=3.8'], suite[1], [])
