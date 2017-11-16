@@ -39,7 +39,7 @@ import java.util.stream.Collectors;
 
 import org.junit.Test;
 
-import com.oracle.truffle.llvm.test.alpha.BaseTestHarness;
+import com.oracle.truffle.llvm.test.BaseTestHarness;
 
 import at.pointhi.irbuilder.irwriter.SourceParser;
 

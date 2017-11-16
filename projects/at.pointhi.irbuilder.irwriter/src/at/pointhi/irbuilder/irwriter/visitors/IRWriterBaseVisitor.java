@@ -36,12 +36,16 @@ import com.oracle.truffle.llvm.parser.metadata.MDBaseNode;
 import com.oracle.truffle.llvm.parser.metadata.MDNamedNode;
 import com.oracle.truffle.llvm.parser.metadata.MDString;
 import com.oracle.truffle.llvm.parser.metadata.MDValue;
+import com.oracle.truffle.llvm.parser.metadata.MDVoidNode;
+import com.oracle.truffle.llvm.parser.metadata.debuginfo.SourceModel;
 import com.oracle.truffle.llvm.parser.model.attributes.Attribute;
 import com.oracle.truffle.llvm.parser.model.attributes.AttributesGroup;
 import com.oracle.truffle.llvm.parser.model.blocks.InstructionBlock;
 import com.oracle.truffle.llvm.parser.model.functions.FunctionDeclaration;
 import com.oracle.truffle.llvm.parser.model.functions.FunctionDefinition;
 import com.oracle.truffle.llvm.parser.model.symbols.constants.Constant;
+import com.oracle.truffle.llvm.parser.model.symbols.instructions.Instruction;
+import com.oracle.truffle.llvm.runtime.debug.scope.LLVMSourceLocation;
 import com.oracle.truffle.llvm.runtime.types.FunctionType;
 import com.oracle.truffle.llvm.runtime.types.PointerType;
 import com.oracle.truffle.llvm.runtime.types.StructureType;
@@ -176,6 +180,11 @@ public class IRWriterBaseVisitor {
             write(value);
         } else if (symbol instanceof Constant) {
             writeConstant((Constant) symbol);
+        } else if (symbol instanceof SourceModel.Variable) {
+            // TODO: implement correctly
+            // SourceModel.Variable v = (SourceModel.Variable) symbol;
+            // LLVMSourceLocation location = v.getVariable().getLocation();
+            writeMetadataReference(MDVoidNode.INSTANCE);
         } else {
             throw new IllegalStateException("Cannot write this value: " + symbol + " of type: " + symbol.getClass().getName());
         }

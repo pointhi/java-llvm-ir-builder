@@ -162,7 +162,27 @@ public class IRWriterMetadataVisitorV38 extends IRWriterBaseVisitor implements M
     public void visit(MDCompositeType alias) {
         MDNodeWriter writer = new MDNodeWriter("DICompositeType");
 
-        // TODO: tag
+        switch (alias.getTag()) {
+            case DW_TAG_ARRAY_TYPE:
+                writer.writeRawKeyValue("tag", "DW_TAG_array_type");
+                break;
+            case DW_TAG_CLASS_TYPE:
+                writer.writeRawKeyValue("tag", "DW_TAG_class_type");
+                break;
+            case DW_TAG_ENUMERATION_TYPE:
+                writer.writeRawKeyValue("tag", "DW_TAG_enumeration_type");
+                break;
+            case DW_TAG_STRUCTURE_TYPE:
+                writer.writeRawKeyValue("tag", "DW_TAG_structure_type");
+                break;
+            case DW_TAG_UNION_TYPE:
+                writer.writeRawKeyValue("tag", "DW_TAG_union_type");
+                break;
+            case DW_TAG_VECTOR_TYPE: // TODO: implement
+            case DW_TAG_SUBROUTINE_TYPE:
+            default:
+                throw new RuntimeException("unknown tag: " + alias.getTag());
+        }
         writer.writeKeyValueIfNotEmpty("baseType", alias.getBaseType());
         writer.writeKeyValue("name", alias.getName());
         writer.writeKeyValue("file", alias.getFile());
@@ -179,11 +199,43 @@ public class IRWriterMetadataVisitorV38 extends IRWriterBaseVisitor implements M
 
     @Override
     public void visit(MDDerivedType alias) {
-        MDNodeWriter writer = new MDNodeWriter("DIBasicType");
+        MDNodeWriter writer = new MDNodeWriter("DIDerivedType");
 
-        // TODO: tag
+        switch (alias.getTag()) {
+            case DW_TAG_MEMBER:
+                writer.writeRawKeyValue("tag", "DW_TAG_member");
+                break;
+            case DW_TAG_POINTER_TYPE:
+                writer.writeRawKeyValue("tag", "DW_TAG_pointer_type");
+                break;
+            case DW_TAG_REFERENCE_TYPE:
+                writer.writeRawKeyValue("tag", "DW_TAG_reference_type");
+                break;
+            case DW_TAG_TYPEDEF:
+                writer.writeRawKeyValue("tag", "DW_TAG_typedef");
+                break;
+            case DW_TAG_INHERITANCE:
+                writer.writeRawKeyValue("tag", "DW_TAG_inheritance");
+                break;
+            case DW_TAG_CONST_TYPE:
+                writer.writeRawKeyValue("tag", "DW_TAG_const_type");
+                break;
+            case DW_TAG_FRIEND:
+                writer.writeRawKeyValue("tag", "DW_TAG_friend");
+                break;
+            case DW_TAG_VOLATILE_TYPE:
+                writer.writeRawKeyValue("tag", "DW_TAG_volatile_type");
+                break;
+            case DW_TAG_RESTRICT_TYPE:
+                writer.writeRawKeyValue("tag", "DW_TAG_restrict_type");
+                break;
+
+            case DW_TAG_FORMAL_PARAMETER: // TODO: implement
+            default:
+                throw new RuntimeException("unknown tag: " + alias.getTag());
+        }
         writer.writeKeyValueIfNotEmpty("baseType", alias.getBaseType());
-        writer.writeKeyValue("name", alias.getName());
+        writer.writeKeyValueIfNotEmpty("name", alias.getName());
         writer.writeKeyValue("size", alias.getSize());
         if (alias.getAlign() != 0) {
             writer.writeKeyValue("align", alias.getAlign());
