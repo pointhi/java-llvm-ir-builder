@@ -78,6 +78,7 @@ import com.oracle.truffle.llvm.parser.model.visitors.InstructionVisitor;
 import com.oracle.truffle.llvm.runtime.types.FunctionType;
 import com.oracle.truffle.llvm.runtime.types.MetaType;
 import com.oracle.truffle.llvm.runtime.types.PointerType;
+import com.oracle.truffle.llvm.runtime.types.PrimitiveType;
 import com.oracle.truffle.llvm.runtime.types.Type;
 import com.oracle.truffle.llvm.runtime.types.VoidType;
 import com.oracle.truffle.llvm.runtime.types.symbols.Symbol;
@@ -1068,6 +1069,7 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
                 write(", ");
             }
 
+            // At least for @llvm.dbg.declare we need to handle type mismatches
             final FunctionType funcType = getFunctionType(call.getCallTarget());
             final Type funcTypeArgType = i < funcType.getArgumentTypes().length ? funcType.getArgumentTypes()[i] : null;
             if (funcTypeArgType != null && !isEquivalentIRType(funcTypeArgType, getSymbolType(arg))) {
@@ -1094,6 +1096,12 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
         // both are declared as metadata
         if (isMetadataType(type1) && isMetadataType(type2)) {
             return true;
+        }
+        // in case of PrimitiveType, constant and non constant type are not equal by default
+        if (type1 instanceof PrimitiveType && type2 instanceof PrimitiveType) {
+            if (((PrimitiveType) type1).getPrimitiveKind().equals(((PrimitiveType) type2).getPrimitiveKind())) {
+                return true;
+            }
         }
         return false;
     }
