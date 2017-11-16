@@ -102,7 +102,7 @@ public class IRWriterBaseVisitor {
         out.print(String.format(format, args)); // TOOD: deprecate this function
     }
 
-    protected void writeSymbolType(Symbol sym) {
+    protected Type getSymbolType(Symbol sym) {
         Type type = sym.getType();
 
         // TODO: workaround or expected behavior?
@@ -110,7 +110,11 @@ public class IRWriterBaseVisitor {
             type = new PointerType(sym.getType());
         }
 
-        writeType(type);
+        return type;
+    }
+
+    protected void writeSymbolType(Symbol sym) {
+        writeType(getSymbolType(sym));
     }
 
     protected void writeType(Type type) {

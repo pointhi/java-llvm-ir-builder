@@ -76,6 +76,7 @@ import com.oracle.truffle.llvm.parser.model.symbols.instructions.VoidCallInstruc
 import com.oracle.truffle.llvm.parser.model.symbols.instructions.VoidInvokeInstruction;
 import com.oracle.truffle.llvm.parser.model.visitors.InstructionVisitor;
 import com.oracle.truffle.llvm.runtime.types.FunctionType;
+import com.oracle.truffle.llvm.runtime.types.MetaType;
 import com.oracle.truffle.llvm.runtime.types.PointerType;
 import com.oracle.truffle.llvm.runtime.types.Type;
 import com.oracle.truffle.llvm.runtime.types.VoidType;
@@ -1067,12 +1068,34 @@ public class IRWriterInstructionVisitor extends IRWriterBaseVisitor implements I
                 write(", ");
             }
 
+            final FunctionType funcType = getFunctionType(call.getCallTarget());
+            final Type funcTypeArgType = i < funcType.getArgumentTypes().length ? funcType.getArgumentTypes()[i] : null;
+            if (funcTypeArgType != null && !isEquivalentIRType(funcTypeArgType, getSymbolType(arg))) {
+                writeType(funcTypeArgType);
+                write(" ");
+            }
+
             writeSymbolType(arg);
             writeAttributesGroupIfPresent(call.getParameterAttributesGroup(i));
             write(" ");
             writeInnerSymbolValue(arg);
         }
         write(")");
+    }
+
+    private static boolean isMetadataType(Type type) {
+        return type == MetaType.METADATA || type == MetaType.DEBUG;
+    }
+
+    private static boolean isEquivalentIRType(Type type1, Type type2) {
+        if (type1.equals(type2)) {
+            return true;
+        }
+        // both are declared as metadata
+        if (isMetadataType(type1) && isMetadataType(type2)) {
+            return true;
+        }
+        return false;
     }
 
     protected void writeActualArgs(Invoke call) {
