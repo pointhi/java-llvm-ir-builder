@@ -380,6 +380,7 @@ public class IRWriterConstantVisitor extends IRWriterBaseVisitor implements Cons
 
     public void visit(MetadataConstant metadataConstant) {
         write("!");
+        // TODO: see SourceModel.handleDebugIntrinsic to get correct symbol and reference to it
         write(Long.toString(metadataConstant.getValue()));
     }
 

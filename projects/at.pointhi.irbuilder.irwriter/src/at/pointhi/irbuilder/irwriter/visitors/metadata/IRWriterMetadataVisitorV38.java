@@ -67,6 +67,7 @@ import com.oracle.truffle.llvm.parser.metadata.MDTemplateValue;
 import com.oracle.truffle.llvm.parser.metadata.MDValue;
 import com.oracle.truffle.llvm.parser.metadata.MDVoidNode;
 import com.oracle.truffle.llvm.parser.metadata.MetadataVisitor;
+import com.oracle.truffle.llvm.parser.metadata.MDBasicType.DwarfEncoding;
 import com.oracle.truffle.llvm.runtime.types.symbols.Symbol;
 
 import at.pointhi.irbuilder.irwriter.IRWriter;
@@ -99,36 +100,8 @@ public class IRWriterMetadataVisitorV38 extends IRWriterBaseVisitor implements M
             writer.writeKeyValue("align", alias.getAlign());
         }
 
-        String encoding = null;
-        switch (alias.getEncoding()) {
-            case DW_ATE_ADDRESS:
-                encoding = "DW_ATE_address";
-                break;
-            case DW_ATE_BOOLEAN:
-                encoding = "DW_ATE_boolean";
-                break;
-            case DW_ATE_FLOAT:
-                encoding = "DW_ATE_float";
-                break;
-            case DW_ATE_SIGNED:
-                encoding = "DW_ATE_signed";
-                break;
-            case DW_ATE_SIGNED_CHAR:
-                encoding = "DW_ATE_signed_char";
-                break;
-            case DW_ATE_UNSIGNED:
-                encoding = "DW_ATE_unsigned";
-                break;
-            case DW_ATE_UNSIGNED_CHAR:
-                encoding = "DW_ATE_unsigned_char";
-                break;
-            default:
-                throw new RuntimeException("Unexpected encoding!");
-
-        }
-
-        if (encoding != null) {
-            writer.writeRawKeyValue("encoding", encoding);
+        if (alias.getEncoding() != DwarfEncoding.UNKNOWN) {
+            writer.writeRawKeyValue("encoding", MetadataUtil.decode(alias.getEncoding()));
         }
 
         writer.writeEplioge();
@@ -138,7 +111,7 @@ public class IRWriterMetadataVisitorV38 extends IRWriterBaseVisitor implements M
     public void visit(MDCompileUnit alias) {
         MDNodeWriter writer = new MDNodeWriter("DICompileUnit", true);
 
-        writer.writeRawKeyValue("language", alias.getLanguage().toString());
+        writer.writeRawKeyValue("language", MetadataUtil.decode(alias.getLanguage()));
         writer.writeKeyValue("file", alias.getFile());
         writer.writeKeyValue("producer", alias.getProducer());
         writer.writeKeyValue("isOptimized", alias.isOptimized());
@@ -162,27 +135,7 @@ public class IRWriterMetadataVisitorV38 extends IRWriterBaseVisitor implements M
     public void visit(MDCompositeType alias) {
         MDNodeWriter writer = new MDNodeWriter("DICompositeType");
 
-        switch (alias.getTag()) {
-            case DW_TAG_ARRAY_TYPE:
-                writer.writeRawKeyValue("tag", "DW_TAG_array_type");
-                break;
-            case DW_TAG_CLASS_TYPE:
-                writer.writeRawKeyValue("tag", "DW_TAG_class_type");
-                break;
-            case DW_TAG_ENUMERATION_TYPE:
-                writer.writeRawKeyValue("tag", "DW_TAG_enumeration_type");
-                break;
-            case DW_TAG_STRUCTURE_TYPE:
-                writer.writeRawKeyValue("tag", "DW_TAG_structure_type");
-                break;
-            case DW_TAG_UNION_TYPE:
-                writer.writeRawKeyValue("tag", "DW_TAG_union_type");
-                break;
-            case DW_TAG_VECTOR_TYPE: // TODO: implement
-            case DW_TAG_SUBROUTINE_TYPE:
-            default:
-                throw new RuntimeException("unknown tag: " + alias.getTag());
-        }
+        writer.writeRawKeyValue("tag", MetadataUtil.decode(alias.getTag()));
         writer.writeKeyValueIfNotEmpty("baseType", alias.getBaseType());
         writer.writeKeyValue("name", alias.getName());
         writer.writeKeyValue("file", alias.getFile());
@@ -191,7 +144,7 @@ public class IRWriterMetadataVisitorV38 extends IRWriterBaseVisitor implements M
         if (alias.getAlign() != 0) {
             writer.writeKeyValue("align", alias.getAlign());
         }
-        writer.writeKeyValue("identifier", alias.getIdentifier());
+        writer.writeKeyValueIfNotEmpty("identifier", alias.getIdentifier());
         writer.writeKeyValue("elements", alias.getMembers());
 
         writer.writeEplioge();
@@ -201,39 +154,7 @@ public class IRWriterMetadataVisitorV38 extends IRWriterBaseVisitor implements M
     public void visit(MDDerivedType alias) {
         MDNodeWriter writer = new MDNodeWriter("DIDerivedType");
 
-        switch (alias.getTag()) {
-            case DW_TAG_MEMBER:
-                writer.writeRawKeyValue("tag", "DW_TAG_member");
-                break;
-            case DW_TAG_POINTER_TYPE:
-                writer.writeRawKeyValue("tag", "DW_TAG_pointer_type");
-                break;
-            case DW_TAG_REFERENCE_TYPE:
-                writer.writeRawKeyValue("tag", "DW_TAG_reference_type");
-                break;
-            case DW_TAG_TYPEDEF:
-                writer.writeRawKeyValue("tag", "DW_TAG_typedef");
-                break;
-            case DW_TAG_INHERITANCE:
-                writer.writeRawKeyValue("tag", "DW_TAG_inheritance");
-                break;
-            case DW_TAG_CONST_TYPE:
-                writer.writeRawKeyValue("tag", "DW_TAG_const_type");
-                break;
-            case DW_TAG_FRIEND:
-                writer.writeRawKeyValue("tag", "DW_TAG_friend");
-                break;
-            case DW_TAG_VOLATILE_TYPE:
-                writer.writeRawKeyValue("tag", "DW_TAG_volatile_type");
-                break;
-            case DW_TAG_RESTRICT_TYPE:
-                writer.writeRawKeyValue("tag", "DW_TAG_restrict_type");
-                break;
-
-            case DW_TAG_FORMAL_PARAMETER: // TODO: implement
-            default:
-                throw new RuntimeException("unknown tag: " + alias.getTag());
-        }
+        writer.writeRawKeyValue("tag", MetadataUtil.decode(alias.getTag()));
         writer.writeKeyValueIfNotEmpty("baseType", alias.getBaseType());
         writer.writeKeyValueIfNotEmpty("name", alias.getName());
         writer.writeKeyValue("size", alias.getSize());
