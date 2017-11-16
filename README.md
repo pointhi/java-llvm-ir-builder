@@ -53,5 +53,5 @@ mx irbuilder-test38 # Run LLVM 3.8 compatible irwriter tests (compile testsuite 
 ```
 
 ```bash
-mx irbuilder-testgen32 # Create LLVM 3.8 compatible LLVM-IR Testcases from scratch and use them to test Sulong
+mx irbuilder-testgen38 # Create LLVM 3.8 compatible LLVM-IR Testcases from scratch and use them to test Sulong
 ```
